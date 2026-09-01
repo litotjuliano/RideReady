@@ -8,6 +8,8 @@ namespace RideBooking.Services
     public class DriverPortalService : IDriverPortalService
     {
         private static readonly string[] DriverTripStatuses = { "Picked_Up", "In_Transit", "Dropped_Off", "Completed" };
+        private static readonly string[] TerminalBookingStatuses = { "Cancelled", "No_Show" };
+        private static readonly string[] HiddenFromDriverListStatuses = { "Cancelled", "No_Show", "Completed" };
 
         private readonly RideBookingDbContext _context;
 
@@ -35,7 +37,7 @@ namespace RideBooking.Services
                 .ToListAsync();
 
             return assignments
-                .Where(a => a.Booking != null)
+                .Where(a => a.Booking != null && !HiddenFromDriverListStatuses.Contains(a.Booking.Status))
                 .OrderBy(a => a.Booking!.PickupDate)
                 .ThenBy(a => a.Booking!.PickupTime)
                 .Select(a => new DriverAssignmentListItemViewModel
@@ -64,6 +66,11 @@ namespace RideBooking.Services
             var booking = assignment.Booking ?? await _context.Bookings.FindAsync(assignment.BookingId)
                 ?? throw new InvalidOperationException($"Booking {assignment.BookingId} not found");
 
+            if (TerminalBookingStatuses.Contains(booking.Status))
+            {
+                throw new InvalidOperationException($"Booking is '{booking.Status}' and can no longer be accepted");
+            }
+
             assignment.AssignmentStatus = "Accepted";
             assignment.AcceptedAt = DateTime.UtcNow;
 
@@ -87,6 +94,11 @@ namespace RideBooking.Services
             var assignment = await GetOwnedAssignmentAsync(assignmentId, driverId);
             var booking = assignment.Booking ?? await _context.Bookings.FindAsync(assignment.BookingId)
                 ?? throw new InvalidOperationException($"Booking {assignment.BookingId} not found");
+
+            if (TerminalBookingStatuses.Contains(booking.Status))
+            {
+                throw new InvalidOperationException($"Booking is '{booking.Status}' and can no longer be rejected");
+            }
 
             assignment.AssignmentStatus = "Rejected";
             assignment.RejectedAt = DateTime.UtcNow;
@@ -119,6 +131,11 @@ namespace RideBooking.Services
 
             var booking = await _context.Bookings.FindAsync(bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            if (TerminalBookingStatuses.Contains(booking.Status))
+            {
+                throw new InvalidOperationException($"Booking is '{booking.Status}' and can no longer be updated");
+            }
 
             var previousStatus = booking.Status;
             booking.Status = newStatus;

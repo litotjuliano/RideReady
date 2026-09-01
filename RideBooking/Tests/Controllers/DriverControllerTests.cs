@@ -33,9 +33,45 @@ namespace RideBooking.Tests.Controllers
                             new[] { new Claim(ClaimTypes.NameIdentifier, driverId.ToString()) },
                             "TestAuth"))
                     }
-                }
+                },
+                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+                    new DefaultHttpContext(),
+                    new NullTempDataProvider())
             };
             return controller;
+        }
+
+        private async Task<(RideBookingDbContext Context, Driver Driver, Booking Booking, DriverAssignment Assignment)> SeedAssignedBookingAsync()
+        {
+            var context = GetInMemoryDbContext();
+            var driver = new Driver { Name = "Ah Seng", Phone = "0123456789", VehicleType = "Car", PinHash = PasswordHasher.Hash("1234") };
+            context.Drivers.Add(driver);
+
+            var customer = new Customer { Name = "Uncle Sim", Phone = "0125183838", Email = "sim@email.com" };
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var booking = new Booking
+            {
+                BookingReference = "RR-TEST0004",
+                CustomerId = customer.Id,
+                PickupLocation = "KL Sentral",
+                Destination = "KLIA Terminal 1",
+                PickupDate = new DateOnly(2026, 9, 10),
+                PickupTime = new TimeOnly(9, 0),
+                Passengers = 1,
+                Bags = 0,
+                RequestedVehicleType = "Car",
+                Status = "Driver_Assigned"
+            };
+            context.Bookings.Add(booking);
+            await context.SaveChangesAsync();
+
+            var assignment = new DriverAssignment { BookingId = booking.Id, DriverId = driver.Id, AssignmentStatus = "Pending" };
+            context.DriverAssignments.Add(assignment);
+            await context.SaveChangesAsync();
+
+            return (context, driver, booking, assignment);
         }
 
         [Fact]
@@ -80,6 +116,60 @@ namespace RideBooking.Tests.Controllers
             var view = Assert.IsType<ViewResult>(result);
             var model = Assert.IsAssignableFrom<List<DriverAssignmentListItemViewModel>>(view.Model);
             Assert.Single(model);
+        }
+
+        [Fact]
+        public async Task Accept_ForAssignmentBelongingToAnotherDriver_RedirectsWithErrorMessageInsteadOfThrowing()
+        {
+            // Arrange
+            var (context, _, _, assignment) = await SeedAssignedBookingAsync();
+            var service = new DriverPortalService(context);
+            var controller = WithAuthenticatedDriver(service, driverId: 9999);
+
+            // Act
+            var result = await controller.Accept(assignment.Id);
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.NotNull(controller.TempData["ErrorMessage"]);
+        }
+
+        [Fact]
+        public async Task Reject_ForAssignmentBelongingToAnotherDriver_RedirectsWithErrorMessageInsteadOfThrowing()
+        {
+            // Arrange
+            var (context, _, _, assignment) = await SeedAssignedBookingAsync();
+            var service = new DriverPortalService(context);
+            var controller = WithAuthenticatedDriver(service, driverId: 9999);
+
+            // Act
+            var result = await controller.Reject(assignment.Id);
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.NotNull(controller.TempData["ErrorMessage"]);
+        }
+
+        [Fact]
+        public async Task UpdateStatus_WithInvalidStatus_RedirectsWithErrorMessageInsteadOfThrowing()
+        {
+            // Arrange
+            var (context, driver, booking, _) = await SeedAssignedBookingAsync();
+            var service = new DriverPortalService(context);
+            var controller = WithAuthenticatedDriver(service, driver.Id);
+
+            // Act
+            var result = await controller.UpdateStatus(booking.Id, "NotARealStatus");
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.NotNull(controller.TempData["ErrorMessage"]);
+        }
+
+        internal class NullTempDataProvider : Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider
+        {
+            public IDictionary<string, object> LoadTempData(HttpContext context) => new Dictionary<string, object>();
+            public void SaveTempData(HttpContext context, IDictionary<string, object> values) { }
         }
     }
 }

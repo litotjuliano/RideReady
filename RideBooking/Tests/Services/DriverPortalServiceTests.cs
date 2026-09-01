@@ -126,6 +126,36 @@ namespace RideBooking.Tests.Services
         }
 
         [Fact]
+        public async Task AcceptAssignmentAsync_WhenBookingWasCancelled_ThrowsInvalidOperationException()
+        {
+            var context = GetInMemoryDbContext();
+            var (driver, booking, assignment) = await SeedAssignedBookingAsync(context);
+            booking.Status = "Cancelled";
+            await context.SaveChangesAsync();
+            var service = new DriverPortalService(context);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.AcceptAssignmentAsync(assignment.Id, driver.Id));
+
+            var updatedAssignment = await context.DriverAssignments.FindAsync(assignment.Id);
+            Assert.Equal("Pending", updatedAssignment!.AssignmentStatus);
+        }
+
+        [Fact]
+        public async Task GetAssignmentsAsync_ExcludesCancelledBookings()
+        {
+            var context = GetInMemoryDbContext();
+            var (driver, booking, _) = await SeedAssignedBookingAsync(context);
+            booking.Status = "Cancelled";
+            await context.SaveChangesAsync();
+            var service = new DriverPortalService(context);
+
+            var result = await service.GetAssignmentsAsync(driver.Id);
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
         public async Task RejectAssignmentAsync_SetsAssignmentRejectedAndBookingBackToNew()
         {
             var context = GetInMemoryDbContext();

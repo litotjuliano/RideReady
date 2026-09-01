@@ -26,7 +26,16 @@ namespace RideBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(int assignmentId)
         {
-            await _driverPortalService.AcceptAssignmentAsync(assignmentId, GetCurrentDriverId());
+            try
+            {
+                await _driverPortalService.AcceptAssignmentAsync(assignmentId, GetCurrentDriverId());
+                TempData["SuccessMessage"] = "Trip accepted.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -34,7 +43,16 @@ namespace RideBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int assignmentId)
         {
-            await _driverPortalService.RejectAssignmentAsync(assignmentId, GetCurrentDriverId());
+            try
+            {
+                await _driverPortalService.RejectAssignmentAsync(assignmentId, GetCurrentDriverId());
+                TempData["SuccessMessage"] = "Trip rejected.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -42,7 +60,16 @@ namespace RideBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int bookingId, string newStatus)
         {
-            await _driverPortalService.UpdateTripStatusAsync(bookingId, GetCurrentDriverId(), newStatus);
+            try
+            {
+                await _driverPortalService.UpdateTripStatusAsync(bookingId, GetCurrentDriverId(), newStatus);
+                TempData["SuccessMessage"] = "Status updated.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

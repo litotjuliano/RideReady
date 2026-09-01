@@ -15,6 +15,15 @@
     </form>
 </div>
 
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
 <div class="ride-card mb-4 d-flex justify-content-between align-items-center">
     <div>
         <p class="fw-semibold mb-1">Location sharing</p>

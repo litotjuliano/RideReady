@@ -17,8 +17,8 @@
                 bookingId: bookingId ? parseInt(bookingId, 10) : null,
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
-                accuracyMeters: position.coords.accuracy ? Math.round(position.coords.accuracy) : null,
-                speedKmh: position.coords.speed ? position.coords.speed * 3.6 : null
+                accuracyMeters: position.coords.accuracy != null ? Math.round(position.coords.accuracy) : null,
+                speedKmh: position.coords.speed != null ? position.coords.speed * 3.6 : null
             };
 
             fetch('/Driver/ReportLocation', {
