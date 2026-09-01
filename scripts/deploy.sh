@@ -13,9 +13,13 @@
 #   "previous image" left to fall back to once a new deploy has pulled. To
 #   roll back, pull a specific, immutable semantic-version tag from the
 #   registry instead (release.yml pushes one alongside the branch tag on
-#   every release, e.g. "1.4.2"). Find the version that was running before a
-#   bad deploy from this script's own "Deploying ..." log line on a prior
-#   run, then SSH into the droplet and run:
+#   every release, e.g. "1.4.2"). This script's own "Deploying ..." log line
+#   only shows the branch tag deployed and when — it can't tell you which
+#   version was behind that tag at any given moment. Find the actual
+#   known-good version to roll back to from the repo's GitHub Releases page
+#   (published automatically by release.yml's semantic-release step) or
+#   `git tag` / `git log --oneline --decorate`, then SSH into the droplet
+#   and run:
 #
 #     cd /opt/ridebooking
 #     IMAGE_TAG=<previous-known-good-version-tag> docker compose up -d
