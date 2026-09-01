@@ -828,6 +828,44 @@ Complete logging of:
 
 ---
 
-**Document Version:** 1.0.0  
+---
+
+## 20. UI/Visual Design Reference
+
+A working prototype ("RideReady") was reviewed for visual style only — its functional flows (no pricing shown, WhatsApp-only driver assignment, ad-hoc drivers, no accounts) do **not** apply; the system continues to follow Sections 3-11 above. Razor views for the Customer Booking Portal, Admin Dashboard, and Driver Portal should be styled with Bootstrap 5 + custom CSS to approximate this look, not by adopting Tailwind.
+
+### 20.1 Color Palette
+
+| Role | Hex | Usage |
+|---|---|---|
+| Primary dark green | `#173f2b` | Headers, primary buttons |
+| Accent green (mid) | `#20653d` | Links, hover states |
+| Accent green (bright) | `#2b7a4b` | Badges, secondary accents |
+| Accent green (vivid) | `#1f9d55` | CTA highlights |
+| WhatsApp green | `#25D366` | WhatsApp-related actions only |
+| Background tint 1 | `#f4f7f3` | Page background (customer-facing) |
+| Background tint 2 | `#eef3ef` | Page background (admin/driver) |
+| Background tint 3 | `#e8f4eb` | Badge/card fill |
+| Background tint 4 | `#dff3e5` | Pill/tag fill |
+| Border | `#dce5de` / `#d7e2da` / `#cbdacf` | Card and input borders |
+| Text primary | `#132219` | Headings, body text |
+| Text muted | `#5b6960` / `#68756d` | Secondary/helper text |
+
+### 20.2 Layout Patterns
+
+- Cards use large border radii (16-28px) with soft box-shadows, not sharp edges or heavy borders
+- Buttons and status badges are pill-shaped (`border-radius: 999px`), bold, uppercase for badges
+- Admin dashboard booking queue renders as a vertical list of cards, not a dense data-grid table
+- Customer booking page uses a two-column layout: marketing copy/steps on the left, the form in a sticky card on the right (collapses to single column on mobile)
+- Header bars are simple: a colored square logo mark + brand wordmark, with nav links right-aligned
+- Status indicators are small, uppercase, bold pill badges with a tinted background matching the status
+
+### 20.3 Typography
+
+The prototype uses Geist/Geist Mono. Since the project uses Bootstrap 5 rather than Tailwind, substitute a comparable clean sans-serif (e.g. Inter via Google Fonts) for headings and body text, keeping the same visual weight and letter-spacing feel.
+
+---
+
+**Document Version:** 1.1.0  
 **Last Updated:** 2026-09-01  
 **Next Review:** After Phase 1 completion
