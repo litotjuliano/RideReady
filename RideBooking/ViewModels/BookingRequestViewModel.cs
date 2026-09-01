@@ -5,7 +5,7 @@ namespace RideBooking.ViewModels
     public class BookingRequestViewModel
     {
         [Required(ErrorMessage = "Name is required")]
-        [StringLength(255, MinimumLength = 3)]
+        [StringLength(100, MinimumLength = 3)]
         public string CustomerName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Phone is required")]

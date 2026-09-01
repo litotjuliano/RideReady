@@ -131,9 +131,12 @@ namespace RideBooking.Services
 
         private string GenerateBookingReference()
         {
-            var timestamp = DateTime.UtcNow.Ticks.ToString().TakeLast(6);
-            var random = new Random().Next(1000, 9999).ToString("X");
-            return $"RR-{string.Concat(timestamp)}{random}".ToUpper();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            var reference = new string(Enumerable.Range(0, 8)
+                .Select(_ => chars[random.Next(chars.Length)])
+                .ToArray());
+            return $"RR-{reference}";
         }
 
         private string FormatDuration(decimal hours)
