@@ -13,7 +13,7 @@
 This is a **standalone vehicle booking platform** for managing car, van, and bus bookings. The system enables customers to book rides through a web portal, allows admins/operators to manage bookings and assign drivers, and enables drivers to accept/reject assignments via a dedicated portal.
 
 **Key Features:**
-- Customer booking form with real-time pricing
+- Customer booking form with admin-only fare estimation
 - Multi-stage admin dashboard for booking & driver management
 - Driver acceptance/rejection workflow
 - Multi-channel notifications (Email, WhatsApp, Google Calendar, SMS)
@@ -391,9 +391,9 @@ CREATE TABLE operator_calendar_events (
 |-------|------|-----------|----------|
 | Special Notes | Textarea | Max 500 chars | No |
 
-**Step 5: Pricing Review**
+**Step 5: Review & Confirm**
 
-- Display calculated quote with breakdown
+- Review entered trip details (no fare/price shown — pricing is admin-only, see Section 6)
 - Show payment method options (Pay at Pickup, Bank Transfer)
 - Accept terms & conditions checkbox
 - Confirm Booking button
@@ -417,6 +417,8 @@ CREATE TABLE operator_calendar_events (
 ---
 
 ## 6. Pricing System
+
+**Visibility:** Admin-only. The system calculates and stores a fare estimate for every booking, but this is never displayed to the customer during or after booking — only in the Admin Dashboard's booking details (Section 3.2), for the operator's reference when assigning a driver or reconciling payment.
 
 ### 6.1 Pricing Calculation Logic
 
@@ -757,7 +759,7 @@ Complete logging of:
 
 ## 16. Success Criteria
 
-✅ Customers can book rides with pricing quote  
+✅ Customers can book rides; admins can view the fare estimate for each booking  
 ✅ Operators receive notifications on multiple channels  
 ✅ Drivers accept/reject assignments within 5 minutes  
 ✅ Booking status tracked from creation to completion  
@@ -866,6 +868,6 @@ The prototype uses Geist/Geist Mono. Since the project uses Bootstrap 5 rather t
 
 ---
 
-**Document Version:** 1.1.0  
+**Document Version:** 1.2.0  
 **Last Updated:** 2026-09-01  
 **Next Review:** After Phase 1 completion
