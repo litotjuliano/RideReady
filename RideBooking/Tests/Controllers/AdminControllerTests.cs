@@ -18,13 +18,26 @@ namespace RideBooking.Tests.Controllers
             return new RideBookingDbContext(options);
         }
 
+        private static INotificationService BuildNotificationService(RideBookingDbContext context) =>
+            new NotificationService(
+                context,
+                new RideBooking.Tests.Services.FakeEmailSender(),
+                new RideBooking.Tests.Services.FakeWhatsAppSender(),
+                new RideBooking.Tests.Services.FakeCalendarSyncService(),
+                Microsoft.Extensions.Options.Options.Create(new EmailSettings
+                {
+                    SenderEmail = "noreply@ridebooking.my",
+                    SenderName = "RideBooking",
+                    OperatorEmail = "operator@ridebooking.my"
+                }));
+
         [Fact]
         public async Task Index_ReturnsViewWithBookingList()
         {
             // Arrange
             var context = GetInMemoryDbContext();
             var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service);
+            var controller = new AdminController(service, BuildNotificationService(context));
 
             // Act
             var result = await controller.Index();
@@ -40,7 +53,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var context = GetInMemoryDbContext();
             var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service)
+            var controller = new AdminController(service, BuildNotificationService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -105,7 +118,7 @@ namespace RideBooking.Tests.Controllers
         {
             // Arrange
             var (context, booking, driver) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context))
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -127,7 +140,7 @@ namespace RideBooking.Tests.Controllers
         {
             // Arrange
             var (context, _, driver) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context))
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -147,7 +160,7 @@ namespace RideBooking.Tests.Controllers
         {
             // Arrange
             var (context, booking, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context))
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -169,7 +182,7 @@ namespace RideBooking.Tests.Controllers
         {
             // Arrange
             var (context, booking, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context))
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),

@@ -21,9 +21,22 @@ namespace RideBooking.Tests.Controllers
             return new RideBookingDbContext(options);
         }
 
-        private static DriverController WithAuthenticatedDriver(IDriverPortalService service, int driverId)
+        private static INotificationService BuildNotificationService(RideBookingDbContext context) =>
+            new NotificationService(
+                context,
+                new RideBooking.Tests.Services.FakeEmailSender(),
+                new RideBooking.Tests.Services.FakeWhatsAppSender(),
+                new RideBooking.Tests.Services.FakeCalendarSyncService(),
+                Microsoft.Extensions.Options.Options.Create(new EmailSettings
+                {
+                    SenderEmail = "noreply@ridebooking.my",
+                    SenderName = "RideBooking",
+                    OperatorEmail = "operator@ridebooking.my"
+                }));
+
+        private static DriverController WithAuthenticatedDriver(RideBookingDbContext context, IDriverPortalService service, int driverId)
         {
-            var controller = new DriverController(service)
+            var controller = new DriverController(service, BuildNotificationService(context))
             {
                 ControllerContext = new ControllerContext
                 {
@@ -107,7 +120,7 @@ namespace RideBooking.Tests.Controllers
             await context.SaveChangesAsync();
 
             var service = new DriverPortalService(context);
-            var controller = WithAuthenticatedDriver(service, driver.Id);
+            var controller = WithAuthenticatedDriver(context, service, driver.Id);
 
             // Act
             var result = await controller.Index();
@@ -124,7 +137,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var (context, _, _, assignment) = await SeedAssignedBookingAsync();
             var service = new DriverPortalService(context);
-            var controller = WithAuthenticatedDriver(service, driverId: 9999);
+            var controller = WithAuthenticatedDriver(context, service, driverId: 9999);
 
             // Act
             var result = await controller.Accept(assignment.Id);
@@ -140,7 +153,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var (context, _, _, assignment) = await SeedAssignedBookingAsync();
             var service = new DriverPortalService(context);
-            var controller = WithAuthenticatedDriver(service, driverId: 9999);
+            var controller = WithAuthenticatedDriver(context, service, driverId: 9999);
 
             // Act
             var result = await controller.Reject(assignment.Id);
@@ -156,7 +169,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var (context, driver, booking, _) = await SeedAssignedBookingAsync();
             var service = new DriverPortalService(context);
-            var controller = WithAuthenticatedDriver(service, driver.Id);
+            var controller = WithAuthenticatedDriver(context, service, driver.Id);
 
             // Act
             var result = await controller.UpdateStatus(booking.Id, "NotARealStatus");

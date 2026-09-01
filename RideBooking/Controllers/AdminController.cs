@@ -9,10 +9,12 @@ namespace RideBooking.Controllers
     public class AdminController : Controller
     {
         private readonly IDriverAssignmentService _driverAssignmentService;
+        private readonly INotificationService _notificationService;
 
-        public AdminController(IDriverAssignmentService driverAssignmentService)
+        public AdminController(IDriverAssignmentService driverAssignmentService, INotificationService notificationService)
         {
             _driverAssignmentService = driverAssignmentService;
+            _notificationService = notificationService;
         }
 
         public async Task<IActionResult> Index()
@@ -35,6 +37,7 @@ namespace RideBooking.Controllers
             try
             {
                 await _driverAssignmentService.AssignDriverAsync(model.BookingId, model.DriverId);
+                await _notificationService.SendDriverAssignedNotificationAsync(model.BookingId, model.DriverId);
                 TempData["SuccessMessage"] = "Driver assigned.";
             }
             catch (InvalidOperationException ex)
@@ -74,6 +77,16 @@ namespace RideBooking.Controllers
             {
                 await _driverAssignmentService.UpdateBookingStatusAsync(
                     model.BookingId, model.NewStatus, User?.Identity?.Name ?? "Admin");
+
+                if (model.NewStatus == "Cancelled")
+                {
+                    await _notificationService.SendBookingCancelledNotificationAsync(model.BookingId);
+                }
+                else if (model.NewStatus == "Completed")
+                {
+                    await _notificationService.SendBookingCompletedNotificationAsync(model.BookingId);
+                }
+
                 TempData["SuccessMessage"] = "Status updated.";
             }
             catch (InvalidOperationException ex)

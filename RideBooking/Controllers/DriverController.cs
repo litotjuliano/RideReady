@@ -10,10 +10,12 @@ namespace RideBooking.Controllers
     public class DriverController : Controller
     {
         private readonly IDriverPortalService _driverPortalService;
+        private readonly INotificationService _notificationService;
 
-        public DriverController(IDriverPortalService driverPortalService)
+        public DriverController(IDriverPortalService driverPortalService, INotificationService notificationService)
         {
             _driverPortalService = driverPortalService;
+            _notificationService = notificationService;
         }
 
         public async Task<IActionResult> Index()
@@ -28,7 +30,8 @@ namespace RideBooking.Controllers
         {
             try
             {
-                await _driverPortalService.AcceptAssignmentAsync(assignmentId, GetCurrentDriverId());
+                var bookingId = await _driverPortalService.AcceptAssignmentAsync(assignmentId, GetCurrentDriverId());
+                await _notificationService.SendDriverAcceptedNotificationAsync(bookingId);
                 TempData["SuccessMessage"] = "Trip accepted.";
             }
             catch (InvalidOperationException ex)

@@ -105,13 +105,14 @@ namespace RideBooking.Tests.Services
             var (driver, booking, assignment) = await SeedAssignedBookingAsync(context);
             var service = new DriverPortalService(context);
 
-            await service.AcceptAssignmentAsync(assignment.Id, driver.Id);
+            var bookingId = await service.AcceptAssignmentAsync(assignment.Id, driver.Id);
 
             var updatedAssignment = await context.DriverAssignments.FindAsync(assignment.Id);
             var updatedBooking = await context.Bookings.FindAsync(booking.Id);
             Assert.Equal("Accepted", updatedAssignment!.AssignmentStatus);
             Assert.NotNull(updatedAssignment.AcceptedAt);
             Assert.Equal("Confirmed", updatedBooking!.Status);
+            Assert.Equal(booking.Id, bookingId);
         }
 
         [Fact]

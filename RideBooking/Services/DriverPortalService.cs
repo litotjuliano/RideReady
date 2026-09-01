@@ -60,7 +60,7 @@ namespace RideBooking.Services
                 .ToList();
         }
 
-        public async Task AcceptAssignmentAsync(int assignmentId, int driverId)
+        public async Task<int> AcceptAssignmentAsync(int assignmentId, int driverId)
         {
             var assignment = await GetOwnedAssignmentAsync(assignmentId, driverId);
             var booking = assignment.Booking ?? await _context.Bookings.FindAsync(assignment.BookingId)
@@ -87,6 +87,8 @@ namespace RideBooking.Services
             });
 
             await _context.SaveChangesAsync();
+
+            return booking.Id;
         }
 
         public async Task RejectAssignmentAsync(int assignmentId, int driverId)

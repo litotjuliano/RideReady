@@ -26,6 +26,19 @@ namespace RideBooking.Tests.Controllers
             return new RideBookingDbContext(options);
         }
 
+        private static INotificationService BuildNotificationService(RideBookingDbContext context) =>
+            new NotificationService(
+                context,
+                new RideBooking.Tests.Services.FakeEmailSender(),
+                new RideBooking.Tests.Services.FakeWhatsAppSender(),
+                new RideBooking.Tests.Services.FakeCalendarSyncService(),
+                Microsoft.Extensions.Options.Options.Create(new EmailSettings
+                {
+                    SenderEmail = "noreply@ridebooking.my",
+                    SenderName = "RideBooking",
+                    OperatorEmail = "operator@ridebooking.my"
+                }));
+
         private async Task<RideBookingDbContext> GetSeededDbContextAsync()
         {
             var context = GetInMemoryDbContext();
@@ -66,7 +79,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var context = await GetSeededDbContextAsync();
             var service = new BookingService(context);
-            var controller = new BookingController(service)
+            var controller = new BookingController(service, BuildNotificationService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -88,7 +101,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var context = await GetSeededDbContextAsync();
             var service = new BookingService(context);
-            var controller = new BookingController(service)
+            var controller = new BookingController(service, BuildNotificationService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -112,7 +125,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var context = await GetSeededDbContextAsync();
             var service = new BookingService(context);
-            var controller = new BookingController(service);
+            var controller = new BookingController(service, BuildNotificationService(context));
             controller.ModelState.AddModelError("CustomerName", "Name is required");
             var request = ValidRequest();
             request.CustomerName = string.Empty;

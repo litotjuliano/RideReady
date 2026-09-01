@@ -7,10 +7,12 @@ namespace RideBooking.Controllers
     public class BookingController : Controller
     {
         private readonly IBookingService _bookingService;
+        private readonly INotificationService _notificationService;
 
-        public BookingController(IBookingService bookingService)
+        public BookingController(IBookingService bookingService, INotificationService notificationService)
         {
             _bookingService = bookingService;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -35,6 +37,7 @@ namespace RideBooking.Controllers
             try
             {
                 var booking = await _bookingService.CreateBookingAsync(request);
+                await _notificationService.SendBookingCreatedNotificationAsync(booking.Id);
                 TempData["BookingReference"] = booking.BookingReference;
                 return RedirectToAction(nameof(Confirmation));
             }

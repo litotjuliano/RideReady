@@ -29,6 +29,17 @@ builder.Services.AddScoped<ILocationService>(sp => sp.GetRequiredService<GoogleM
 builder.Services.AddScoped<IDriverAssignmentService, DriverAssignmentService>();
 builder.Services.AddScoped<IDriverPortalService, DriverPortalService>();
 
+// Register notification services (Email, WhatsApp, Google Calendar)
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.Configure<WhatsAppSettings>(builder.Configuration.GetSection("WhatsAppSettings"));
+builder.Services.Configure<GoogleCalendarSettings>(builder.Configuration.GetSection("GoogleCalendarSettings"));
+
+builder.Services.AddHttpClient<WhatsAppCloudApiSender>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IWhatsAppSender>(sp => sp.GetRequiredService<WhatsAppCloudApiSender>());
+builder.Services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
 builder.Services.Configure<AdminCredentialsSettings>(builder.Configuration.GetSection("AdminCredentials"));
 
 builder.Services.AddAuthentication()
