@@ -2,6 +2,7 @@ using RideBooking.Data;
 using RideBooking.Models;
 using RideBooking.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace RideBooking.Services
 {
@@ -18,60 +19,80 @@ namespace RideBooking.Services
 
         public async Task<Booking> CreateBookingAsync(BookingRequestViewModel request)
         {
-            // Create or get customer
-            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Phone == request.CustomerPhone);
-            if (customer == null)
+            // Validate future date and operating hours (6AM-12AM)
+            var now = DateTime.UtcNow;
+            var requestedDateTime = request.PickupDate.ToDateTime(request.PickupTime);
+
+            if (requestedDateTime < now)
+                throw new InvalidOperationException("Pickup date and time must be in the future");
+
+            if (request.PickupTime.Hour < 6 || request.PickupTime.Hour >= 24)
+                throw new InvalidOperationException("Bookings only available between 6AM and 12AM (midnight)");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                customer = new Customer
+                // Create or get customer
+                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Phone == request.CustomerPhone);
+                if (customer == null)
                 {
-                    Name = request.CustomerName,
-                    Phone = request.CustomerPhone,
-                    Email = request.CustomerEmail
+                    customer = new Customer
+                    {
+                        Name = request.CustomerName,
+                        Phone = request.CustomerPhone,
+                        Email = request.CustomerEmail
+                    };
+                    _context.Customers.Add(customer);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Create booking
+                var booking = new Booking
+                {
+                    BookingReference = GenerateBookingReference(),
+                    CustomerId = customer.Id,
+                    PickupLocation = request.PickupLocation,
+                    Destination = request.Destination,
+                    PickupDate = request.PickupDate,
+                    PickupTime = request.PickupTime,
+                    Passengers = request.Passengers,
+                    Bags = request.Bags,
+                    RequestedVehicleType = request.VehicleType,
+                    Notes = request.Notes,
+                    Status = "New"
                 };
-                _context.Customers.Add(customer);
+
+                _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
+
+                // Create quote
+                var quote = await GetQuoteAsync(request);
+                var quoteEntity = new BookingQuote
+                {
+                    BookingId = booking.Id,
+                    BaseFare = quote.BaseFare,
+                    DistanceKm = quote.DistanceKm,
+                    DistanceCharge = quote.DistanceCharge,
+                    DurationHours = quote.DurationHours,
+                    TimeCharge = quote.TimeCharge,
+                    PassengerSurcharge = quote.PassengerSurcharge,
+                    LuggageFee = quote.LuggageFee,
+                    Subtotal = quote.Subtotal,
+                    ServiceTax = quote.ServiceTax,
+                    TotalEstimatedFare = quote.TotalEstimatedFare,
+                    PaymentMethod = "Pay_at_Pickup"
+                };
+                _context.BookingQuotes.Add(quoteEntity);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return booking;
             }
-
-            // Create booking
-            var booking = new Booking
+            catch
             {
-                BookingReference = GenerateBookingReference(),
-                CustomerId = customer.Id,
-                PickupLocation = request.PickupLocation,
-                Destination = request.Destination,
-                PickupDate = request.PickupDate,
-                PickupTime = request.PickupTime,
-                Passengers = request.Passengers,
-                Bags = request.Bags,
-                RequestedVehicleType = request.VehicleType,
-                Notes = request.Notes,
-                Status = "New"
-            };
-
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-
-            // Create quote
-            var quote = await GetQuoteAsync(request);
-            var quoteEntity = new BookingQuote
-            {
-                BookingId = booking.Id,
-                BaseFare = quote.BaseFare,
-                DistanceKm = quote.DistanceKm,
-                DistanceCharge = quote.DistanceCharge,
-                DurationHours = quote.DurationHours,
-                TimeCharge = quote.TimeCharge,
-                PassengerSurcharge = quote.PassengerSurcharge,
-                LuggageFee = quote.LuggageFee,
-                Subtotal = quote.Subtotal,
-                ServiceTax = quote.ServiceTax,
-                TotalEstimatedFare = quote.TotalEstimatedFare,
-                PaymentMethod = "Pay_at_Pickup"
-            };
-            _context.BookingQuotes.Add(quoteEntity);
-            await _context.SaveChangesAsync();
-
-            return booking;
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<BookingQuoteViewModel> GetQuoteAsync(BookingRequestViewModel request)
@@ -89,7 +110,8 @@ namespace RideBooking.Services
             var distanceCharge = CalculateDistanceCharge(distance, pricing);
             var timeCharge = duration * pricing.PerHourRate;
             var passengerSurcharge = Math.Max(0, request.Passengers - 1) * (pricing.PassengerSurcharge ?? 0);
-            var luggageFee = Math.Max(0, request.Bags - 2) * 5m;
+            var luggageFeePerExtra = pricing.LuggageFeePerExtra ?? 5m; // Default to 5 if not configured
+            var luggageFee = Math.Max(0, request.Bags - 2) * luggageFeePerExtra;
             var subtotal = baseFare + distanceCharge + timeCharge + passengerSurcharge + luggageFee;
             var serviceTax = subtotal * (pricing.ServiceTaxPercent / 100);
 
@@ -115,6 +137,7 @@ namespace RideBooking.Services
             return await _context.Bookings
                 .Include(b => b.Customer)
                 .Include(b => b.Quote)
+                .Include(b => b.CurrentAssignment)
                 .FirstOrDefaultAsync(b => b.BookingReference == reference);
         }
 
@@ -132,9 +155,8 @@ namespace RideBooking.Services
         private string GenerateBookingReference()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
             var reference = new string(Enumerable.Range(0, 8)
-                .Select(_ => chars[random.Next(chars.Length)])
+                .Select(_ => chars[Random.Shared.Next(chars.Length)])
                 .ToArray());
             return $"RR-{reference}";
         }

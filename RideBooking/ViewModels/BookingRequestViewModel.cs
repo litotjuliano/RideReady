@@ -9,8 +9,8 @@ namespace RideBooking.ViewModels
         public string CustomerName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Phone is required")]
-        [RegularExpression(@"^(\+60|0)[0-9]{9,10}$",
-            ErrorMessage = "Invalid Malaysian phone number")]
+        [RegularExpression(@"^(\+60[0-9]{9,10}|0[0-9]{1,2}-?[0-9]{7,8})$",
+            ErrorMessage = "Invalid Malaysian phone number. Use +60XXXXXXXXX or 01X-XXXXXXXX format")]
         public string CustomerPhone { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email is required")]

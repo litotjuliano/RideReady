@@ -1,0 +1,23 @@
+ RideBooking/Data/RideBookingDbContext.cs           |  52 ++
+ .../20260901105034_InitialCreate.Designer.cs       | 565 +++++++++++++++++++++
+ .../Migrations/20260901105034_InitialCreate.cs     | 357 +++++++++++++
+ .../RideBookingDbContextModelSnapshot.cs           | 562 ++++++++++++++++++++
+ RideBooking/Models/Booking.cs                      |  26 +
+ RideBooking/Models/BookingQuote.cs                 |  22 +
+ RideBooking/Models/BookingStatusHistory.cs         |  13 +
+ RideBooking/Models/Customer.cs                     |  14 +
+ RideBooking/Models/Driver.cs                       |  19 +
+ RideBooking/Models/DriverAssignment.cs             |  15 +
+ RideBooking/Models/DriverLocation.cs               |  15 +
+ RideBooking/Models/Notification.cs                 |  19 +
+ RideBooking/Models/OperatorCalendarEvent.cs        |  12 +
+ RideBooking/Models/PricingSetting.cs               |  18 +
+ RideBooking/Program.cs                             |  15 +
+ RideBooking/RideBooking.csproj                     |  29 +-
+ RideBooking/Services/BookingService.cs             | 150 ++++++
+ RideBooking/Services/IBookingService.cs            |  12 +
+ RideBooking/Services/ILocationService.cs           |  21 +
+ RideBooking/Tests/Services/BookingServiceTests.cs  |  96 ++++
+ RideBooking/ViewModels/BookingQuoteViewModel.cs    |  18 +
+ RideBooking/ViewModels/BookingRequestViewModel.cs  |  49 ++
+ 22 files changed, 2088 insertions(+), 11 deletions(-)

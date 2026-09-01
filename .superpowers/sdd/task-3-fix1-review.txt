@@ -1,0 +1,33 @@
+diff --git a/RideBooking/Services/BookingService.cs b/RideBooking/Services/BookingService.cs
+index 9566d13..36b2b5d 100644
+--- a/RideBooking/Services/BookingService.cs
++++ b/RideBooking/Services/BookingService.cs
+@@ -131,9 +131,12 @@ namespace RideBooking.Services
+ 
+         private string GenerateBookingReference()
+         {
+-            var timestamp = DateTime.UtcNow.Ticks.ToString().TakeLast(6);
+-            var random = new Random().Next(1000, 9999).ToString("X");
+-            return $"RR-{string.Concat(timestamp)}{random}".ToUpper();
++            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
++            var random = new Random();
++            var reference = new string(Enumerable.Range(0, 8)
++                .Select(_ => chars[random.Next(chars.Length)])
++                .ToArray());
++            return $"RR-{reference}";
+         }
+ 
+         private string FormatDuration(decimal hours)
+diff --git a/RideBooking/ViewModels/BookingRequestViewModel.cs b/RideBooking/ViewModels/BookingRequestViewModel.cs
+index cd131e4..90b6b17 100644
+--- a/RideBooking/ViewModels/BookingRequestViewModel.cs
++++ b/RideBooking/ViewModels/BookingRequestViewModel.cs
+@@ -5,7 +5,7 @@ namespace RideBooking.ViewModels
+     public class BookingRequestViewModel
+     {
+         [Required(ErrorMessage = "Name is required")]
+-        [StringLength(255, MinimumLength = 3)]
++        [StringLength(100, MinimumLength = 3)]
+         public string CustomerName { get; set; } = string.Empty;
+ 
+         [Required(ErrorMessage = "Phone is required")]

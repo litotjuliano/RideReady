@@ -13,6 +13,7 @@ namespace RideBooking.Tests.Services
         {
             var options = new DbContextOptionsBuilder<RideBookingDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
             return new RideBookingDbContext(options);
         }
@@ -31,7 +32,7 @@ namespace RideBooking.Tests.Services
                 CustomerEmail = "sim@email.com",
                 PickupLocation = "KL Visa Center",
                 Destination = "Hyt Ipoh Office",
-                PickupDate = new DateOnly(2026, 8, 27),
+                PickupDate = new DateOnly(2026, 9, 5), // Future date from 2026-09-01
                 PickupTime = new TimeOnly(13, 8),
                 Passengers = 2,
                 Bags = 2,
@@ -62,7 +63,7 @@ namespace RideBooking.Tests.Services
                 CustomerEmail = "sim@email.com",
                 PickupLocation = "KL Visa Center",
                 Destination = "Hyt Ipoh Office",
-                PickupDate = new DateOnly(2026, 8, 27),
+                PickupDate = new DateOnly(2026, 9, 5), // Future date from 2026-09-01
                 PickupTime = new TimeOnly(13, 8),
                 Passengers = 2,
                 Bags = 2,
