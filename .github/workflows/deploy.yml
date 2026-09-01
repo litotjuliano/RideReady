@@ -1,0 +1,45 @@
+# .github/workflows/deploy.yml
+#
+# Triggered after the Release workflow (.github/workflows/release.yml, named
+# "Release") completes successfully on a deployable branch. Copies the droplet
+# compose file and deploy script to the target droplet and runs the deploy
+# script over SSH, gated on scripts/deploy.sh's post-deploy health check.
+#
+# `develop` and `uat` auto-deploy; `staging` and `production` require manual
+# approval via a required reviewer configured on those GitHub Environments
+# (see Task 11 documentation / repo Settings > Environments).
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+    branches: [develop, uat, staging, main]
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.workflow_run.head_branch == 'main' && 'production' || github.event.workflow_run.head_branch }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy compose files to droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: "docker-compose.yml,scripts/deploy.sh"
+          target: "/opt/ridebooking"
+
+      - name: Run deploy script over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            cd /opt/ridebooking
+            chmod +x scripts/deploy.sh
+            IMAGE_NAME=ghcr.io/${{ github.repository }} ./scripts/deploy.sh ${{ github.event.workflow_run.head_branch }}
