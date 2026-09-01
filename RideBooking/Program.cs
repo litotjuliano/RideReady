@@ -14,9 +14,13 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<RideBookingDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+builder.Services.AddMemoryCache();
+builder.Services.Configure<GoogleMapsSettings>(builder.Configuration.GetSection("GoogleMapsSettings"));
+builder.Services.AddHttpClient<GoogleMapsLocationService>();
+
 // Register booking services
 builder.Services.AddScoped<IBookingService, BookingService>();
-builder.Services.AddScoped<ILocationService, MockLocationService>();
+builder.Services.AddScoped<ILocationService>(sp => sp.GetRequiredService<GoogleMapsLocationService>());
 
 var app = builder.Build();
 
