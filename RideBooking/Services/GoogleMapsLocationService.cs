@@ -64,7 +64,19 @@ namespace RideBooking.Services
                 throw new InvalidOperationException($"Google Directions API returned status: {status}");
             }
 
-            var leg = root.GetProperty("routes")[0].GetProperty("legs")[0];
+            var routes = root.GetProperty("routes");
+            if (routes.GetArrayLength() == 0)
+            {
+                throw new InvalidOperationException("Google Directions API returned no route");
+            }
+
+            var legs = routes[0].GetProperty("legs");
+            if (legs.GetArrayLength() == 0)
+            {
+                throw new InvalidOperationException("Google Directions API returned no route");
+            }
+
+            var leg = legs[0];
             var distanceMeters = leg.GetProperty("distance").GetProperty("value").GetInt64();
             var durationSeconds = leg.GetProperty("duration").GetProperty("value").GetInt64();
 

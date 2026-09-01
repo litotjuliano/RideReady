@@ -16,7 +16,12 @@ builder.Services.AddDbContext<RideBookingDbContext>(options =>
 
 builder.Services.AddMemoryCache();
 builder.Services.Configure<GoogleMapsSettings>(builder.Configuration.GetSection("GoogleMapsSettings"));
-builder.Services.AddHttpClient<GoogleMapsLocationService>();
+builder.Services.AddHttpClient<GoogleMapsLocationService>(client =>
+{
+    // GetQuoteAsync (and CreateBookingAsync's transaction) waits on this call;
+    // bound how long a slow/hung Directions API response can block it.
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
 
 // Register booking services
 builder.Services.AddScoped<IBookingService, BookingService>();
