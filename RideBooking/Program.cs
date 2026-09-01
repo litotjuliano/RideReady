@@ -1,4 +1,5 @@
 using RideBooking.Data;
+using RideBooking.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<RideBookingDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// Register booking services
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<ILocationService, MockLocationService>();
 
 var app = builder.Build();
 
