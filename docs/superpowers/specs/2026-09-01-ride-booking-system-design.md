@@ -533,10 +533,14 @@ TOTAL ESTIMATED FARE      RM 280.37
 
 ### 8.2 Driver Location Tracking
 
+**Approach:** Browser-based via the Driver Portal — no dedicated GPS hardware or native app required. The Driver Portal web page uses the phone browser's Geolocation API (`navigator.geolocation`) to read the driver's GPS and post it to the server while the portal page is open.
+
 - Driver GPS coordinates stored every 30 seconds
 - Real-time location broadcast to admin dashboard via SignalR
 - ETA calculation to destination
 - Geofencing alerts (future): Driver near pickup/dropoff
+
+**Known limitation:** browser geolocation only reports reliably while the Driver Portal page is open and in the foreground. Mobile browsers throttle or suspend location updates once the driver backgrounds the tab or locks their phone, so tracking is best-effort/foreground-only in this phase — not continuous background tracking. A native mobile app or dedicated in-vehicle tracker would be needed for reliable background tracking, and is not in scope here.
 
 ---
 
@@ -868,6 +872,6 @@ The prototype uses Geist/Geist Mono. Since the project uses Bootstrap 5 rather t
 
 ---
 
-**Document Version:** 1.2.0  
+**Document Version:** 1.3.0  
 **Last Updated:** 2026-09-01  
 **Next Review:** After Phase 1 completion
