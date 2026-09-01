@@ -16,3 +16,5 @@ Task 5: fix round 1/1 (API key log leak fixed + verified, malformed-response gua
 Task 5: complete (commits 686cb1d..85171f7, 1 fix round)
 Task 6: fix round 1/1 (reassignment DbUpdateException bug fixed at root cause, error handling + tests added; commits 880de96..35f79b8; fix subagent hit a rate limit mid-work, orchestrator completed it directly)
 Task 6: complete (commits 880de96..35f79b8, 1 fix round)
+Task 7: fix round 1/1 (missing error handling + terminal-booking gap fixed, tests added; commits 3447947..1207864)
+Task 7: complete (commits 3447947..1207864, 1 fix round)
