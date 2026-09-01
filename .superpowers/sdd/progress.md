@@ -12,3 +12,5 @@ Branch ready for Tasks 4-11 planning.
 
 ## PHASE 1 CONTINUED — Tasks 4-11 (branch: phase1-tasks-4-11)
 Task 4: complete (commit dd9463b, spec compliant, code review clean, 0 fix rounds)
+Task 5: fix round 1/1 (API key log leak fixed + verified, malformed-response guard added; commits 686cb1d..85171f7)
+Task 5: complete (commits 686cb1d..85171f7, 1 fix round)
