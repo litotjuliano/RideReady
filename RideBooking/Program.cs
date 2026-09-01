@@ -1,6 +1,8 @@
 using RideBooking.Data;
+using RideBooking.Jobs;
 using RideBooking.Services;
 using Microsoft.EntityFrameworkCore;
+using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +41,32 @@ builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IWhatsAppSender>(sp => sp.GetRequiredService<WhatsAppCloudApiSender>());
 builder.Services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+// Register Quartz background jobs (notification retries, unassigned-booking reminders, no-show detection)
+builder.Services.AddQuartz(q =>
+{
+    var retryKey = new JobKey("NotificationRetryJob");
+    q.AddJob<NotificationRetryJob>(opts => opts.WithIdentity(retryKey));
+    q.AddTrigger(opts => opts
+        .ForJob(retryKey)
+        .WithIdentity("NotificationRetryJob-trigger")
+        .WithSimpleSchedule(s => s.WithIntervalInMinutes(5).RepeatForever()));
+
+    var reminderKey = new JobKey("ReminderEscalationJob");
+    q.AddJob<ReminderEscalationJob>(opts => opts.WithIdentity(reminderKey));
+    q.AddTrigger(opts => opts
+        .ForJob(reminderKey)
+        .WithIdentity("ReminderEscalationJob-trigger")
+        .WithSimpleSchedule(s => s.WithIntervalInMinutes(5).RepeatForever()));
+
+    var noShowKey = new JobKey("NoShowDetectionJob");
+    q.AddJob<NoShowDetectionJob>(opts => opts.WithIdentity(noShowKey));
+    q.AddTrigger(opts => opts
+        .ForJob(noShowKey)
+        .WithIdentity("NoShowDetectionJob-trigger")
+        .WithSimpleSchedule(s => s.WithIntervalInMinutes(5).RepeatForever()));
+});
+builder.Services.AddQuartzHostedService(opts => opts.WaitForJobsToComplete = true);
 
 builder.Services.Configure<AdminCredentialsSettings>(builder.Configuration.GetSection("AdminCredentials"));
 

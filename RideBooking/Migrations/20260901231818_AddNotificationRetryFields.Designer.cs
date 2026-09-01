@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RideBooking.Data;
@@ -11,9 +12,11 @@ using RideBooking.Data;
 namespace RideBooking.Migrations
 {
     [DbContext(typeof(RideBookingDbContext))]
-    partial class RideBookingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260901231818_AddNotificationRetryFields")]
+    partial class AddNotificationRetryFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

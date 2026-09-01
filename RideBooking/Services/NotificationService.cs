@@ -34,14 +34,17 @@ namespace RideBooking.Services
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
             var customerMessage = $"Hi {booking.Customer!.Name}, your RideBooking reference is {booking.BookingReference}. We'll contact you to confirm your driver.";
-            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, "Email", "BookingCreated", customerMessage,
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Email, "Email", "BookingCreated",
+                "Your RideBooking reservation", customerMessage,
                 () => _emailSender.SendAsync(booking.Customer.Email, "Your RideBooking reservation", customerMessage));
 
             var operatorMessage = $"New booking {booking.BookingReference}: {booking.PickupLocation} -> {booking.Destination} on {booking.PickupDate:yyyy-MM-dd} {booking.PickupTime:HH:mm}.";
-            await SendAndLogAsync(bookingId, "Operator", null, "Email", "BookingCreated", operatorMessage,
+            await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", "BookingCreated",
+                "New booking received", operatorMessage,
                 () => _emailSender.SendAsync(_emailSettings.OperatorEmail, "New booking received", operatorMessage));
 
-            await SendAndLogAsync(bookingId, "Operator", null, "Calendar", "BookingCreated", "Calendar event created",
+            await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Calendar", "BookingCreated",
+                null, "Calendar event created",
                 () => _calendarSyncService.CreateOrUpdateEventAsync(booking));
         }
 
@@ -53,11 +56,13 @@ namespace RideBooking.Services
                 ?? throw new InvalidOperationException($"Driver {driverId} not found");
 
             var driverMessage = $"New job {booking.BookingReference}: pickup {booking.PickupLocation} -> {booking.Destination} on {booking.PickupDate:yyyy-MM-dd} {booking.PickupTime:HH:mm}. Log in to the Driver Portal to accept or reject.";
-            await SendAndLogAsync(bookingId, "Driver", driverId, "WhatsApp", "DriverAssigned", driverMessage,
+            await SendAndLogAsync(bookingId, "Driver", driverId, driver.Phone, "WhatsApp", "DriverAssigned",
+                null, driverMessage,
                 () => _whatsAppSender.SendAsync(driver.Phone, driverMessage));
 
             var operatorMessage = $"Driver {driver.Name} assigned to booking {booking.BookingReference}.";
-            await SendAndLogAsync(bookingId, "Operator", null, "Email", "DriverAssigned", operatorMessage,
+            await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", "DriverAssigned",
+                "Driver assigned", operatorMessage,
                 () => _emailSender.SendAsync(_emailSettings.OperatorEmail, "Driver assigned", operatorMessage));
         }
 
@@ -68,8 +73,9 @@ namespace RideBooking.Services
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
             var message = $"Good news! A driver has been confirmed for your booking {booking.BookingReference}.";
-            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, "Email", "DriverAccepted", message,
-                () => _emailSender.SendAsync(booking.Customer!.Email, "Driver confirmed", message));
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", "DriverAccepted",
+                "Driver confirmed", message,
+                () => _emailSender.SendAsync(booking.Customer.Email, "Driver confirmed", message));
         }
 
         public async Task SendBookingCompletedNotificationAsync(int bookingId)
@@ -79,8 +85,9 @@ namespace RideBooking.Services
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
             var message = $"Thanks for riding with RideBooking! Your trip {booking.BookingReference} is complete.";
-            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, "Email", "BookingCompleted", message,
-                () => _emailSender.SendAsync(booking.Customer!.Email, "Trip complete", message));
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", "BookingCompleted",
+                "Trip complete", message,
+                () => _emailSender.SendAsync(booking.Customer.Email, "Trip complete", message));
         }
 
         public async Task SendBookingCancelledNotificationAsync(int bookingId)
@@ -90,8 +97,9 @@ namespace RideBooking.Services
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
             var message = $"Your booking {booking.BookingReference} has been cancelled.";
-            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, "Email", "BookingCancelled", message,
-                () => _emailSender.SendAsync(booking.Customer!.Email, "Booking cancelled", message));
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", "BookingCancelled",
+                "Booking cancelled", message,
+                () => _emailSender.SendAsync(booking.Customer.Email, "Booking cancelled", message));
 
             var latestDriverId = await _context.DriverAssignments
                 .Where(a => a.BookingId == bookingId && a.AssignmentStatus != "Rejected")
@@ -105,23 +113,53 @@ namespace RideBooking.Services
                 if (driver != null)
                 {
                     var driverMessage = $"Booking {booking.BookingReference} has been cancelled. No action needed.";
-                    await SendAndLogAsync(bookingId, "Driver", driver.Id, "WhatsApp", "BookingCancelled", driverMessage,
+                    await SendAndLogAsync(bookingId, "Driver", driver.Id, driver.Phone, "WhatsApp", "BookingCancelled",
+                        null, driverMessage,
                         () => _whatsAppSender.SendAsync(driver.Phone, driverMessage));
                 }
             }
         }
 
+        public async Task SendUnassignedReminderAsync(int bookingId, bool urgent)
+        {
+            var booking = await _context.Bookings.FindAsync(bookingId)
+                ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            var eventType = urgent ? "Escalation_30min" : "Reminder_1hr";
+            var message = urgent
+                ? $"URGENT: booking {booking.BookingReference} has no driver assigned and pickup is in 30 minutes."
+                : $"Reminder: booking {booking.BookingReference} has no driver assigned and pickup is in 1 hour.";
+
+            await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", eventType,
+                eventType, message,
+                () => _emailSender.SendAsync(_emailSettings.OperatorEmail, eventType, message));
+        }
+
+        public async Task SendNoShowNotificationAsync(int bookingId)
+        {
+            var booking = await _context.Bookings.Include(b => b.Customer)
+                .FirstOrDefaultAsync(b => b.Id == bookingId)
+                ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            var message = $"Your booking {booking.BookingReference} was marked as a no-show because pickup wasn't confirmed 30 minutes after the scheduled time.";
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", "NoShow",
+                "Booking marked as no-show", message,
+                () => _emailSender.SendAsync(booking.Customer.Email, "Booking marked as no-show", message));
+        }
+
         private async Task SendAndLogAsync(
-            int bookingId, string recipientType, int? recipientId, string channel, string eventType,
-            string messageContent, Func<Task> send)
+            int bookingId, string recipientType, int? recipientId, string recipientContact, string channel,
+            string eventType, string? subject, string messageContent, Func<Task> send)
         {
             var notification = new Notification
             {
                 BookingId = bookingId,
                 RecipientType = recipientType,
                 RecipientId = recipientId,
+                RecipientContact = recipientContact,
                 Channel = channel,
                 EventType = eventType,
+                Subject = subject,
                 MessageContent = messageContent,
                 DeliveryStatus = "Pending"
             };
@@ -137,6 +175,7 @@ namespace RideBooking.Services
             catch (Exception ex)
             {
                 notification.DeliveryStatus = "Failed";
+                notification.LastAttemptAt = DateTime.UtcNow;
                 notification.ErrorMessage = ex.Message;
             }
 
