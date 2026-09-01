@@ -1,0 +1,88 @@
+@model List<RideBooking.ViewModels.DriverAssignmentListItemViewModel>
+@{
+    ViewData["Title"] = "My Assigned Trips";
+    var activeBooking = Model.FirstOrDefault(a => a.AssignmentStatus == "Accepted" && a.BookingStatus != "Completed");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="ride-eyebrow mb-1">RideBooking Driver</p>
+        <h1 class="fw-bold">My assigned trips</h1>
+    </div>
+    <form asp-controller="DriverAuth" asp-action="Logout" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-secondary rounded-pill">Sign out</button>
+    </form>
+</div>
+
+<div class="ride-card mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <p class="fw-semibold mb-1">Location sharing</p>
+        <p class="text-muted small mb-0">Share your live location with dispatch while this page stays open.</p>
+    </div>
+    <button id="locationToggle" type="button" class="btn ride-btn-primary" data-booking-id="@activeBooking?.BookingId">Share my location</button>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="ride-card text-center py-5">
+        <h2 class="h5 fw-bold">No trips assigned</h2>
+        <p class="text-muted mb-0">Your dispatcher will assign a trip to your phone number.</p>
+    </div>
+}
+
+@foreach (var trip in Model)
+{
+    <div class="ride-card mb-3">
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+            <div>
+                <h2 class="h5 fw-bold mb-0">@trip.CustomerName</h2>
+                <p class="text-muted small mb-0">@trip.BookingReference &middot; @trip.CustomerPhone</p>
+            </div>
+            <div class="text-end">
+                <p class="fw-bold mb-0">@trip.PickupDate.ToString("yyyy-MM-dd") &middot; @trip.PickupTime.ToString("HH:mm")</p>
+                <span class="ride-pill">@trip.AssignmentStatus / @trip.BookingStatus</span>
+            </div>
+        </div>
+        <p class="mt-2 mb-1">@trip.PickupLocation &rarr; @trip.Destination</p>
+        <p class="text-muted small">@trip.Passengers pax &middot; @trip.Bags bags</p>
+        @if (!string.IsNullOrEmpty(trip.Notes))
+        {
+            <p class="text-muted small">Notes: @trip.Notes</p>
+        }
+
+        @if (trip.AssignmentStatus == "Pending")
+        {
+            <div class="d-flex gap-2 mt-2">
+                <form asp-controller="Driver" asp-action="Accept" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="assignmentId" value="@trip.AssignmentId" />
+                    <button type="submit" class="btn ride-btn-primary">Accept</button>
+                </form>
+                <form asp-controller="Driver" asp-action="Reject" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="assignmentId" value="@trip.AssignmentId" />
+                    <button type="submit" class="btn btn-outline-secondary">Reject</button>
+                </form>
+            </div>
+        }
+        else if (trip.AssignmentStatus == "Accepted" && trip.BookingStatus != "Completed")
+        {
+            <form asp-controller="Driver" asp-action="UpdateStatus" method="post" class="d-flex gap-2 mt-2">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="bookingId" value="@trip.BookingId" />
+                <select name="newStatus" class="form-select ride-input">
+                    <option value="Picked_Up">Picked Up</option>
+                    <option value="In_Transit">In Transit</option>
+                    <option value="Dropped_Off">Dropped Off</option>
+                    <option value="Completed">Completed</option>
+                </select>
+                <button type="submit" class="btn ride-btn-primary text-nowrap">Update status</button>
+            </form>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/driver-location.js" asp-append-version="true"></script>
+}

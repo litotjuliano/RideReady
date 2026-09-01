@@ -27,6 +27,7 @@ builder.Services.AddHttpClient<GoogleMapsLocationService>(client =>
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ILocationService>(sp => sp.GetRequiredService<GoogleMapsLocationService>());
 builder.Services.AddScoped<IDriverAssignmentService, DriverAssignmentService>();
+builder.Services.AddScoped<IDriverPortalService, DriverPortalService>();
 
 builder.Services.Configure<AdminCredentialsSettings>(builder.Configuration.GetSection("AdminCredentials"));
 
@@ -36,6 +37,12 @@ builder.Services.AddAuthentication()
         options.Cookie.Name = "RideBooking.AdminAuth";
         options.LoginPath = "/AdminAuth/Login";
         options.AccessDeniedPath = "/AdminAuth/Login";
+    })
+    .AddCookie("DriverAuth", options =>
+    {
+        options.Cookie.Name = "RideBooking.DriverAuth";
+        options.LoginPath = "/DriverAuth/Login";
+        options.AccessDeniedPath = "/DriverAuth/Login";
     });
 builder.Services.AddAuthorization();
 
