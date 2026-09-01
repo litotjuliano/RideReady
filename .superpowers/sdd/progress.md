@@ -18,3 +18,5 @@ Task 6: fix round 1/1 (reassignment DbUpdateException bug fixed at root cause, e
 Task 6: complete (commits 880de96..35f79b8, 1 fix round)
 Task 7: fix round 1/1 (missing error handling + terminal-booking gap fixed, tests added; commits 3447947..1207864)
 Task 7: complete (commits 3447947..1207864, 1 fix round)
+Task 8: fix round 1/1 (unguarded notification-status save fixed, 5 missing tests added; commits 37f3a3e..0494b1f)
+Task 8: complete (commits 37f3a3e..0494b1f, 1 fix round)
