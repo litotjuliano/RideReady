@@ -80,13 +80,15 @@ namespace RideBooking.Services
                     Subtotal = quote.Subtotal,
                     ServiceTax = quote.ServiceTax,
                     TotalEstimatedFare = quote.TotalEstimatedFare,
-                    PaymentMethod = "Pay_at_Pickup"
+                    PaymentMethod = request.PaymentMethod
                 };
                 _context.BookingQuotes.Add(quoteEntity);
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
-                return booking;
+                return await _context.Bookings
+                    .Include(b => b.Quote)
+                    .FirstAsync(b => b.Id == booking.Id);
             }
             catch
             {

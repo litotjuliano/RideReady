@@ -36,7 +36,9 @@ namespace RideBooking.Tests.Services
                 PickupTime = new TimeOnly(13, 8),
                 Passengers = 2,
                 Bags = 2,
-                VehicleType = "Car"
+                VehicleType = "Car",
+                PaymentMethod = "Pay_at_Pickup",
+                AcceptedTerms = true
             };
 
             // Act
@@ -47,6 +49,7 @@ namespace RideBooking.Tests.Services
             Assert.NotEmpty(booking.BookingReference);
             Assert.StartsWith("RR-", booking.BookingReference);
             Assert.Equal("New", booking.Status);
+            Assert.Equal("Pay_at_Pickup", booking.Quote?.PaymentMethod);
         }
 
         [Fact]
@@ -67,7 +70,9 @@ namespace RideBooking.Tests.Services
                 PickupTime = new TimeOnly(13, 8),
                 Passengers = 2,
                 Bags = 2,
-                VehicleType = "Car"
+                VehicleType = "Car",
+                PaymentMethod = "Pay_at_Pickup",
+                AcceptedTerms = true
             };
 
             // Act

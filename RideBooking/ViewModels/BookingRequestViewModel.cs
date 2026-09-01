@@ -45,5 +45,12 @@ namespace RideBooking.ViewModels
 
         [StringLength(500)]
         public string? Notes { get; set; }
+
+        [Required(ErrorMessage = "Payment method is required")]
+        [RegularExpression("^(Pay_at_Pickup|Bank_Transfer)$")]
+        public string PaymentMethod { get; set; } = "Pay_at_Pickup";
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the terms and conditions")]
+        public bool AcceptedTerms { get; set; }
     }
 }

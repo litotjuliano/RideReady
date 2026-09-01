@@ -1,0 +1,134 @@
+@model RideBooking.ViewModels.BookingRequestViewModel
+@{
+    ViewData["Title"] = "Book a Ride";
+    var today = DateTime.Today.ToString("yyyy-MM-dd");
+    var maxDate = DateTime.Today.AddDays(30).ToString("yyyy-MM-dd");
+}
+
+<div class="ride-hero">
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <p class="ride-eyebrow">Easy local transport</p>
+            <h1 class="ride-heading">Your next ride, arranged in minutes.</h1>
+            <p class="ride-subtext">Complete one simple form. Our dispatch team will assign your vehicle and driver, then coordinate the trip schedule.</p>
+            <div class="row g-3 mt-2">
+                <div class="col-4"><div class="ride-step-card"><span class="ride-step-num">01</span><p>Enter trip details</p></div></div>
+                <div class="col-4"><div class="ride-step-card"><span class="ride-step-num">02</span><p>Dispatch assigns driver</p></div></div>
+                <div class="col-4"><div class="ride-step-card"><span class="ride-step-num">03</span><p>Trip is scheduled</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="ride-card">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <p class="ride-eyebrow mb-1">Book a ride</p>
+                        <h2 class="fw-bold mb-0">Trip details</h2>
+                    </div>
+                    <span class="ride-pill">Available daily</span>
+                </div>
+
+                <form asp-controller="Booking" asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <p class="ride-section-label">Your details</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="CustomerName" class="form-label fw-semibold"></label>
+                            <input asp-for="CustomerName" class="form-control ride-input" placeholder="Full name" />
+                            <span asp-validation-for="CustomerName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CustomerPhone" class="form-label fw-semibold"></label>
+                            <input asp-for="CustomerPhone" class="form-control ride-input" placeholder="e.g. 0123456789" />
+                            <span asp-validation-for="CustomerPhone" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="CustomerEmail" class="form-label fw-semibold"></label>
+                            <input asp-for="CustomerEmail" class="form-control ride-input" placeholder="you@example.com" />
+                            <span asp-validation-for="CustomerEmail" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <p class="ride-section-label">Trip</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="PickupLocation" class="form-label fw-semibold"></label>
+                            <input asp-for="PickupLocation" class="form-control ride-input" placeholder="e.g. KL Sentral" />
+                            <span asp-validation-for="PickupLocation" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Destination" class="form-label fw-semibold"></label>
+                            <input asp-for="Destination" class="form-control ride-input" placeholder="e.g. KLIA Terminal 1" />
+                            <span asp-validation-for="Destination" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PickupDate" class="form-label fw-semibold"></label>
+                            <input asp-for="PickupDate" type="date" min="@today" max="@maxDate" class="form-control ride-input" />
+                            <span asp-validation-for="PickupDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PickupTime" class="form-label fw-semibold"></label>
+                            <input asp-for="PickupTime" type="time" min="06:00" max="23:45" step="900" class="form-control ride-input" />
+                            <span asp-validation-for="PickupTime" class="text-danger small"></span>
+                            <div class="form-text">Bookings available 6:00 AM - midnight, 15-minute slots.</div>
+                        </div>
+                    </div>
+
+                    <p class="ride-section-label">Passengers &amp; vehicle</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Passengers" class="form-label fw-semibold"></label>
+                            <input asp-for="Passengers" type="number" min="1" max="8" class="form-control ride-input" />
+                            <span asp-validation-for="Passengers" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Bags" class="form-label fw-semibold"></label>
+                            <input asp-for="Bags" type="number" min="0" max="10" class="form-control ride-input" />
+                            <span asp-validation-for="Bags" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="VehicleType" class="form-label fw-semibold"></label>
+                            <select asp-for="VehicleType" class="form-select ride-input">
+                                <option value="">Select...</option>
+                                <option value="Car">Car</option>
+                                <option value="Van">Van</option>
+                                <option value="Bus">Bus</option>
+                            </select>
+                            <span asp-validation-for="VehicleType" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Notes" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Notes" rows="3" class="form-control ride-input" placeholder="Flight number, luggage, child seat, or other requests"></textarea>
+                        <span asp-validation-for="Notes" class="text-danger small"></span>
+                    </div>
+
+                    <p class="ride-section-label">Payment &amp; confirmation</p>
+                    <div class="mb-3">
+                        <label asp-for="PaymentMethod" class="form-label fw-semibold"></label>
+                        <select asp-for="PaymentMethod" class="form-select ride-input">
+                            <option value="Pay_at_Pickup">Pay at Pickup</option>
+                            <option value="Bank_Transfer">Bank Transfer</option>
+                        </select>
+                        <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="AcceptedTerms" class="form-check-input" />
+                        <label asp-for="AcceptedTerms" class="form-check-label">I accept the terms and conditions</label>
+                        <span asp-validation-for="AcceptedTerms" class="text-danger small d-block"></span>
+                    </div>
+
+                    <button type="submit" class="btn ride-btn-primary w-100 py-3 fw-bold">Submit booking</button>
+                    <p class="text-center text-muted small mt-3 mb-0">No online payment required. Our team will contact you to confirm.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

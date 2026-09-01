@@ -1,0 +1,11 @@
+@{
+    ViewData["Title"] = "Booking Received";
+    var reference = ViewBag.BookingReference as string;
+}
+
+<div class="ride-card mx-auto" style="max-width: 560px;">
+    <p class="ride-eyebrow">Booking received</p>
+    <h1 class="fw-bold">Thank you. Your reference is @reference.</h1>
+    <p class="ride-subtext">Our dispatch team will review your trip and assign a vehicle and driver. You'll be contacted using the phone number or email you provided.</p>
+    <a asp-controller="Booking" asp-action="Create" class="btn ride-btn-primary mt-3">Book another ride</a>
+</div>
