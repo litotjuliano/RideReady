@@ -140,7 +140,17 @@ namespace RideBooking.Services
                 notification.ErrorMessage = ex.Message;
             }
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                // The channel send above already ran (and may have succeeded) — a failure to persist
+                // the final Sent/Failed status is a notification-logging problem, not a failure of the
+                // action that triggered this notification. Don't let it bubble up and turn an already-
+                // successful booking/assignment/etc. into an unhandled error for the caller.
+            }
         }
     }
 }

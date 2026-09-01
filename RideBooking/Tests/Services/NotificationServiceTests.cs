@@ -153,5 +153,120 @@ namespace RideBooking.Tests.Services
             Assert.Equal("0123456789", whatsAppSender.Sent[0].To);
             Assert.Single(emailSender.Sent);
         }
+
+        [Fact]
+        public async Task SendBookingCancelledNotificationAsync_WithDriverAssigned_SendsCustomerEmailAndDriverWhatsApp()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            var driver = new Driver { Name = "Ah Seng", Phone = "0123456789", VehicleType = "Car", PinHash = "x" };
+            context.Drivers.Add(driver);
+            await context.SaveChangesAsync();
+            context.DriverAssignments.Add(new DriverAssignment
+            {
+                BookingId = booking.Id,
+                DriverId = driver.Id,
+                AssignmentStatus = "Accepted"
+            });
+            await context.SaveChangesAsync();
+            var emailSender = new FakeEmailSender();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+
+            // Act
+            await service.SendBookingCancelledNotificationAsync(booking.Id);
+
+            // Assert
+            Assert.Single(emailSender.Sent);
+            Assert.Equal("sim@email.com", emailSender.Sent[0].To);
+            Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0123456789", whatsAppSender.Sent[0].To);
+            var notifications = await context.Notifications.Where(n => n.BookingId == booking.Id).ToListAsync();
+            Assert.Equal(2, notifications.Count);
+        }
+
+        [Fact]
+        public async Task SendBookingCancelledNotificationAsync_WithNoDriverAssigned_SendsOnlyCustomerEmail()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            var emailSender = new FakeEmailSender();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+
+            // Act
+            await service.SendBookingCancelledNotificationAsync(booking.Id);
+
+            // Assert (no exception thrown)
+            Assert.Single(emailSender.Sent);
+            Assert.Equal("sim@email.com", emailSender.Sent[0].To);
+            Assert.Empty(whatsAppSender.Sent);
+        }
+
+        [Fact]
+        public async Task SendBookingCancelledNotificationAsync_WhenOnlyAssignmentWasRejected_SendsOnlyCustomerEmail()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            var driver = new Driver { Name = "Ah Seng", Phone = "0123456789", VehicleType = "Car", PinHash = "x" };
+            context.Drivers.Add(driver);
+            await context.SaveChangesAsync();
+            context.DriverAssignments.Add(new DriverAssignment
+            {
+                BookingId = booking.Id,
+                DriverId = driver.Id,
+                AssignmentStatus = "Rejected"
+            });
+            await context.SaveChangesAsync();
+            var emailSender = new FakeEmailSender();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+
+            // Act
+            await service.SendBookingCancelledNotificationAsync(booking.Id);
+
+            // Assert
+            Assert.Single(emailSender.Sent);
+            Assert.Empty(whatsAppSender.Sent);
+        }
+
+        [Fact]
+        public async Task SendBookingCompletedNotificationAsync_SendsCustomerEmail()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            var emailSender = new FakeEmailSender();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+
+            // Act
+            await service.SendBookingCompletedNotificationAsync(booking.Id);
+
+            // Assert
+            Assert.Single(emailSender.Sent);
+            Assert.Equal("sim@email.com", emailSender.Sent[0].To);
+        }
+
+        [Fact]
+        public async Task SendDriverAcceptedNotificationAsync_SendsCustomerEmail()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            var emailSender = new FakeEmailSender();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+
+            // Act
+            await service.SendDriverAcceptedNotificationAsync(booking.Id);
+
+            // Assert
+            Assert.Single(emailSender.Sent);
+            Assert.Equal("sim@email.com", emailSender.Sent[0].To);
+        }
     }
 }
