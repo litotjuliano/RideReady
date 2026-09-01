@@ -16,6 +16,15 @@
     </form>
 </div>
 
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
 <div class="ride-card mb-4">
     <h2 class="h5 fw-bold mb-3">Add a driver</h2>
     <form asp-controller="Admin" asp-action="CreateDriver" method="post" class="row g-2 align-items-end">
@@ -80,8 +89,8 @@
             <div class="col-md-6">
                 <form asp-controller="Admin" asp-action="UpdateStatus" method="post" class="d-flex gap-2">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="bookingId" value="@booking.BookingId" />
-                    <select name="newStatus" class="form-select ride-input">
+                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+                    <select name="NewStatus" class="form-select ride-input">
                         @foreach (var status in statuses)
                         {
                             @if (status == booking.Status)

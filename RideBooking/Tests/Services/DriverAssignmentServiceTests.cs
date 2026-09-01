@@ -164,5 +164,99 @@ namespace RideBooking.Tests.Services
             Assert.Equal("Confirmed", history.NewStatus);
             Assert.Equal("Admin", history.ChangedBy);
         }
+
+        [Fact]
+        public async Task AssignDriverAsync_ReassignedToADifferentDriver_UpdatesExistingRowInsteadOfDuplicating()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var booking = await SeedBookingAsync(context);
+            var driverA = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+            var driverB = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Bob",
+                Phone = "0198765432",
+                VehicleType = "Car",
+                VehicleNumber = "XYZ 5678",
+                Pin = "5678"
+            });
+
+            // Act
+            await service.AssignDriverAsync(booking.Id, driverA.Id);
+            await service.AssignDriverAsync(booking.Id, driverB.Id);
+
+            // Assert
+            var assignments = await context.DriverAssignments
+                .Where(a => a.BookingId == booking.Id)
+                .ToListAsync();
+            var assignment = Assert.Single(assignments);
+            Assert.Equal(driverB.Id, assignment.DriverId);
+        }
+
+        [Fact]
+        public async Task AssignDriverAsync_WithNonexistentBooking_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var driver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.AssignDriverAsync(bookingId: 9999, driver.Id));
+        }
+
+        [Fact]
+        public async Task AssignDriverAsync_WithNonexistentDriver_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var booking = await SeedBookingAsync(context);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.AssignDriverAsync(booking.Id, driverId: 9999));
+        }
+
+        [Fact]
+        public async Task UpdateBookingStatusAsync_WithInvalidStatus_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var booking = await SeedBookingAsync(context);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.UpdateBookingStatusAsync(booking.Id, "NotARealStatus", "Admin"));
+        }
+
+        [Fact]
+        public async Task UpdateBookingStatusAsync_WithNonexistentBooking_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.UpdateBookingStatusAsync(bookingId: 9999, "Confirmed", "Admin"));
+        }
     }
 }

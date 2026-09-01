@@ -96,8 +96,21 @@ namespace RideBooking.Services
             var booking = await _context.Bookings.FindAsync(bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
+            var driverExists = await _context.Drivers.AnyAsync(d => d.Id == driverId);
+            if (!driverExists)
+            {
+                throw new InvalidOperationException($"Driver {driverId} not found");
+            }
+
+            // DriverAssignment has an implicit one-to-one relationship with Booking
+            // (Booking.CurrentAssignment is a single-reference nav), which EF Core backs
+            // with a unique constraint on BookingId alone — so at most one assignment row
+            // can ever exist per booking. Look it up by BookingId alone (not the
+            // BookingId+DriverId composite) so reassigning to a different driver updates
+            // that row instead of trying to insert a second one and violating the
+            // constraint.
             var existing = await _context.DriverAssignments
-                .FirstOrDefaultAsync(a => a.BookingId == bookingId && a.DriverId == driverId);
+                .FirstOrDefaultAsync(a => a.BookingId == bookingId);
 
             if (existing == null)
             {
@@ -111,6 +124,7 @@ namespace RideBooking.Services
             }
             else
             {
+                existing.DriverId = driverId;
                 existing.AssignedAt = DateTime.UtcNow;
                 existing.AssignmentStatus = "Pending";
                 existing.AcceptedAt = null;

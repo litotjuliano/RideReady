@@ -26,10 +26,22 @@ namespace RideBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignDriver(AssignDriverViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Choose a booking and a driver before assigning.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
             {
                 await _driverAssignmentService.AssignDriverAsync(model.BookingId, model.DriverId);
+                TempData["SuccessMessage"] = "Driver assigned.";
             }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -37,18 +49,38 @@ namespace RideBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateDriver(CreateDriverViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                await _driverAssignmentService.CreateDriverAsync(model);
+                TempData["ErrorMessage"] = "Could not add driver — check the details and try again.";
+                return RedirectToAction(nameof(Index));
             }
+
+            await _driverAssignmentService.CreateDriverAsync(model);
+            TempData["SuccessMessage"] = "Driver added.";
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateStatus(int bookingId, string newStatus)
+        public async Task<IActionResult> UpdateStatus(UpdateStatusViewModel model)
         {
-            await _driverAssignmentService.UpdateBookingStatusAsync(bookingId, newStatus, User.Identity?.Name ?? "Admin");
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Choose a booking and a status before updating.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                await _driverAssignmentService.UpdateBookingStatusAsync(
+                    model.BookingId, model.NewStatus, User?.Identity?.Name ?? "Admin");
+                TempData["SuccessMessage"] = "Status updated.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index));
         }
     }
