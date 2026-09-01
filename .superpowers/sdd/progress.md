@@ -20,3 +20,5 @@ Task 7: fix round 1/1 (missing error handling + terminal-booking gap fixed, test
 Task 7: complete (commits 3447947..1207864, 1 fix round)
 Task 8: fix round 1/1 (unguarded notification-status save fixed, 5 missing tests added; commits 37f3a3e..0494b1f)
 Task 8: complete (commits 37f3a3e..0494b1f, 1 fix round)
+Task 9: fix round 1/1 (Calendar-channel dead-letter fix + per-item exception isolation added; commits 632c1f9..91cdd20)
+Task 9: complete (commits 632c1f9..91cdd20, 1 fix round)
