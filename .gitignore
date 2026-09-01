@@ -1,0 +1,4 @@
+# Droplet-local environment files (DB_USER, DB_PASSWORD, IMAGE_NAME for docker-compose.yml).
+# These must never be committed — they hold real deploy credentials.
+.env
+.env.*
