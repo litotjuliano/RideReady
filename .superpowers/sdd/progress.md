@@ -22,3 +22,5 @@ Task 8: fix round 1/1 (unguarded notification-status save fixed, 5 missing tests
 Task 8: complete (commits 37f3a3e..0494b1f, 1 fix round)
 Task 9: fix round 1/1 (Calendar-channel dead-letter fix + per-item exception isolation added; commits 632c1f9..91cdd20)
 Task 9: complete (commits 632c1f9..91cdd20, 1 fix round)
+Task 10: fix round 1/1 (Docker build context bug, permissions, CI gate fixed; commits 257186e..e36e096)
+Task 10: complete (commits 257186e..e36e096, 1 fix round)
