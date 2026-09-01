@@ -1,0 +1,160 @@
+using Microsoft.EntityFrameworkCore;
+using RideBooking.Data;
+using RideBooking.Models;
+using RideBooking.ViewModels;
+
+namespace RideBooking.Services
+{
+    public class DriverAssignmentService : IDriverAssignmentService
+    {
+        private static readonly string[] ValidStatuses =
+        {
+            "New", "Confirmed", "Driver_Assigned", "Picked_Up", "In_Transit",
+            "Dropped_Off", "Completed", "Cancelled", "No_Show"
+        };
+
+        private readonly RideBookingDbContext _context;
+
+        public DriverAssignmentService(RideBookingDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<AdminBookingListItemViewModel>> GetDashboardBookingsAsync()
+        {
+            var bookings = await _context.Bookings
+                .Include(b => b.Customer)
+                .Include(b => b.Quote)
+                .Where(b => b.Status != "Completed" && b.Status != "Cancelled")
+                .OrderBy(b => b.PickupDate)
+                .ThenBy(b => b.PickupTime)
+                .ToListAsync();
+
+            var bookingIds = bookings.Select(b => b.Id).ToList();
+
+            var allAssignments = await _context.DriverAssignments
+                .Include(a => a.Driver)
+                .Where(a => bookingIds.Contains(a.BookingId))
+                .ToListAsync();
+
+            var latestByBooking = allAssignments
+                .GroupBy(a => a.BookingId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.AssignedAt).First());
+
+            return bookings.Select(b =>
+            {
+                latestByBooking.TryGetValue(b.Id, out var assignment);
+                return new AdminBookingListItemViewModel
+                {
+                    BookingId = b.Id,
+                    BookingReference = b.BookingReference,
+                    CustomerName = b.Customer?.Name ?? string.Empty,
+                    CustomerPhone = b.Customer?.Phone ?? string.Empty,
+                    PickupLocation = b.PickupLocation,
+                    Destination = b.Destination,
+                    PickupDate = b.PickupDate,
+                    PickupTime = b.PickupTime,
+                    Passengers = b.Passengers,
+                    Bags = b.Bags,
+                    RequestedVehicleType = b.RequestedVehicleType,
+                    Status = b.Status,
+                    EstimatedFare = b.Quote?.TotalEstimatedFare,
+                    AssignedDriverId = assignment?.DriverId,
+                    AssignedDriverName = assignment?.Driver?.Name,
+                    AssignedDriverPhone = assignment?.Driver?.Phone,
+                    AssignmentStatus = assignment?.AssignmentStatus
+                };
+            }).ToList();
+        }
+
+        public async Task<List<Driver>> GetActiveDriversAsync()
+        {
+            return await _context.Drivers
+                .Where(d => d.IsActive)
+                .OrderBy(d => d.Name)
+                .ToListAsync();
+        }
+
+        public async Task<Driver> CreateDriverAsync(CreateDriverViewModel request)
+        {
+            var driver = new Driver
+            {
+                Name = request.Name,
+                Phone = request.Phone,
+                VehicleType = request.VehicleType,
+                VehicleNumber = request.VehicleNumber,
+                PinHash = PasswordHasher.Hash(request.Pin)
+            };
+
+            _context.Drivers.Add(driver);
+            await _context.SaveChangesAsync();
+            return driver;
+        }
+
+        public async Task AssignDriverAsync(int bookingId, int driverId)
+        {
+            var booking = await _context.Bookings.FindAsync(bookingId)
+                ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            var existing = await _context.DriverAssignments
+                .FirstOrDefaultAsync(a => a.BookingId == bookingId && a.DriverId == driverId);
+
+            if (existing == null)
+            {
+                _context.DriverAssignments.Add(new DriverAssignment
+                {
+                    BookingId = bookingId,
+                    DriverId = driverId,
+                    AssignedAt = DateTime.UtcNow,
+                    AssignmentStatus = "Pending"
+                });
+            }
+            else
+            {
+                existing.AssignedAt = DateTime.UtcNow;
+                existing.AssignmentStatus = "Pending";
+                existing.AcceptedAt = null;
+                existing.RejectedAt = null;
+            }
+
+            var previousStatus = booking.Status;
+            booking.Status = "Driver_Assigned";
+            booking.UpdatedAt = DateTime.UtcNow;
+
+            _context.BookingStatusHistories.Add(new BookingStatusHistory
+            {
+                BookingId = bookingId,
+                PreviousStatus = previousStatus,
+                NewStatus = "Driver_Assigned",
+                ChangedBy = "Admin"
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateBookingStatusAsync(int bookingId, string newStatus, string changedBy)
+        {
+            if (!ValidStatuses.Contains(newStatus))
+            {
+                throw new InvalidOperationException($"'{newStatus}' is not a valid booking status");
+            }
+
+            var booking = await _context.Bookings.FindAsync(bookingId)
+                ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            var previousStatus = booking.Status;
+            booking.Status = newStatus;
+            booking.UpdatedAt = DateTime.UtcNow;
+
+            _context.BookingStatusHistories.Add(new BookingStatusHistory
+            {
+                BookingId = bookingId,
+                PreviousStatus = previousStatus,
+                NewStatus = newStatus,
+                ChangedBy = changedBy
+            });
+
+            await _context.SaveChangesAsync();
+        }
+    }
+}

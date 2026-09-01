@@ -1,0 +1,107 @@
+@model List<RideBooking.ViewModels.AdminBookingListItemViewModel>
+@{
+    ViewData["Title"] = "Dispatch Back Office";
+    var drivers = ViewBag.ActiveDrivers as List<RideBooking.Models.Driver> ?? new();
+    var statuses = new[] { "New", "Confirmed", "Driver_Assigned", "Picked_Up", "In_Transit", "Dropped_Off", "Completed", "Cancelled", "No_Show" };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="ride-eyebrow mb-1">RideBooking</p>
+        <h1 class="fw-bold">Dispatch back office</h1>
+    </div>
+    <form asp-controller="AdminAuth" asp-action="Logout" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-secondary rounded-pill">Sign out</button>
+    </form>
+</div>
+
+<div class="ride-card mb-4">
+    <h2 class="h5 fw-bold mb-3">Add a driver</h2>
+    <form asp-controller="Admin" asp-action="CreateDriver" method="post" class="row g-2 align-items-end">
+        @Html.AntiForgeryToken()
+        <div class="col-md-2"><input name="Name" class="form-control ride-input" placeholder="Driver name" required /></div>
+        <div class="col-md-2"><input name="Phone" class="form-control ride-input" placeholder="Phone" required /></div>
+        <div class="col-md-2">
+            <select name="VehicleType" class="form-select ride-input" required>
+                <option value="Car">Car</option>
+                <option value="Van">Van</option>
+                <option value="Bus">Bus</option>
+            </select>
+        </div>
+        <div class="col-md-2"><input name="VehicleNumber" class="form-control ride-input" placeholder="Plate no." required /></div>
+        <div class="col-md-2"><input name="Pin" class="form-control ride-input" placeholder="4-6 digit PIN" required /></div>
+        <div class="col-md-2"><button type="submit" class="btn ride-btn-primary w-100">Add driver</button></div>
+    </form>
+</div>
+
+@foreach (var booking in Model)
+{
+    <div class="ride-card mb-3">
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <h2 class="h5 fw-bold mb-0">@booking.CustomerName</h2>
+                    <span class="ride-pill">@booking.Status</span>
+                </div>
+                <p class="text-muted small mb-0">@booking.BookingReference &middot; @booking.CustomerPhone</p>
+            </div>
+            <div class="text-end">
+                <p class="fw-bold mb-0">@booking.PickupDate.ToString("yyyy-MM-dd") &middot; @booking.PickupTime.ToString("HH:mm")</p>
+                <p class="text-muted small mb-0">Est. fare: RM @(booking.EstimatedFare?.ToString("0.00") ?? "-")</p>
+            </div>
+        </div>
+
+        <div class="ride-section-label">Trip</div>
+        <p class="mb-1">@booking.PickupLocation &rarr; @booking.Destination</p>
+        <p class="text-muted small">@booking.Passengers pax &middot; @booking.Bags bags &middot; @booking.RequestedVehicleType</p>
+
+        <div class="row g-2 mt-2">
+            <div class="col-md-6">
+                <form asp-controller="Admin" asp-action="AssignDriver" method="post" class="d-flex gap-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="BookingId" value="@booking.BookingId" />
+                    <select name="DriverId" class="form-select ride-input">
+                        @foreach (var driver in drivers)
+                        {
+                            @if (driver.Id == booking.AssignedDriverId)
+                            {
+                                <option value="@driver.Id" selected>@driver.Name (@driver.VehicleType)</option>
+                            }
+                            else
+                            {
+                                <option value="@driver.Id">@driver.Name (@driver.VehicleType)</option>
+                            }
+                        }
+                    </select>
+                    <button type="submit" class="btn ride-btn-primary text-nowrap">Assign</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form asp-controller="Admin" asp-action="UpdateStatus" method="post" class="d-flex gap-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="bookingId" value="@booking.BookingId" />
+                    <select name="newStatus" class="form-select ride-input">
+                        @foreach (var status in statuses)
+                        {
+                            @if (status == booking.Status)
+                            {
+                                <option value="@status" selected>@status</option>
+                            }
+                            else
+                            {
+                                <option value="@status">@status</option>
+                            }
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-outline-secondary text-nowrap">Update status</button>
+                </form>
+            </div>
+        </div>
+
+        @if (booking.AssignedDriverName != null)
+        {
+            <p class="text-muted small mt-2 mb-0">Assigned: @booking.AssignedDriverName (@booking.AssignedDriverPhone) &middot; @booking.AssignmentStatus</p>
+        }
+    </div>
+}

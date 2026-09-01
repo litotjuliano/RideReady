@@ -26,6 +26,18 @@ builder.Services.AddHttpClient<GoogleMapsLocationService>(client =>
 // Register booking services
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ILocationService>(sp => sp.GetRequiredService<GoogleMapsLocationService>());
+builder.Services.AddScoped<IDriverAssignmentService, DriverAssignmentService>();
+
+builder.Services.Configure<AdminCredentialsSettings>(builder.Configuration.GetSection("AdminCredentials"));
+
+builder.Services.AddAuthentication()
+    .AddCookie("AdminAuth", options =>
+    {
+        options.Cookie.Name = "RideBooking.AdminAuth";
+        options.LoginPath = "/AdminAuth/Login";
+        options.AccessDeniedPath = "/AdminAuth/Login";
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -42,6 +54,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

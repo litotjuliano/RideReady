@@ -7,6 +7,7 @@ namespace RideBooking.Models
         public string Phone { get; set; } = string.Empty;
         public string VehicleType { get; set; } = string.Empty; // Car, Van, Bus
         public string? VehicleNumber { get; set; }
+        public string PinHash { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public decimal? Rating { get; set; }
         public decimal CancellationRate { get; set; } = 0;
