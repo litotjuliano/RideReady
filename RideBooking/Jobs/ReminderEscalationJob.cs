@@ -36,20 +36,29 @@ namespace RideBooking.Jobs
 
             foreach (var booking in unassigned)
             {
-                var pickupAt = booking.PickupDate.ToDateTime(booking.PickupTime);
-                if (pickupAt < windowStart || pickupAt > windowEnd)
+                try
                 {
-                    continue;
-                }
+                    var pickupAt = booking.PickupDate.ToDateTime(booking.PickupTime);
+                    if (pickupAt < windowStart || pickupAt > windowEnd)
+                    {
+                        continue;
+                    }
 
-                var alreadySent = await _context.Notifications
-                    .AnyAsync(n => n.BookingId == booking.Id && n.EventType == eventType);
-                if (alreadySent)
+                    var alreadySent = await _context.Notifications
+                        .AnyAsync(n => n.BookingId == booking.Id && n.EventType == eventType);
+                    if (alreadySent)
+                    {
+                        continue;
+                    }
+
+                    await _notificationService.SendUnassignedReminderAsync(booking.Id, urgent);
+                }
+                catch (Exception)
                 {
-                    continue;
+                    // Isolate this booking's failure so one bad record doesn't abort the whole
+                    // batch. The reminder isn't marked as sent, so it will be picked up again
+                    // (and retried) on the next 5-minute tick.
                 }
-
-                await _notificationService.SendUnassignedReminderAsync(booking.Id, urgent);
             }
         }
     }

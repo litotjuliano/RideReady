@@ -31,26 +31,36 @@ namespace RideBooking.Jobs
 
             foreach (var booking in candidates)
             {
-                var pickupAt = booking.PickupDate.ToDateTime(booking.PickupTime);
-                if (now - pickupAt < GracePeriod)
+                try
                 {
-                    continue;
+                    var pickupAt = booking.PickupDate.ToDateTime(booking.PickupTime);
+                    if (now - pickupAt < GracePeriod)
+                    {
+                        continue;
+                    }
+
+                    var previousStatus = booking.Status;
+                    booking.Status = "No_Show";
+                    booking.UpdatedAt = now;
+
+                    _context.BookingStatusHistories.Add(new BookingStatusHistory
+                    {
+                        BookingId = booking.Id,
+                        PreviousStatus = previousStatus,
+                        NewStatus = "No_Show",
+                        ChangedBy = "System"
+                    });
+
+                    await _context.SaveChangesAsync();
+                    await _notificationService.SendNoShowNotificationAsync(booking.Id);
                 }
-
-                var previousStatus = booking.Status;
-                booking.Status = "No_Show";
-                booking.UpdatedAt = now;
-
-                _context.BookingStatusHistories.Add(new BookingStatusHistory
+                catch (Exception)
                 {
-                    BookingId = booking.Id,
-                    PreviousStatus = previousStatus,
-                    NewStatus = "No_Show",
-                    ChangedBy = "System"
-                });
-
-                await _context.SaveChangesAsync();
-                await _notificationService.SendNoShowNotificationAsync(booking.Id);
+                    // Isolate this booking's failure so one bad record (malformed data, a
+                    // downstream notification error, etc.) doesn't abort the whole batch.
+                    // If the status change above didn't persist, this booking is still
+                    // eligible and will be re-evaluated on the next 5-minute tick.
+                }
             }
         }
     }

@@ -53,6 +53,16 @@ namespace RideBooking.Jobs
                     {
                         await _whatsAppSender.SendAsync(notification.RecipientContact, notification.MessageContent ?? string.Empty);
                     }
+                    else
+                    {
+                        // This job only knows how to resend Email and WhatsApp. Channels such as
+                        // "Calendar" have no supported retry path here (it doesn't depend on
+                        // ICalendarSyncService) — dead-letter immediately instead of silently
+                        // falling through to "Sent", which would hide a sync that never happened.
+                        notification.ErrorMessage = $"Retry not supported for channel '{notification.Channel}'";
+                        notification.DeliveryStatus = "DeadLetter";
+                        continue;
+                    }
 
                     notification.DeliveryStatus = "Sent";
                     notification.SentAt = now;

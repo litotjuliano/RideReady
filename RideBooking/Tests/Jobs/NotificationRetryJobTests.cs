@@ -17,7 +17,7 @@ namespace RideBooking.Tests.Jobs
             return new RideBookingDbContext(options);
         }
 
-        private async Task<Notification> SeedFailedNotificationAsync(RideBookingDbContext context, int retryCount, DateTime lastAttemptAt)
+        private async Task<Notification> SeedFailedNotificationAsync(RideBookingDbContext context, int retryCount, DateTime lastAttemptAt, string channel = "Email")
         {
             var customer = new Customer { Name = "Uncle Sim", Phone = "0125183838", Email = "sim@email.com" };
             context.Customers.Add(customer);
@@ -44,7 +44,7 @@ namespace RideBooking.Tests.Jobs
                 BookingId = booking.Id,
                 RecipientType = "Customer",
                 RecipientContact = "sim@email.com",
-                Channel = "Email",
+                Channel = channel,
                 EventType = "BookingCreated",
                 Subject = "Your RideBooking reservation",
                 MessageContent = "Hi Uncle Sim",
@@ -111,6 +111,30 @@ namespace RideBooking.Tests.Jobs
             var updated = await context.Notifications.FindAsync(notification.Id);
             Assert.Equal("DeadLetter", updated!.DeliveryStatus);
             Assert.Equal(4, updated.RetryCount);
+        }
+
+        [Fact]
+        public async Task RunAsync_WithUnsupportedChannel_DoesNotMarkAsSentAndDeadLettersInstead()
+        {
+            // Arrange: this job only knows how to resend Email and WhatsApp; a "Calendar"
+            // notification (logged by NotificationService.SendBookingCreatedNotificationAsync)
+            // has no supported retry path here.
+            var context = GetInMemoryDbContext();
+            var notification = await SeedFailedNotificationAsync(context, retryCount: 0, lastAttemptAt: DateTime.UtcNow.AddMinutes(-10), channel: "Calendar");
+            var emailSender = new FakeEmailSender();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var job = new NotificationRetryJob(context, emailSender, whatsAppSender);
+
+            // Act
+            await job.RunAsync();
+
+            // Assert
+            var updated = await context.Notifications.FindAsync(notification.Id);
+            Assert.NotEqual("Sent", updated!.DeliveryStatus);
+            Assert.Equal("DeadLetter", updated.DeliveryStatus);
+            Assert.False(string.IsNullOrEmpty(updated.ErrorMessage));
+            Assert.Empty(emailSender.Sent);
+            Assert.Empty(whatsAppSender.Sent);
         }
     }
 }
