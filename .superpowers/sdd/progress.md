@@ -14,3 +14,5 @@ Branch ready for Tasks 4-11 planning.
 Task 4: complete (commit dd9463b, spec compliant, code review clean, 0 fix rounds)
 Task 5: fix round 1/1 (API key log leak fixed + verified, malformed-response guard added; commits 686cb1d..85171f7)
 Task 5: complete (commits 686cb1d..85171f7, 1 fix round)
+Task 6: fix round 1/1 (reassignment DbUpdateException bug fixed at root cause, error handling + tests added; commits 880de96..35f79b8; fix subagent hit a rate limit mid-work, orchestrator completed it directly)
+Task 6: complete (commits 880de96..35f79b8, 1 fix round)
