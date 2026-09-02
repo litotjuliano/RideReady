@@ -100,3 +100,24 @@ now visibly flagged.
 
 Final test count: 77/77 passing. Branch ready for a merge decision, verified by automated
 tests, live use, and two rounds of iterative fixing driven by the user's own hands-on testing.
+
+## DRIVER-VEHICLE-TYPE DROPDOWN FILTER + MISMATCH WARNING REMOVAL (commit a2ee631)
+User asked the driver dropdown on Assign forms to default to only drivers whose registered
+vehicle type matches the booking's requested type (falling back to showing everyone if none
+match) - this makes the earlier mismatch scenario rare by construction rather than relying on
+the admin to notice a warning after the fact. Implemented in Views/Admin/Index.cshtml.
+
+With mismatches now rare, the user then said the standalone mismatch warning "no longer
+applies" and asked to remove it entirely rather than leave it alongside the new filter.
+Removed AssignedDriverVehicleType end-to-end: the warning block in Index.cshtml, the property
+on AdminBookingListItemViewModel, and its population in
+DriverAssignmentService.GetDashboardBookingsAsync. The double-booking guard (unrelated,
+added in the same earlier session) is untouched.
+
+Verified: 77/77 tests passing, Docker image rebuilt and redeployed, confirmed live via curl
+against the two bookings from the original screenshot (RR-9RLI63YS, RR-AQ7HZH8I) - no mismatch
+warning text remains, "Assigned: driver (phone) - status" line still renders correctly.
+
+Noted but out of scope: Quartz NoShowDetectionJob fails to instantiate on startup ("no empty
+constructor") - pre-existing, unrelated to this change, does not block app health or the
+dashboard. Flagged to user as a follow-up, not fixed.
