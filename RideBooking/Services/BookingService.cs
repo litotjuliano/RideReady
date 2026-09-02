@@ -2,6 +2,8 @@ using RideBooking.Data;
 using RideBooking.Models;
 using RideBooking.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Cryptography;
 
 namespace RideBooking.Services
@@ -10,11 +12,13 @@ namespace RideBooking.Services
     {
         private readonly RideBookingDbContext _context;
         private readonly ILocationService _locationService;
+        private readonly ILogger<BookingService> _logger;
 
-        public BookingService(RideBookingDbContext context, ILocationService? locationService = null)
+        public BookingService(RideBookingDbContext context, ILocationService? locationService = null, ILogger<BookingService>? logger = null)
         {
             _context = context;
             _locationService = locationService ?? new MockLocationService();
+            _logger = logger ?? NullLogger<BookingService>.Instance;
         }
 
         public async Task<Booking> CreateBookingAsync(BookingRequestViewModel request)
@@ -75,8 +79,11 @@ namespace RideBooking.Services
                 {
                     quote = await GetQuoteAsync(request);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger.LogWarning(ex,
+                        "Quote calculation failed for a new booking (vehicle type {VehicleType}, pickup {Pickup} -> {Destination}); creating it with a zeroed quote for manual pricing.",
+                        request.VehicleType, request.PickupLocation, request.Destination);
                     quote = new BookingQuoteViewModel
                     {
                         BaseFare = 0,
