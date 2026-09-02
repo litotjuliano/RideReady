@@ -258,5 +258,110 @@ namespace RideBooking.Tests.Services
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => service.UpdateBookingStatusAsync(bookingId: 9999, "Confirmed", "Admin"));
         }
+
+        [Fact]
+        public async Task AssignDriverAsync_WhenBookingAlreadyPickedUp_ThrowsAndDoesNotMutateExistingAssignment()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var booking = await SeedBookingAsync(context);
+            var originalDriver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+            var otherDriver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Bob",
+                Phone = "0198765432",
+                VehicleType = "Car",
+                VehicleNumber = "XYZ 5678",
+                Pin = "5678"
+            });
+
+            // Original driver is assigned, accepts, and picks up the passenger.
+            await service.AssignDriverAsync(booking.Id, originalDriver.Id);
+            var assignment = await context.DriverAssignments.FirstAsync(a => a.BookingId == booking.Id);
+            assignment.AssignmentStatus = "Accepted";
+            assignment.AcceptedAt = DateTime.UtcNow;
+            var trackedBooking = await context.Bookings.FindAsync(booking.Id);
+            trackedBooking!.Status = "Picked_Up";
+            await context.SaveChangesAsync();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.AssignDriverAsync(booking.Id, otherDriver.Id));
+
+            var unchangedBooking = await context.Bookings.FindAsync(booking.Id);
+            Assert.Equal("Picked_Up", unchangedBooking!.Status);
+
+            var unchangedAssignment = await context.DriverAssignments
+                .SingleAsync(a => a.BookingId == booking.Id);
+            Assert.Equal(originalDriver.Id, unchangedAssignment.DriverId);
+            Assert.Equal("Accepted", unchangedAssignment.AssignmentStatus);
+            Assert.NotNull(unchangedAssignment.AcceptedAt);
+        }
+
+        [Fact]
+        public async Task AssignDriverAsync_WhenBookingConfirmedButNotPickedUp_StillSucceeds()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var booking = await SeedBookingAsync(context);
+            var originalDriver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+            var replacementDriver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Bob",
+                Phone = "0198765432",
+                VehicleType = "Car",
+                VehicleNumber = "XYZ 5678",
+                Pin = "5678"
+            });
+
+            await service.AssignDriverAsync(booking.Id, originalDriver.Id);
+            var trackedBooking = await context.Bookings.FindAsync(booking.Id);
+            trackedBooking!.Status = "Confirmed";
+            await context.SaveChangesAsync();
+
+            // Act — original driver became unavailable before pickup; admin reassigns.
+            await service.AssignDriverAsync(booking.Id, replacementDriver.Id);
+
+            // Assert
+            var updated = await context.Bookings.FindAsync(booking.Id);
+            Assert.Equal("Driver_Assigned", updated!.Status);
+            var assignment = await context.DriverAssignments.SingleAsync(a => a.BookingId == booking.Id);
+            Assert.Equal(replacementDriver.Id, assignment.DriverId);
+            Assert.Equal("Pending", assignment.AssignmentStatus);
+        }
+
+        [Fact]
+        public async Task UpdateBookingStatusAsync_WithDriverAssignedTarget_ThrowsAndDoesNotCreateAssignmentOrChangeStatus()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var booking = await SeedBookingAsync(context);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.UpdateBookingStatusAsync(booking.Id, "Driver_Assigned", "Admin"));
+
+            var unchangedBooking = await context.Bookings.FindAsync(booking.Id);
+            Assert.Equal("New", unchangedBooking!.Status);
+            var assignmentCount = await context.DriverAssignments.CountAsync(a => a.BookingId == booking.Id);
+            Assert.Equal(0, assignmentCount);
+        }
     }
 }

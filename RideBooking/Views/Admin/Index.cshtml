@@ -2,7 +2,11 @@
 @{
     ViewData["Title"] = "Dispatch Back Office";
     var drivers = ViewBag.ActiveDrivers as List<RideBooking.Models.Driver> ?? new();
-    var statuses = new[] { "New", "Confirmed", "Driver_Assigned", "Picked_Up", "In_Transit", "Dropped_Off", "Completed", "Cancelled", "No_Show" };
+    // "Driver_Assigned" is intentionally excluded here — it can only be reached via the
+    // "Assign" form/button, which creates the matching DriverAssignment row. Setting it
+    // through this free-form dropdown would leave the booking marked as assigned with no
+    // driver ever notified (see DriverAssignmentService.UpdateBookingStatusAsync).
+    var statuses = new[] { "New", "Confirmed", "Picked_Up", "In_Transit", "Dropped_Off", "Completed", "Cancelled", "No_Show" };
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">

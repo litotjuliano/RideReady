@@ -91,10 +91,22 @@ namespace RideBooking.Services
             return driver;
         }
 
+        // Statuses in which a driver may still be assigned or reassigned — before any
+        // driver has actually picked up the passenger. Once a trip is under way
+        // (Picked_Up/In_Transit/Dropped_Off) or has reached a terminal state
+        // (Completed/Cancelled/No_Show), reassigning would corrupt the in-progress
+        // trip's status and orphan the original driver's DriverAssignment row.
+        private static readonly string[] AssignableStatuses = { "New", "Confirmed", "Driver_Assigned" };
+
         public async Task AssignDriverAsync(int bookingId, int driverId)
         {
             var booking = await _context.Bookings.FindAsync(bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            if (!AssignableStatuses.Contains(booking.Status))
+            {
+                throw new InvalidOperationException($"Cannot assign a driver — booking is already '{booking.Status}'");
+            }
 
             var driverExists = await _context.Drivers.AnyAsync(d => d.Id == driverId);
             if (!driverExists)
@@ -151,6 +163,11 @@ namespace RideBooking.Services
             if (!ValidStatuses.Contains(newStatus))
             {
                 throw new InvalidOperationException($"'{newStatus}' is not a valid booking status");
+            }
+
+            if (newStatus == "Driver_Assigned")
+            {
+                throw new InvalidOperationException("'Driver_Assigned' can only be set by assigning a driver, not via a direct status update");
             }
 
             var booking = await _context.Bookings.FindAsync(bookingId)
