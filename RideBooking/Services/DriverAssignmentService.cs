@@ -62,6 +62,7 @@ namespace RideBooking.Services
                     AssignedDriverId = assignment?.DriverId,
                     AssignedDriverName = assignment?.Driver?.Name,
                     AssignedDriverPhone = assignment?.Driver?.Phone,
+                    AssignedDriverVehicleType = assignment?.Driver?.VehicleType,
                     AssignmentStatus = assignment?.AssignmentStatus
                 };
             }).ToList();
@@ -112,6 +113,26 @@ namespace RideBooking.Services
             if (!driverExists)
             {
                 throw new InvalidOperationException($"Driver {driverId} not found");
+            }
+
+            // Block double-booking: a driver can't be assigned to two active trips at the
+            // exact same pickup date/time. Materialize then filter in memory (matching the
+            // pattern already used in GetDashboardBookingsAsync) rather than filtering on
+            // navigation properties directly in the query.
+            var otherActiveAssignments = await _context.DriverAssignments
+                .Include(a => a.Booking)
+                .Where(a => a.DriverId == driverId && a.BookingId != bookingId && a.AssignmentStatus != "Rejected")
+                .ToListAsync();
+
+            var conflict = otherActiveAssignments.FirstOrDefault(a =>
+                a.Booking != null &&
+                a.Booking.Status != "Cancelled" && a.Booking.Status != "No_Show" && a.Booking.Status != "Completed" &&
+                a.Booking.PickupDate == booking.PickupDate && a.Booking.PickupTime == booking.PickupTime);
+
+            if (conflict != null)
+            {
+                throw new InvalidOperationException(
+                    $"This driver is already assigned to booking {conflict.Booking!.BookingReference} at the same pickup time ({booking.PickupDate:yyyy-MM-dd} {booking.PickupTime:HH:mm})");
             }
 
             // DriverAssignment has an implicit one-to-one relationship with Booking

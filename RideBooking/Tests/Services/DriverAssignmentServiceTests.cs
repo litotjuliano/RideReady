@@ -41,6 +41,117 @@ namespace RideBooking.Tests.Services
             return booking;
         }
 
+        private async Task<Booking> SeedBookingAsync(RideBookingDbContext context, string reference, DateOnly pickupDate, TimeOnly pickupTime, string status = "New")
+        {
+            var customer = new Customer { Name = "Another Customer", Phone = $"01{reference.GetHashCode() & 0xFFFFFFF}", Email = "another@email.com" };
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var booking = new Booking
+            {
+                BookingReference = reference,
+                CustomerId = customer.Id,
+                PickupLocation = "Mid Valley",
+                Destination = "KLIA Terminal 1",
+                PickupDate = pickupDate,
+                PickupTime = pickupTime,
+                Passengers = 2,
+                Bags = 1,
+                RequestedVehicleType = "Car",
+                Status = status
+            };
+            context.Bookings.Add(booking);
+            await context.SaveChangesAsync();
+            return booking;
+        }
+
+        [Fact]
+        public async Task AssignDriverAsync_WhenDriverAlreadyAssignedToAnotherBookingAtTheSamePickupTime_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var pickupDate = new DateOnly(2026, 9, 16);
+            var pickupTime = new TimeOnly(14, 0);
+            var bookingA = await SeedBookingAsync(context, "RR-CONFLICTA", pickupDate, pickupTime);
+            var bookingB = await SeedBookingAsync(context, "RR-CONFLICTB", pickupDate, pickupTime);
+            var driver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+            await service.AssignDriverAsync(bookingA.Id, driver.Id);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.AssignDriverAsync(bookingB.Id, driver.Id));
+            Assert.Contains("RR-CONFLICTA", ex.Message);
+
+            // bookingB must not have been assigned
+            var bookingBAssignment = await context.DriverAssignments.FirstOrDefaultAsync(a => a.BookingId == bookingB.Id);
+            Assert.Null(bookingBAssignment);
+        }
+
+        [Fact]
+        public async Task AssignDriverAsync_WhenDriverHasAnAssignmentAtADifferentPickupTime_StillSucceeds()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var bookingA = await SeedBookingAsync(context, "RR-TIMEA", new DateOnly(2026, 9, 16), new TimeOnly(9, 0));
+            var bookingB = await SeedBookingAsync(context, "RR-TIMEB", new DateOnly(2026, 9, 16), new TimeOnly(15, 0));
+            var driver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+            await service.AssignDriverAsync(bookingA.Id, driver.Id);
+
+            // Act
+            await service.AssignDriverAsync(bookingB.Id, driver.Id);
+
+            // Assert
+            var bookingBAssignment = await context.DriverAssignments.FirstOrDefaultAsync(a => a.BookingId == bookingB.Id);
+            Assert.NotNull(bookingBAssignment);
+            Assert.Equal(driver.Id, bookingBAssignment!.DriverId);
+        }
+
+        [Fact]
+        public async Task AssignDriverAsync_WhenTheConflictingBookingWasCancelled_StillSucceeds()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var pickupDate = new DateOnly(2026, 9, 16);
+            var pickupTime = new TimeOnly(14, 0);
+            var bookingA = await SeedBookingAsync(context, "RR-CANCELLEDA", pickupDate, pickupTime);
+            var bookingB = await SeedBookingAsync(context, "RR-CANCELLEDB", pickupDate, pickupTime);
+            var driver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+            await service.AssignDriverAsync(bookingA.Id, driver.Id);
+            bookingA.Status = "Cancelled";
+            await context.SaveChangesAsync();
+
+            // Act
+            await service.AssignDriverAsync(bookingB.Id, driver.Id);
+
+            // Assert
+            var bookingBAssignment = await context.DriverAssignments.FirstOrDefaultAsync(a => a.BookingId == bookingB.Id);
+            Assert.NotNull(bookingBAssignment);
+        }
+
         [Fact]
         public async Task CreateDriverAsync_WithValidRequest_HashesThePin()
         {
