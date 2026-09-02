@@ -30,4 +30,15 @@ Task 11: complete (commits de950bb..4a162ef, 2 fix rounds)
 
 ## PHASE 1 (TASKS 4-11) COMPLETE
 All 8 tasks (4-11) implemented, spec-reviewed, code-reviewed, and fix rounds resolved.
-Branch phase1-tasks-4-11 ready for final holistic review and merge decision.
+
+Final holistic cross-branch review (commit f6cb8ad): found 2 Critical state-machine bugs
+visible only when Task 6 (driver assignment) and Task 7 (driver trip lifecycle) are traced
+together — mid-trip driver reassignment could corrupt an in-progress trip's status/assignment,
+and the admin status dropdown could jump a booking to "Driver_Assigned" without ever creating
+a DriverAssignment row. Both fixed and independently verified (commit dfe5fa4, incl. mutation
+testing to confirm the new guards are load-bearing). 3 Important findings (admin auth using
+plaintext compare instead of the PasswordHasher pattern; no TLS in the Task 11 deploy pipeline;
+deploy.yml not checking new_release_published) surfaced to the user as follow-up recommendations
+rather than fixed now — they involve infra/architecture tradeoffs beyond a quick correctness patch.
+
+Branch phase1-tasks-4-11 ready for merge decision. Final test count: 67/67 passing.
