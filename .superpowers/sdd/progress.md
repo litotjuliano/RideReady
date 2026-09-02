@@ -42,3 +42,28 @@ deploy.yml not checking new_release_published) surfaced to the user as follow-up
 rather than fixed now — they involve infra/architecture tradeoffs beyond a quick correctness patch.
 
 Branch phase1-tasks-4-11 ready for merge decision. Final test count: 67/67 passing.
+
+## LIVE TESTING (commit 3c71ddc)
+User asked to actually run the app before deciding merge/PR/discard. Stood up the real stack
+via Docker (run.bat: builds the image, starts Docker Desktop if needed, docker-compose up,
+waits for /health). This is the first time in the project's history any environment had a
+reachable database.
+
+Found and fixed a Critical, previously-undetectable bug: two migrations from before Task 4
+(AddUniqueConstraints, AddLuggageFeeToProductSetting) had no .Designer.cs, so EF Core silently
+skipped them on every MigrateAsync() call, in every environment, always. First real booking
+submission failed with "column p.LuggageFeePerExtra does not exist". Also found the 3 unique
+constraints those migrations were meant to add were never in the C# model either. Fixed by
+adding them properly via Fluent API and squashing all migrations into one fresh,
+tool-verified InitialCreate (safe — no environment has ever had these migrations applied to
+real data).
+
+Re-verified end-to-end against the corrected schema: customer booking (blocked gracefully on
+missing pricing seed data and placeholder Google Maps key — expected, not bugs), admin
+login/dashboard, driver creation/login, and the full assign -> accept -> pick up -> complete
+lifecycle. Both of this branch's earlier critical state-machine fixes (mid-trip reassignment
+block, direct Driver_Assigned jump block) were exercised live via crafted requests and held
+up correctly, including a full audit-trail check in BookingStatusHistory.
+
+Final test count unchanged: 67/67 passing. Branch genuinely ready for a merge decision now,
+verified by both automated tests and live use, not just automated tests.
