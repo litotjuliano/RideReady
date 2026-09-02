@@ -15,7 +15,7 @@ namespace RideBooking.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpGet]
+        [HttpGet("/Booking")]
         public IActionResult Create()
         {
             var model = new BookingRequestViewModel
@@ -25,7 +25,7 @@ namespace RideBooking.Controllers
             return View(model);
         }
 
-        [HttpPost]
+        [HttpPost("/Booking")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookingRequestViewModel request)
         {
