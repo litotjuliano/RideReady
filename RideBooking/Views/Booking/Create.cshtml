@@ -32,73 +32,63 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <p class="ride-section-label">Your details</p>
-                    <div class="row g-2 mb-1 align-items-center">
-                        <div class="col-sm-3"><label asp-for="CustomerName" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="CustomerName" class="form-label fw-semibold"></label>
                             <input asp-for="CustomerName" class="form-control ride-input" placeholder="Full name" />
                             <span asp-validation-for="CustomerName" class="text-danger small"></span>
                         </div>
-                    </div>
-                    <div class="row g-2 mb-1 align-items-center">
-                        <div class="col-sm-3"><label asp-for="CustomerPhone" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                        <div class="col-md-6">
+                            <label asp-for="CustomerPhone" class="form-label fw-semibold"></label>
                             <input asp-for="CustomerPhone" class="form-control ride-input" placeholder="e.g. 0123456789" />
                             <span asp-validation-for="CustomerPhone" class="text-danger small"></span>
                         </div>
-                    </div>
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-sm-3"><label asp-for="CustomerEmail" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                        <div class="col-12">
+                            <label asp-for="CustomerEmail" class="form-label fw-semibold"></label>
                             <input asp-for="CustomerEmail" class="form-control ride-input" placeholder="you@example.com" />
                             <span asp-validation-for="CustomerEmail" class="text-danger small"></span>
                         </div>
                     </div>
 
                     <p class="ride-section-label">Trip</p>
-                    <div class="row g-2 mb-1 align-items-center">
-                        <div class="col-sm-2"><label asp-for="PickupLocation" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-4">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="PickupLocation" class="form-label fw-semibold"></label>
                             <input asp-for="PickupLocation" class="form-control ride-input" placeholder="e.g. KL Sentral" />
                             <span asp-validation-for="PickupLocation" class="text-danger small"></span>
                         </div>
-                        <div class="col-sm-2"><label asp-for="Destination" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-4">
+                        <div class="col-md-6">
+                            <label asp-for="Destination" class="form-label fw-semibold"></label>
                             <input asp-for="Destination" class="form-control ride-input" placeholder="e.g. KLIA Terminal 1" />
                             <span asp-validation-for="Destination" class="text-danger small"></span>
                         </div>
-                    </div>
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-sm-2"><label asp-for="PickupDate" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-4">
+                        <div class="col-md-6">
+                            <label asp-for="PickupDate" class="form-label fw-semibold"></label>
                             <input asp-for="PickupDate" type="date" min="@today" max="@maxDate" class="form-control ride-input" />
                             <span asp-validation-for="PickupDate" class="text-danger small"></span>
                         </div>
-                        <div class="col-sm-2"><label asp-for="PickupTime" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-4">
+                        <div class="col-md-6">
+                            <label asp-for="PickupTime" class="form-label fw-semibold"></label>
                             <input asp-for="PickupTime" type="time" min="06:00" max="23:45" step="900" class="form-control ride-input" />
                             <span asp-validation-for="PickupTime" class="text-danger small"></span>
-                            <div class="form-text">6:00 AM - midnight, 15-minute slots.</div>
+                            <div class="form-text">Bookings available 6:00 AM - midnight, 15-minute slots.</div>
                         </div>
                     </div>
 
                     <p class="ride-section-label">Passengers &amp; vehicle</p>
-                    <div class="row g-2 mb-1 align-items-center">
-                        <div class="col-sm-3"><label asp-for="Passengers" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Passengers" class="form-label fw-semibold"></label>
                             <input asp-for="Passengers" type="number" min="1" max="8" class="form-control ride-input" />
                             <span asp-validation-for="Passengers" class="text-danger small"></span>
                         </div>
-                    </div>
-                    <div class="row g-2 mb-1 align-items-center">
-                        <div class="col-sm-3"><label asp-for="Bags" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                        <div class="col-md-4">
+                            <label asp-for="Bags" class="form-label fw-semibold"></label>
                             <input asp-for="Bags" type="number" min="0" max="10" class="form-control ride-input" />
                             <span asp-validation-for="Bags" class="text-danger small"></span>
                         </div>
-                    </div>
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-sm-3"><label asp-for="VehicleType" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                        <div class="col-md-4">
+                            <label asp-for="VehicleType" class="form-label fw-semibold"></label>
                             <select asp-for="VehicleType" class="form-select ride-input">
                                 <option value="">Select...</option>
                                 <option value="Car">Car</option>
@@ -109,24 +99,20 @@
                         </div>
                     </div>
 
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-sm-3"><label asp-for="Notes" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
-                            <textarea asp-for="Notes" rows="3" class="form-control ride-input" placeholder="Flight number, luggage, child seat, or other requests"></textarea>
-                            <span asp-validation-for="Notes" class="text-danger small"></span>
-                        </div>
+                    <div class="mb-3">
+                        <label asp-for="Notes" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Notes" rows="3" class="form-control ride-input" placeholder="Flight number, luggage, child seat, or other requests"></textarea>
+                        <span asp-validation-for="Notes" class="text-danger small"></span>
                     </div>
 
                     <p class="ride-section-label">Payment &amp; confirmation</p>
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-sm-3"><label asp-for="PaymentMethod" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
-                            <select asp-for="PaymentMethod" class="form-select ride-input">
-                                <option value="Pay_at_Pickup">Pay at Pickup</option>
-                                <option value="Bank_Transfer">Bank Transfer</option>
-                            </select>
-                            <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
-                        </div>
+                    <div class="mb-3">
+                        <label asp-for="PaymentMethod" class="form-label fw-semibold"></label>
+                        <select asp-for="PaymentMethod" class="form-select ride-input">
+                            <option value="Pay_at_Pickup">Pay at Pickup</option>
+                            <option value="Bank_Transfer">Bank Transfer</option>
+                        </select>
+                        <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
                     </div>
 
                     <div class="form-check mb-4">
