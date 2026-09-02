@@ -201,5 +201,27 @@ namespace RideBooking.Tests.Services
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => service.SetManualFareAsync(9999, 50m));
         }
+
+        [Fact]
+        public async Task SetManualFareAsync_WhenBookingNoLongerNew_ThrowsAndDoesNotChangeFare()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new BookingService(context, new ThrowingLocationService());
+            var booking = await service.CreateBookingAsync(ValidRequest());
+            await service.SetManualFareAsync(booking.Id, 100m);
+
+            var trackedBooking = await context.Bookings.FindAsync(booking.Id);
+            trackedBooking!.Status = "Confirmed";
+            await context.SaveChangesAsync();
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.SetManualFareAsync(booking.Id, 200m));
+            Assert.Contains("Confirmed", ex.Message);
+
+            var quote = await context.BookingQuotes.FirstAsync(q => q.BookingId == booking.Id);
+            Assert.Equal(100m, quote.TotalEstimatedFare);
+        }
     }
 }

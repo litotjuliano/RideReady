@@ -180,6 +180,11 @@ namespace RideBooking.Services
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
+            if (booking.Status != "New")
+            {
+                throw new InvalidOperationException($"Cannot edit the fare — booking is already '{booking.Status}'");
+            }
+
             if (booking.Quote == null)
             {
                 throw new InvalidOperationException("This booking has no quote record to update");

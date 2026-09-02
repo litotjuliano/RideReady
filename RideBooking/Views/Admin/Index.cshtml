@@ -61,25 +61,37 @@
             </div>
             <div class="text-end">
                 <p class="fw-bold mb-0">@booking.PickupDate.ToString("yyyy-MM-dd") &middot; @booking.PickupTime.ToString("HH:mm")</p>
+                @{
+                    // Once a booking has moved past "New" (confirmed, driver assigned, or
+                    // further along the trip lifecycle), the fare is locked — editing it
+                    // after the customer has been quoted/confirmed would be misleading.
+                    var fareIsEditable = booking.Status == "New";
+                }
                 @if (booking.EstimatedFare is decimal fare && fare > 0)
                 {
                     <p class="text-muted small mb-1">Est. fare: RM @fare.ToString("0.00")</p>
-                    <form asp-controller="Admin" asp-action="SetFare" method="post" class="d-flex gap-1 justify-content-end">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="BookingId" value="@booking.BookingId" />
-                        <input type="number" step="0.01" min="0.01" name="Fare" value="@fare.ToString("0.00")" class="form-control form-control-sm ride-input" placeholder="RM" style="max-width: 100px" required />
-                        <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap">Edit price</button>
-                    </form>
+                    @if (fareIsEditable)
+                    {
+                        <form asp-controller="Admin" asp-action="SetFare" method="post" class="d-flex gap-1 justify-content-end">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="BookingId" value="@booking.BookingId" />
+                            <input type="number" step="0.01" min="0.01" name="Fare" value="@fare.ToString("0.00")" class="form-control form-control-sm ride-input" placeholder="RM" style="max-width: 100px" required />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap">Edit price</button>
+                        </form>
+                    }
                 }
                 else
                 {
                     <p class="text-muted small mb-1">Price not set (automatic estimate unavailable)</p>
-                    <form asp-controller="Admin" asp-action="SetFare" method="post" class="d-flex gap-1 justify-content-end">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="BookingId" value="@booking.BookingId" />
-                        <input type="number" step="0.01" min="0.01" name="Fare" class="form-control form-control-sm ride-input" placeholder="RM" style="max-width: 100px" required />
-                        <button type="submit" class="btn btn-sm ride-btn-primary text-nowrap">Save price</button>
-                    </form>
+                    @if (fareIsEditable)
+                    {
+                        <form asp-controller="Admin" asp-action="SetFare" method="post" class="d-flex gap-1 justify-content-end">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="BookingId" value="@booking.BookingId" />
+                            <input type="number" step="0.01" min="0.01" name="Fare" class="form-control form-control-sm ride-input" placeholder="RM" style="max-width: 100px" required />
+                            <button type="submit" class="btn btn-sm ride-btn-primary text-nowrap">Save price</button>
+                        </form>
+                    }
                 }
             </div>
         </div>
