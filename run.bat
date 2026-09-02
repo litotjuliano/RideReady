@@ -45,9 +45,9 @@ if not exist .env (
     ) > .env
 )
 
-REM --- 4. Build the app image locally (context = RideBooking/, per the Task 10 Dockerfile fix) ---
+REM --- 4. Build the app image locally (context = RideReady/, per the Task 10 Dockerfile fix) ---
 echo Building app image...
-docker build -t rideready:local -f RideBooking\Dockerfile RideBooking
+docker build -t rideready:local -f RideReady\Dockerfile RideReady
 if errorlevel 1 (
     echo Docker build failed.
     exit /b 1
