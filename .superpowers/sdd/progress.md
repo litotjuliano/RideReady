@@ -137,14 +137,30 @@ Physical folder rename (RideBooking/RideBooking/RideBooking, requested explicitl
 attempted repeatedly but blocked by Windows "Access Denied" - this Claude Code session runs
 inside VSCode's own process tree, and even a full taskkill of every Code.exe process
 triggered an automatic respawn rather than releasing the lock (confirming the session's own
-host process is among them). Forcing it further risked ending the session mid-task, so the
-folder stays named `RideBooking` on disk; path references that depend on that (run.bat's
-Docker build context, ci.yml's dotnet paths, release.yml's Docker build context) were kept
-pointing at the real folder while still referencing the renamed RideReady.csproj/.dll inside
-it. The droplet deploy path (/opt/rideready) was renamed since it's an independent remote
+host process is among them). Forcing it further risked ending the session mid-task, so at
+this point the folder stayed named `RideBooking` on disk; path references that depend on that
+(run.bat's Docker build context, ci.yml's dotnet paths, release.yml's Docker build context)
+were kept pointing at the real folder while still referencing the renamed RideReady.csproj/.dll
+inside it. The droplet deploy path (/opt/rideready) was renamed since it's an independent remote
 path unaffected by the local lock.
 
 Verified: clean rebuild (rm -rf bin obj) succeeds producing RideReady.dll, 79/79 tests pass,
 Docker image rebuilds as rideready:local, and the live app shows "RideReady" everywhere
 user-visible (home page title/navbar/footer, admin login, booking form) with zero leftover
 "RideBooking" text.
+
+## REPO LAYOUT FLATTENED + SUBFOLDER RENAMED TO App (commits 6cb0fe9, 444712a)
+The Windows file lock blocking the physical folder rename above was resolved in a later
+session. Repo layout flattened from `RideBooking/RideBooking` down to a single `RideReady`
+folder (commit 6cb0fe9, via copy+delete with a temporary out-of-repo backup at
+`RideBooking - Copy` since removed), then that folder renamed again to the generic `App`
+(commit 444712a) per explicit user request. Each stage independently re-verified: clean
+build, 79/79 tests, Docker image rebuild, and container health check. run.bat, ci.yml, and
+release.yml were updated in lockstep with each move so their build contexts/dotnet paths
+correctly resolve to the final `App/` location.
+
+Code-reviewed (fb4b469..444712a, all 4 rename/flatten commits): Ready to merge - Yes. No
+stray "RideBooking" text anywhere in the tracked tree, Postgres DB name ("ride_booking") and
+connection strings confirmed unchanged throughout, all path-dependent build/CI/deploy files
+correctly resolve to `App/`. No `.sln` file exists (single-project repo), removing a class of
+solution-file drift risk.
