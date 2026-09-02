@@ -65,5 +65,23 @@ lifecycle. Both of this branch's earlier critical state-machine fixes (mid-trip 
 block, direct Driver_Assigned jump block) were exercised live via crafted requests and held
 up correctly, including a full audit-trail check in BookingStatusHistory.
 
-Final test count unchanged: 67/67 passing. Branch genuinely ready for a merge decision now,
-verified by both automated tests and live use, not just automated tests.
+## MANUAL FARE FALLBACK (commits 7efc131, d0a7069)
+While clicking through the running app, the user hit "Pricing not configured for Van" (no
+PricingSettings seeded for Van/Bus — only Car had been manually seeded during the earlier live
+test) and then, after that was fixed, "Google Directions API returned status: REQUEST_DENIED"
+(no real Google Maps key configured). User asked: let admin key in the price manually until
+the API key is set up, rather than blocking booking creation entirely.
+
+Design confirmed with user (booking still gets created; admin sees "Price not set" + a form to
+enter it), then implemented: BookingService.CreateBookingAsync now catches any quote-calculation
+failure and creates the booking anyway with a zeroed BookingQuote (preserving PaymentMethod);
+new IBookingService.SetManualFareAsync + AdminController.SetFare + an inline dashboard form for
+bookings without a real estimate. Code-quality reviewed (Ready to merge: Yes, one cheap
+recommendation - log the swallowed exception - implemented immediately after).
+
+Verified live: submitted a real booking with the Maps key still unconfigured, confirmed it
+succeeded (previously would have hard-failed), dashboard showed "Price not set", set a manual
+fare via the new form, confirmed it displayed correctly afterward.
+
+Final test count: 74/74 passing. Branch ready for a merge decision, verified by automated
+tests, live use, and one round of iterative fixing driven by the user's own hands-on testing.
