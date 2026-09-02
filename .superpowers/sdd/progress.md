@@ -83,5 +83,20 @@ Verified live: submitted a real booking with the Maps key still unconfigured, co
 succeeded (previously would have hard-failed), dashboard showed "Price not set", set a manual
 fare via the new form, confirmed it displayed correctly afterward.
 
-Final test count: 74/74 passing. Branch ready for a merge decision, verified by automated
-tests, live use, and one round of iterative fixing driven by the user's own hands-on testing.
+## DRIVER DOUBLE-BOOKING / VEHICLE MISMATCH (commit 1f8e127)
+User created two bookings with identical pickup date/time/route and assigned the same driver
+to both via the dashboard - nothing blocked it, and the driver (registered as "Car") was also
+assigned to two "Van" requests with no indication of mismatch. Confirmed with user: block
+double-booking outright (same pattern as the existing assignment guards); vehicle type
+mismatch is warn-but-allow, not blocked (operators may know a driver has access to a different
+vehicle than what's on file).
+
+AssignDriverAsync now rejects assigning a driver who already has another active assignment at
+the exact same pickup date/time, naming the conflicting booking reference in the error.
+Dashboard now shows a visible warning when the assigned driver's registered vehicle type
+doesn't match the booking's requested type. Verified live against the exact two-booking
+scenario from the user's screenshot: reassignment now correctly rejected, existing mismatch
+now visibly flagged.
+
+Final test count: 77/77 passing. Branch ready for a merge decision, verified by automated
+tests, live use, and two rounds of iterative fixing driven by the user's own hands-on testing.
