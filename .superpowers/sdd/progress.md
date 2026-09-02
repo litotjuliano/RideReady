@@ -24,3 +24,10 @@ Task 9: fix round 1/1 (Calendar-channel dead-letter fix + per-item exception iso
 Task 9: complete (commits 632c1f9..91cdd20, 1 fix round)
 Task 10: fix round 1/1 (Docker build context bug, permissions, CI gate fixed; commits 257186e..e36e096)
 Task 10: complete (commits 257186e..e36e096, 1 fix round)
+Task 11: fix round 1/2 (.env gitignore, curl in runtime image, rollback tag guidance fixed; commits de950bb..cc18e63)
+Task 11: fix round 2/2 (rollback guidance corrected to point at GitHub Releases/git tags; commits cc18e63..4a162ef)
+Task 11: complete (commits de950bb..4a162ef, 2 fix rounds)
+
+## PHASE 1 (TASKS 4-11) COMPLETE
+All 8 tasks (4-11) implemented, spec-reviewed, code-reviewed, and fix rounds resolved.
+Branch phase1-tasks-4-11 ready for final holistic review and merge decision.
