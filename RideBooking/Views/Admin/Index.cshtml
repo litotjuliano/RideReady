@@ -139,10 +139,6 @@
         @if (booking.AssignedDriverName != null)
         {
             <p class="text-muted small mt-2 mb-0">Assigned: @booking.AssignedDriverName (@booking.AssignedDriverPhone) &middot; @booking.AssignmentStatus</p>
-            @if (!string.IsNullOrEmpty(booking.AssignedDriverVehicleType) && booking.AssignedDriverVehicleType != booking.RequestedVehicleType)
-            {
-                <p class="text-warning small mb-0">&#9888; Vehicle mismatch: driver is registered as @booking.AssignedDriverVehicleType, booking requested @booking.RequestedVehicleType</p>
-            }
         }
     </div>
 }

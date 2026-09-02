@@ -62,7 +62,6 @@ namespace RideBooking.Services
                     AssignedDriverId = assignment?.DriverId,
                     AssignedDriverName = assignment?.Driver?.Name,
                     AssignedDriverPhone = assignment?.Driver?.Phone,
-                    AssignedDriverVehicleType = assignment?.Driver?.VehicleType,
                     AssignmentStatus = assignment?.AssignmentStatus
                 };
             }).ToList();

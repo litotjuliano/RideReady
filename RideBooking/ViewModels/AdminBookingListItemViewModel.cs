@@ -18,7 +18,6 @@ namespace RideBooking.ViewModels
         public int? AssignedDriverId { get; set; }
         public string? AssignedDriverName { get; set; }
         public string? AssignedDriverPhone { get; set; }
-        public string? AssignedDriverVehicleType { get; set; }
         public string? AssignmentStatus { get; set; }
     }
 }
