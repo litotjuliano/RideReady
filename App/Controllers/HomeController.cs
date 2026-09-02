@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using RideReady.Models;
+using RideReady.ViewModels;
 
 namespace RideReady.Controllers;
 
@@ -15,7 +16,12 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        return View();
+        var model = new BookingRequestViewModel
+        {
+            PickupDate = DateOnly.FromDateTime(DateTime.Today)
+        };
+        ViewData["HideNav"] = true;
+        return View("~/Views/Booking/Create.cshtml", model);
     }
 
     public IActionResult Privacy()
