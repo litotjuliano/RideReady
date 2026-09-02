@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using RideBooking.Models;
+using RideReady.Models;
 
-namespace RideBooking.Data
+namespace RideReady.Data
 {
-    public class RideBookingDbContext : DbContext
+    public class RideReadyDbContext : DbContext
     {
-        public RideBookingDbContext(DbContextOptions<RideBookingDbContext> options)
+        public RideReadyDbContext(DbContextOptions<RideReadyDbContext> options)
             : base(options) { }
 
         public DbSet<Customer> Customers => Set<Customer>();

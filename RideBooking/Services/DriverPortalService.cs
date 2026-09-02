@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using RideBooking.Data;
-using RideBooking.Models;
-using RideBooking.ViewModels;
+using RideReady.Data;
+using RideReady.Models;
+using RideReady.ViewModels;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public class DriverPortalService : IDriverPortalService
     {
@@ -11,9 +11,9 @@ namespace RideBooking.Services
         private static readonly string[] TerminalBookingStatuses = { "Cancelled", "No_Show" };
         private static readonly string[] HiddenFromDriverListStatuses = { "Cancelled", "No_Show", "Completed" };
 
-        private readonly RideBookingDbContext _context;
+        private readonly RideReadyDbContext _context;
 
-        public DriverPortalService(RideBookingDbContext context)
+        public DriverPortalService(RideReadyDbContext context)
         {
             _context = context;
         }

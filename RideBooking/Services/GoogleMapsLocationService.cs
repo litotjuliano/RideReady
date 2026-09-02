@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public class GoogleMapsLocationService : ILocationService
     {

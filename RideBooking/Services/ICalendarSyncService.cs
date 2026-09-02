@@ -1,6 +1,6 @@
-using RideBooking.Models;
+using RideReady.Models;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public interface ICalendarSyncService
     {

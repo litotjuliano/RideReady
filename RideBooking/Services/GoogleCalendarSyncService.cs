@@ -4,17 +4,17 @@ using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using RideBooking.Data;
-using RideBooking.Models;
+using RideReady.Data;
+using RideReady.Models;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public class GoogleCalendarSyncService : ICalendarSyncService
     {
         private readonly GoogleCalendarSettings _settings;
-        private readonly RideBookingDbContext _context;
+        private readonly RideReadyDbContext _context;
 
-        public GoogleCalendarSyncService(IOptions<GoogleCalendarSettings> settings, RideBookingDbContext context)
+        public GoogleCalendarSyncService(IOptions<GoogleCalendarSettings> settings, RideReadyDbContext context)
         {
             _settings = settings.Value;
             _context = context;
@@ -28,7 +28,7 @@ namespace RideBooking.Services
             var service = new CalendarService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
-                ApplicationName = "RideBooking"
+                ApplicationName = "RideReady"
             });
 
             var pickupAt = booking.PickupDate.ToDateTime(booking.PickupTime);

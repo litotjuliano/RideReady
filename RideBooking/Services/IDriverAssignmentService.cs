@@ -1,7 +1,7 @@
-using RideBooking.Models;
-using RideBooking.ViewModels;
+using RideReady.Models;
+using RideReady.ViewModels;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public interface IDriverAssignmentService
     {

@@ -1,4 +1,4 @@
-namespace RideBooking.ViewModels
+namespace RideReady.ViewModels
 {
     public class DriverAssignmentListItemViewModel
     {

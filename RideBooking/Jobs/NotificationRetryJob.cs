@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using RideBooking.Data;
-using RideBooking.Services;
+using RideReady.Data;
+using RideReady.Services;
 
-namespace RideBooking.Jobs
+namespace RideReady.Jobs
 {
     public class NotificationRetryJob : IJob
     {
@@ -12,11 +12,11 @@ namespace RideBooking.Jobs
             TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(15), TimeSpan.FromHours(1), TimeSpan.FromHours(3)
         };
 
-        private readonly RideBookingDbContext _context;
+        private readonly RideReadyDbContext _context;
         private readonly IEmailSender _emailSender;
         private readonly IWhatsAppSender _whatsAppSender;
 
-        public NotificationRetryJob(RideBookingDbContext context, IEmailSender emailSender, IWhatsAppSender whatsAppSender)
+        public NotificationRetryJob(RideReadyDbContext context, IEmailSender emailSender, IWhatsAppSender whatsAppSender)
         {
             _context = context;
             _emailSender = emailSender;

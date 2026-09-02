@@ -1,34 +1,34 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RideBooking.Controllers;
-using RideBooking.Data;
-using RideBooking.Services;
-using RideBooking.ViewModels;
+using RideReady.Controllers;
+using RideReady.Data;
+using RideReady.Services;
+using RideReady.ViewModels;
 using Xunit;
 
-namespace RideBooking.Tests.Controllers
+namespace RideReady.Tests.Controllers
 {
     public class AdminControllerTests
     {
-        private RideBookingDbContext GetInMemoryDbContext()
+        private RideReadyDbContext GetInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<RideBookingDbContext>()
+            var options = new DbContextOptionsBuilder<RideReadyDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            return new RideBookingDbContext(options);
+            return new RideReadyDbContext(options);
         }
 
-        private static INotificationService BuildNotificationService(RideBookingDbContext context) =>
+        private static INotificationService BuildNotificationService(RideReadyDbContext context) =>
             new NotificationService(
                 context,
-                new RideBooking.Tests.Services.FakeEmailSender(),
-                new RideBooking.Tests.Services.FakeWhatsAppSender(),
-                new RideBooking.Tests.Services.FakeCalendarSyncService(),
+                new RideReady.Tests.Services.FakeEmailSender(),
+                new RideReady.Tests.Services.FakeWhatsAppSender(),
+                new RideReady.Tests.Services.FakeCalendarSyncService(),
                 Microsoft.Extensions.Options.Options.Create(new EmailSettings
                 {
-                    SenderEmail = "noreply@ridebooking.my",
-                    SenderName = "RideBooking",
-                    OperatorEmail = "operator@ridebooking.my"
+                    SenderEmail = "noreply@rideready.my",
+                    SenderName = "RideReady",
+                    OperatorEmail = "operator@rideready.my"
                 }));
 
         [Fact]
@@ -114,7 +114,7 @@ namespace RideBooking.Tests.Controllers
             Assert.Contains(drivers, d => d.Name == "Kumar" && !d.IsActive);
         }
 
-        private async Task<(RideBookingDbContext Context, Models.Booking Booking, Models.Driver Driver)> SeedBookingAndDriverAsync()
+        private async Task<(RideReadyDbContext Context, Models.Booking Booking, Models.Driver Driver)> SeedBookingAndDriverAsync()
         {
             var context = GetInMemoryDbContext();
             var service = new DriverAssignmentService(context);

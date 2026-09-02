@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using RideBooking.Data;
-using RideBooking.Models;
-using RideBooking.Services;
+using RideReady.Data;
+using RideReady.Models;
+using RideReady.Services;
 using Xunit;
 
-namespace RideBooking.Tests.Services
+namespace RideReady.Tests.Services
 {
     public class FakeEmailSender : IEmailSender
     {
@@ -47,15 +47,15 @@ namespace RideBooking.Tests.Services
 
     public class NotificationServiceTests
     {
-        private RideBookingDbContext GetInMemoryDbContext()
+        private RideReadyDbContext GetInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<RideBookingDbContext>()
+            var options = new DbContextOptionsBuilder<RideReadyDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            return new RideBookingDbContext(options);
+            return new RideReadyDbContext(options);
         }
 
-        private async Task<Booking> SeedBookingAsync(RideBookingDbContext context)
+        private async Task<Booking> SeedBookingAsync(RideReadyDbContext context)
         {
             var customer = new Customer { Name = "Uncle Sim", Phone = "0125183838", Email = "sim@email.com" };
             context.Customers.Add(customer);
@@ -81,9 +81,9 @@ namespace RideBooking.Tests.Services
 
         private static IOptions<EmailSettings> Settings() => Options.Create(new EmailSettings
         {
-            SenderEmail = "noreply@ridebooking.my",
-            SenderName = "RideBooking",
-            OperatorEmail = "operator@ridebooking.my"
+            SenderEmail = "noreply@rideready.my",
+            SenderName = "RideReady",
+            OperatorEmail = "operator@rideready.my"
         });
 
         [Fact]
@@ -103,7 +103,7 @@ namespace RideBooking.Tests.Services
             // Assert
             Assert.Equal(2, emailSender.Sent.Count);
             Assert.Contains(emailSender.Sent, s => s.To == "sim@email.com");
-            Assert.Contains(emailSender.Sent, s => s.To == "operator@ridebooking.my");
+            Assert.Contains(emailSender.Sent, s => s.To == "operator@rideready.my");
             Assert.Equal(1, calendarSync.CallCount);
             var notifications = await context.Notifications.Where(n => n.BookingId == booking.Id).ToListAsync();
             Assert.Equal(3, notifications.Count);

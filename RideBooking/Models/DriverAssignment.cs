@@ -1,4 +1,4 @@
-namespace RideBooking.Models
+namespace RideReady.Models
 {
     public class DriverAssignment
     {

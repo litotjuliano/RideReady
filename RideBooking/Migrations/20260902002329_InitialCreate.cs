@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace RideBooking.Migrations
+namespace RideReady.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

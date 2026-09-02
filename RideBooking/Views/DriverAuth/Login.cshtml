@@ -1,10 +1,10 @@
-@model RideBooking.ViewModels.DriverLoginViewModel
+@model RideReady.ViewModels.DriverLoginViewModel
 @{
     ViewData["Title"] = "Driver Login";
 }
 
 <div class="ride-card mx-auto" style="max-width: 420px;">
-    <p class="ride-eyebrow">RideBooking Driver</p>
+    <p class="ride-eyebrow">RideReady Driver</p>
     <h1 class="fw-bold h3">Driver login</h1>
     <form asp-controller="DriverAuth" asp-action="Login" method="post" class="mt-3">
         @Html.AntiForgeryToken()

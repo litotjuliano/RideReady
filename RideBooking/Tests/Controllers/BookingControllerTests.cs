@@ -1,13 +1,13 @@
 using Xunit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RideBooking.Controllers;
-using RideBooking.Data;
-using RideBooking.Models;
-using RideBooking.Services;
-using RideBooking.ViewModels;
+using RideReady.Controllers;
+using RideReady.Data;
+using RideReady.Models;
+using RideReady.Services;
+using RideReady.ViewModels;
 
-namespace RideBooking.Tests.Controllers
+namespace RideReady.Tests.Controllers
 {
     internal class NullTempDataProvider : Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider
     {
@@ -17,29 +17,29 @@ namespace RideBooking.Tests.Controllers
 
     public class BookingControllerTests
     {
-        private RideBookingDbContext GetInMemoryDbContext()
+        private RideReadyDbContext GetInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<RideBookingDbContext>()
+            var options = new DbContextOptionsBuilder<RideReadyDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
-            return new RideBookingDbContext(options);
+            return new RideReadyDbContext(options);
         }
 
-        private static INotificationService BuildNotificationService(RideBookingDbContext context) =>
+        private static INotificationService BuildNotificationService(RideReadyDbContext context) =>
             new NotificationService(
                 context,
-                new RideBooking.Tests.Services.FakeEmailSender(),
-                new RideBooking.Tests.Services.FakeWhatsAppSender(),
-                new RideBooking.Tests.Services.FakeCalendarSyncService(),
+                new RideReady.Tests.Services.FakeEmailSender(),
+                new RideReady.Tests.Services.FakeWhatsAppSender(),
+                new RideReady.Tests.Services.FakeCalendarSyncService(),
                 Microsoft.Extensions.Options.Options.Create(new EmailSettings
                 {
-                    SenderEmail = "noreply@ridebooking.my",
-                    SenderName = "RideBooking",
-                    OperatorEmail = "operator@ridebooking.my"
+                    SenderEmail = "noreply@rideready.my",
+                    SenderName = "RideReady",
+                    OperatorEmail = "operator@rideready.my"
                 }));
 
-        private async Task<RideBookingDbContext> GetSeededDbContextAsync()
+        private async Task<RideReadyDbContext> GetSeededDbContextAsync()
         {
             var context = GetInMemoryDbContext();
             context.PricingSettings.Add(new PricingSetting

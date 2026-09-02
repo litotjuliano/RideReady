@@ -1,10 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RideBooking.Services;
-using RideBooking.ViewModels;
+using RideReady.Services;
+using RideReady.ViewModels;
 
-namespace RideBooking.Controllers
+namespace RideReady.Controllers
 {
     [Authorize(AuthenticationSchemes = "DriverAuth")]
     public class DriverController : Controller

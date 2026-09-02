@@ -1,23 +1,23 @@
 using Microsoft.EntityFrameworkCore;
-using RideBooking.Data;
-using RideBooking.Jobs;
-using RideBooking.Models;
-using RideBooking.Tests.Services;
+using RideReady.Data;
+using RideReady.Jobs;
+using RideReady.Models;
+using RideReady.Tests.Services;
 using Xunit;
 
-namespace RideBooking.Tests.Jobs
+namespace RideReady.Tests.Jobs
 {
     public class NotificationRetryJobTests
     {
-        private RideBookingDbContext GetInMemoryDbContext()
+        private RideReadyDbContext GetInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<RideBookingDbContext>()
+            var options = new DbContextOptionsBuilder<RideReadyDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            return new RideBookingDbContext(options);
+            return new RideReadyDbContext(options);
         }
 
-        private async Task<Notification> SeedFailedNotificationAsync(RideBookingDbContext context, int retryCount, DateTime lastAttemptAt, string channel = "Email")
+        private async Task<Notification> SeedFailedNotificationAsync(RideReadyDbContext context, int retryCount, DateTime lastAttemptAt, string channel = "Email")
         {
             var customer = new Customer { Name = "Uncle Sim", Phone = "0125183838", Email = "sim@email.com" };
             context.Customers.Add(customer);
@@ -46,7 +46,7 @@ namespace RideBooking.Tests.Jobs
                 RecipientContact = "sim@email.com",
                 Channel = channel,
                 EventType = "BookingCreated",
-                Subject = "Your RideBooking reservation",
+                Subject = "Your RideReady reservation",
                 MessageContent = "Hi Uncle Sim",
                 DeliveryStatus = "Failed",
                 RetryCount = retryCount,

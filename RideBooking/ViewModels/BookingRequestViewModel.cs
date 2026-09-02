@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace RideBooking.ViewModels
+namespace RideReady.ViewModels
 {
     public class BookingRequestViewModel
     {

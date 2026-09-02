@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using RideBooking.Data;
+using RideReady.Data;
 
 #nullable disable
 
-namespace RideBooking.Migrations
+namespace RideReady.Migrations
 {
-    [DbContext(typeof(RideBookingDbContext))]
-    partial class RideBookingDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(RideReadyDbContext))]
+    partial class RideReadyDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -22,7 +22,7 @@ namespace RideBooking.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("RideBooking.Models.Booking", b =>
+            modelBuilder.Entity("RideReady.Models.Booking", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -86,7 +86,7 @@ namespace RideBooking.Migrations
                     b.ToTable("Bookings");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.BookingQuote", b =>
+            modelBuilder.Entity("RideReady.Models.BookingQuote", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -145,7 +145,7 @@ namespace RideBooking.Migrations
                     b.ToTable("BookingQuotes");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.BookingStatusHistory", b =>
+            modelBuilder.Entity("RideReady.Models.BookingStatusHistory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -176,7 +176,7 @@ namespace RideBooking.Migrations
                     b.ToTable("BookingStatusHistories");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.Customer", b =>
+            modelBuilder.Entity("RideReady.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -210,7 +210,7 @@ namespace RideBooking.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.Driver", b =>
+            modelBuilder.Entity("RideReady.Models.Driver", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -260,7 +260,7 @@ namespace RideBooking.Migrations
                     b.ToTable("Drivers");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.DriverAssignment", b =>
+            modelBuilder.Entity("RideReady.Models.DriverAssignment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -300,7 +300,7 @@ namespace RideBooking.Migrations
                     b.ToTable("DriverAssignments");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.DriverLocation", b =>
+            modelBuilder.Entity("RideReady.Models.DriverLocation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -337,7 +337,7 @@ namespace RideBooking.Migrations
                     b.ToTable("DriverLocations");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.Notification", b =>
+            modelBuilder.Entity("RideReady.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -399,7 +399,7 @@ namespace RideBooking.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.OperatorCalendarEvent", b =>
+            modelBuilder.Entity("RideReady.Models.OperatorCalendarEvent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -426,7 +426,7 @@ namespace RideBooking.Migrations
                     b.ToTable("OperatorCalendarEvents");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.PricingSetting", b =>
+            modelBuilder.Entity("RideReady.Models.PricingSetting", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -476,9 +476,9 @@ namespace RideBooking.Migrations
                     b.ToTable("PricingSettings");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.Booking", b =>
+            modelBuilder.Entity("RideReady.Models.Booking", b =>
                 {
-                    b.HasOne("RideBooking.Models.Customer", "Customer")
+                    b.HasOne("RideReady.Models.Customer", "Customer")
                         .WithMany("Bookings")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -487,19 +487,19 @@ namespace RideBooking.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.BookingQuote", b =>
+            modelBuilder.Entity("RideReady.Models.BookingQuote", b =>
                 {
-                    b.HasOne("RideBooking.Models.Booking", "Booking")
+                    b.HasOne("RideReady.Models.Booking", "Booking")
                         .WithOne("Quote")
-                        .HasForeignKey("RideBooking.Models.BookingQuote", "BookingId")
+                        .HasForeignKey("RideReady.Models.BookingQuote", "BookingId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Booking");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.BookingStatusHistory", b =>
+            modelBuilder.Entity("RideReady.Models.BookingStatusHistory", b =>
                 {
-                    b.HasOne("RideBooking.Models.Booking", "Booking")
+                    b.HasOne("RideReady.Models.Booking", "Booking")
                         .WithMany("StatusHistory")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -508,15 +508,15 @@ namespace RideBooking.Migrations
                     b.Navigation("Booking");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.DriverAssignment", b =>
+            modelBuilder.Entity("RideReady.Models.DriverAssignment", b =>
                 {
-                    b.HasOne("RideBooking.Models.Booking", "Booking")
+                    b.HasOne("RideReady.Models.Booking", "Booking")
                         .WithOne("CurrentAssignment")
-                        .HasForeignKey("RideBooking.Models.DriverAssignment", "BookingId")
+                        .HasForeignKey("RideReady.Models.DriverAssignment", "BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RideBooking.Models.Driver", "Driver")
+                    b.HasOne("RideReady.Models.Driver", "Driver")
                         .WithMany("Assignments")
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -527,9 +527,9 @@ namespace RideBooking.Migrations
                     b.Navigation("Driver");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.DriverLocation", b =>
+            modelBuilder.Entity("RideReady.Models.DriverLocation", b =>
                 {
-                    b.HasOne("RideBooking.Models.Driver", "Driver")
+                    b.HasOne("RideReady.Models.Driver", "Driver")
                         .WithMany("Locations")
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -538,9 +538,9 @@ namespace RideBooking.Migrations
                     b.Navigation("Driver");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.Notification", b =>
+            modelBuilder.Entity("RideReady.Models.Notification", b =>
                 {
-                    b.HasOne("RideBooking.Models.Booking", "Booking")
+                    b.HasOne("RideReady.Models.Booking", "Booking")
                         .WithMany("Notifications")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -549,9 +549,9 @@ namespace RideBooking.Migrations
                     b.Navigation("Booking");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.OperatorCalendarEvent", b =>
+            modelBuilder.Entity("RideReady.Models.OperatorCalendarEvent", b =>
                 {
-                    b.HasOne("RideBooking.Models.Booking", "Booking")
+                    b.HasOne("RideReady.Models.Booking", "Booking")
                         .WithMany()
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -560,7 +560,7 @@ namespace RideBooking.Migrations
                     b.Navigation("Booking");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.Booking", b =>
+            modelBuilder.Entity("RideReady.Models.Booking", b =>
                 {
                     b.Navigation("CurrentAssignment");
 
@@ -571,12 +571,12 @@ namespace RideBooking.Migrations
                     b.Navigation("StatusHistory");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.Customer", b =>
+            modelBuilder.Entity("RideReady.Models.Customer", b =>
                 {
                     b.Navigation("Bookings");
                 });
 
-            modelBuilder.Entity("RideBooking.Models.Driver", b =>
+            modelBuilder.Entity("RideReady.Models.Driver", b =>
                 {
                     b.Navigation("Assignments");
 

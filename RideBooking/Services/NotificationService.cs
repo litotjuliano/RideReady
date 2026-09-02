@@ -1,20 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using RideBooking.Data;
-using RideBooking.Models;
+using RideReady.Data;
+using RideReady.Models;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly RideBookingDbContext _context;
+        private readonly RideReadyDbContext _context;
         private readonly IEmailSender _emailSender;
         private readonly IWhatsAppSender _whatsAppSender;
         private readonly ICalendarSyncService _calendarSyncService;
         private readonly EmailSettings _emailSettings;
 
         public NotificationService(
-            RideBookingDbContext context,
+            RideReadyDbContext context,
             IEmailSender emailSender,
             IWhatsAppSender whatsAppSender,
             ICalendarSyncService calendarSyncService,
@@ -33,10 +33,10 @@ namespace RideBooking.Services
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
-            var customerMessage = $"Hi {booking.Customer!.Name}, your RideBooking reference is {booking.BookingReference}. We'll contact you to confirm your driver.";
+            var customerMessage = $"Hi {booking.Customer!.Name}, your RideReady reference is {booking.BookingReference}. We'll contact you to confirm your driver.";
             await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Email, "Email", "BookingCreated",
-                "Your RideBooking reservation", customerMessage,
-                () => _emailSender.SendAsync(booking.Customer.Email, "Your RideBooking reservation", customerMessage));
+                "Your RideReady reservation", customerMessage,
+                () => _emailSender.SendAsync(booking.Customer.Email, "Your RideReady reservation", customerMessage));
 
             var operatorMessage = $"New booking {booking.BookingReference}: {booking.PickupLocation} -> {booking.Destination} on {booking.PickupDate:yyyy-MM-dd} {booking.PickupTime:HH:mm}.";
             await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", "BookingCreated",
@@ -84,7 +84,7 @@ namespace RideBooking.Services
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
-            var message = $"Thanks for riding with RideBooking! Your trip {booking.BookingReference} is complete.";
+            var message = $"Thanks for riding with RideReady! Your trip {booking.BookingReference} is complete.";
             await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", "BookingCompleted",
                 "Trip complete", message,
                 () => _emailSender.SendAsync(booking.Customer.Email, "Trip complete", message));

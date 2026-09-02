@@ -1,24 +1,24 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using RideBooking.Data;
-using RideBooking.Jobs;
-using RideBooking.Models;
-using RideBooking.Services;
+using RideReady.Data;
+using RideReady.Jobs;
+using RideReady.Models;
+using RideReady.Services;
 using Xunit;
 
-namespace RideBooking.Tests.Jobs
+namespace RideReady.Tests.Jobs
 {
     public class ReminderEscalationJobTests
     {
-        private RideBookingDbContext GetInMemoryDbContext()
+        private RideReadyDbContext GetInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<RideBookingDbContext>()
+            var options = new DbContextOptionsBuilder<RideReadyDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            return new RideBookingDbContext(options);
+            return new RideReadyDbContext(options);
         }
 
-        private async Task<Booking> SeedUnassignedBookingAsync(RideBookingDbContext context, DateTime pickupAtUtc)
+        private async Task<Booking> SeedUnassignedBookingAsync(RideReadyDbContext context, DateTime pickupAtUtc)
         {
             var customer = new Customer { Name = "Uncle Sim", Phone = "0125183838", Email = "sim@email.com" };
             context.Customers.Add(customer);
@@ -42,10 +42,10 @@ namespace RideBooking.Tests.Jobs
             return booking;
         }
 
-        private INotificationService BuildNotificationService(RideBookingDbContext context) =>
-            new NotificationService(context, new RideBooking.Tests.Services.FakeEmailSender(), new RideBooking.Tests.Services.FakeWhatsAppSender(),
-                new RideBooking.Tests.Services.FakeCalendarSyncService(),
-                Options.Create(new EmailSettings { SenderEmail = "noreply@ridebooking.my", SenderName = "RideBooking", OperatorEmail = "operator@ridebooking.my" }));
+        private INotificationService BuildNotificationService(RideReadyDbContext context) =>
+            new NotificationService(context, new RideReady.Tests.Services.FakeEmailSender(), new RideReady.Tests.Services.FakeWhatsAppSender(),
+                new RideReady.Tests.Services.FakeCalendarSyncService(),
+                Options.Create(new EmailSettings { SenderEmail = "noreply@rideready.my", SenderName = "RideReady", OperatorEmail = "operator@rideready.my" }));
 
         // Decorates a real INotificationService but throws for one specific booking, simulating
         // a downstream failure (e.g. a malformed record) that the job's per-item try/catch must

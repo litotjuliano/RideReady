@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using RideBooking.Data;
-using RideBooking.Models;
-using RideBooking.ViewModels;
+using RideReady.Data;
+using RideReady.Models;
+using RideReady.ViewModels;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public class DriverAssignmentService : IDriverAssignmentService
     {
@@ -13,9 +13,9 @@ namespace RideBooking.Services
             "Dropped_Off", "Completed", "Cancelled", "No_Show"
         };
 
-        private readonly RideBookingDbContext _context;
+        private readonly RideReadyDbContext _context;
 
-        public DriverAssignmentService(RideBookingDbContext context)
+        public DriverAssignmentService(RideReadyDbContext context)
         {
             _context = context;
         }

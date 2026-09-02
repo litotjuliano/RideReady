@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public static class PasswordHasher
     {

@@ -1,4 +1,4 @@
-@model List<RideBooking.ViewModels.DriverAssignmentListItemViewModel>
+@model List<RideReady.ViewModels.DriverAssignmentListItemViewModel>
 @{
     ViewData["Title"] = "My Assigned Trips";
     var activeBooking = Model.FirstOrDefault(a => a.AssignmentStatus == "Accepted" && a.BookingStatus != "Completed");
@@ -6,7 +6,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <p class="ride-eyebrow mb-1">RideBooking Driver</p>
+        <p class="ride-eyebrow mb-1">RideReady Driver</p>
         <h1 class="fw-bold">My assigned trips</h1>
     </div>
     <form asp-controller="DriverAuth" asp-action="Logout" method="post">

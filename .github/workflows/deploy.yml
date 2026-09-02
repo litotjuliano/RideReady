@@ -31,7 +31,7 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "docker-compose.yml,scripts/deploy.sh"
-          target: "/opt/ridebooking"
+          target: "/opt/rideready"
 
       - name: Run deploy script over SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -40,6 +40,6 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
-            cd /opt/ridebooking
+            cd /opt/rideready
             chmod +x scripts/deploy.sh
             IMAGE_NAME=ghcr.io/${{ github.repository }} ./scripts/deploy.sh ${{ github.event.workflow_run.head_branch }}

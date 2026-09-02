@@ -1,22 +1,22 @@
 using Microsoft.EntityFrameworkCore;
-using RideBooking.Data;
-using RideBooking.Models;
-using RideBooking.Services;
+using RideReady.Data;
+using RideReady.Models;
+using RideReady.Services;
 using Xunit;
 
-namespace RideBooking.Tests.Services
+namespace RideReady.Tests.Services
 {
     public class DriverPortalServiceTests
     {
-        private RideBookingDbContext GetInMemoryDbContext()
+        private RideReadyDbContext GetInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<RideBookingDbContext>()
+            var options = new DbContextOptionsBuilder<RideReadyDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            return new RideBookingDbContext(options);
+            return new RideReadyDbContext(options);
         }
 
-        private async Task<(Driver Driver, Booking Booking, DriverAssignment Assignment)> SeedAssignedBookingAsync(RideBookingDbContext context)
+        private async Task<(Driver Driver, Booking Booking, DriverAssignment Assignment)> SeedAssignedBookingAsync(RideReadyDbContext context)
         {
             var customer = new Customer { Name = "Uncle Sim", Phone = "0125183838", Email = "sim@email.com" };
             context.Customers.Add(customer);

@@ -1,6 +1,6 @@
 # docker-compose.yml
 #
-# Deployed to the DigitalOcean droplet at /opt/ridebooking (see scripts/deploy.sh
+# Deployed to the DigitalOcean droplet at /opt/rideready (see scripts/deploy.sh
 # and .github/workflows/deploy.yml). DB_USER, DB_PASSWORD, and IMAGE_NAME are
 # supplied on the droplet via a gitignored .env file next to this file — they are
 # never committed to the repo.

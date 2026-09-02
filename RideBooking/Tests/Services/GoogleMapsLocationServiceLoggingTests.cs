@@ -2,10 +2,10 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RideBooking.Services;
+using RideReady.Services;
 using Xunit;
 
-namespace RideBooking.Tests.Services
+namespace RideReady.Tests.Services
 {
     /// <summary>
     /// Verifies that AddHttpClient's default logging handlers do not leak the

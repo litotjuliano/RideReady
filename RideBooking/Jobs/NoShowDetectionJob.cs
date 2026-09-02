@@ -1,20 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using RideBooking.Data;
-using RideBooking.Models;
-using RideBooking.Services;
+using RideReady.Data;
+using RideReady.Models;
+using RideReady.Services;
 
-namespace RideBooking.Jobs
+namespace RideReady.Jobs
 {
     public class NoShowDetectionJob : IJob
     {
         private static readonly string[] EligibleStatuses = { "New", "Confirmed", "Driver_Assigned" };
         private static readonly TimeSpan GracePeriod = TimeSpan.FromMinutes(30);
 
-        private readonly RideBookingDbContext _context;
+        private readonly RideReadyDbContext _context;
         private readonly INotificationService _notificationService;
 
-        public NoShowDetectionJob(RideBookingDbContext context, INotificationService notificationService)
+        public NoShowDetectionJob(RideReadyDbContext context, INotificationService notificationService)
         {
             _context = context;
             _notificationService = notificationService;

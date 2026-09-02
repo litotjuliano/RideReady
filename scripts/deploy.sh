@@ -2,7 +2,7 @@
 # scripts/deploy.sh
 #
 # Deploys a new image tag to the droplet's docker-compose stack and gates the
-# deploy on a post-restart health check. Run from /opt/ridebooking on the
+# deploy on a post-restart health check. Run from /opt/rideready on the
 # droplet (where docker-compose.yml and its .env file live), e.g.:
 #
 #   IMAGE_NAME=ghcr.io/<owner>/<repo> ./scripts/deploy.sh <image-tag>
@@ -21,7 +21,7 @@
 #   `git tag` / `git log --oneline --decorate`, then SSH into the droplet
 #   and run:
 #
-#     cd /opt/ridebooking
+#     cd /opt/rideready
 #     IMAGE_TAG=<previous-known-good-version-tag> docker compose up -d
 #
 set -euo pipefail

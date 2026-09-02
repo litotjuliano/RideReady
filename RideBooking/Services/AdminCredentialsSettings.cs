@@ -1,4 +1,4 @@
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public class AdminCredentialsSettings
     {

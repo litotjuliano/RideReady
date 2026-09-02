@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using RideBooking.Models;
+using RideReady.Models;
 
-namespace RideBooking.Controllers;
+namespace RideReady.Controllers;
 
 public class HomeController : Controller
 {

@@ -1,16 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using RideBooking.Data;
-using RideBooking.Services;
+using RideReady.Data;
+using RideReady.Services;
 
-namespace RideBooking.Jobs
+namespace RideReady.Jobs
 {
     public class ReminderEscalationJob : IJob
     {
-        private readonly RideBookingDbContext _context;
+        private readonly RideReadyDbContext _context;
         private readonly INotificationService _notificationService;
 
-        public ReminderEscalationJob(RideBookingDbContext context, INotificationService notificationService)
+        public ReminderEscalationJob(RideReadyDbContext context, INotificationService notificationService)
         {
             _context = context;
             _notificationService = notificationService;

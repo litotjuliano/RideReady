@@ -1,8 +1,8 @@
-@model List<RideBooking.ViewModels.AdminBookingListItemViewModel>
+@model List<RideReady.ViewModels.AdminBookingListItemViewModel>
 @{
     ViewData["Title"] = "Dispatch Back Office";
     ViewData["PageHeading"] = "Dispatch back office";
-    var drivers = ViewBag.ActiveDrivers as List<RideBooking.Models.Driver> ?? new();
+    var drivers = ViewBag.ActiveDrivers as List<RideReady.Models.Driver> ?? new();
     // "Driver_Assigned" is intentionally excluded here — it can only be reached via the
     // "Assign" form/button, which creates the matching DriverAssignment row. Setting it
     // through this free-form dropdown would leave the booking marked as assigned with no

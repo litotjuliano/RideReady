@@ -1,23 +1,23 @@
 using Microsoft.EntityFrameworkCore;
-using RideBooking.Data;
-using RideBooking.Models;
-using RideBooking.Services;
-using RideBooking.ViewModels;
+using RideReady.Data;
+using RideReady.Models;
+using RideReady.Services;
+using RideReady.ViewModels;
 using Xunit;
 
-namespace RideBooking.Tests.Services
+namespace RideReady.Tests.Services
 {
     public class DriverAssignmentServiceTests
     {
-        private RideBookingDbContext GetInMemoryDbContext()
+        private RideReadyDbContext GetInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<RideBookingDbContext>()
+            var options = new DbContextOptionsBuilder<RideReadyDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            return new RideBookingDbContext(options);
+            return new RideReadyDbContext(options);
         }
 
-        private async Task<Booking> SeedBookingAsync(RideBookingDbContext context)
+        private async Task<Booking> SeedBookingAsync(RideReadyDbContext context)
         {
             var customer = new Customer { Name = "Uncle Sim", Phone = "0125183838", Email = "sim@email.com" };
             context.Customers.Add(customer);
@@ -41,7 +41,7 @@ namespace RideBooking.Tests.Services
             return booking;
         }
 
-        private async Task<Booking> SeedBookingAsync(RideBookingDbContext context, string reference, DateOnly pickupDate, TimeOnly pickupTime, string status = "New")
+        private async Task<Booking> SeedBookingAsync(RideReadyDbContext context, string reference, DateOnly pickupDate, TimeOnly pickupTime, string status = "New")
         {
             var customer = new Customer { Name = "Another Customer", Phone = $"01{reference.GetHashCode() & 0xFFFFFFF}", Email = "another@email.com" };
             context.Customers.Add(customer);

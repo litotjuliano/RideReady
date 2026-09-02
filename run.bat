@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo === RideBooking local run ===
+echo === RideReady local run ===
 
 REM --- 1. Stop any existing stack from a previous run ---
 echo Stopping any existing containers...
@@ -38,7 +38,7 @@ REM --- 3. Local-only .env for docker-compose (gitignored, dev credentials only)
 if not exist .env (
     echo Creating local .env for docker-compose...
     (
-        echo IMAGE_NAME=ridebooking
+        echo IMAGE_NAME=rideready
         echo IMAGE_TAG=local
         echo DB_USER=rideuser
         echo DB_PASSWORD=devpassword123
@@ -47,7 +47,7 @@ if not exist .env (
 
 REM --- 4. Build the app image locally (context = RideBooking/, per the Task 10 Dockerfile fix) ---
 echo Building app image...
-docker build -t ridebooking:local -f RideBooking\Dockerfile RideBooking
+docker build -t rideready:local -f RideBooking\Dockerfile RideBooking
 if errorlevel 1 (
     echo Docker build failed.
     exit /b 1
@@ -82,7 +82,7 @@ echo App is healthy.
 REM --- 7. Open it ---
 start "" http://localhost:5000
 
-echo Done. RideBooking is running at http://localhost:5000
+echo Done. RideReady is running at http://localhost:5000
 echo   Admin login:  http://localhost:5000/AdminAuth/Login
 echo   Driver login: http://localhost:5000/DriverAuth/Login
 echo   Stop with:    docker compose down

@@ -3,7 +3,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public class SmtpEmailSender : IEmailSender
     {

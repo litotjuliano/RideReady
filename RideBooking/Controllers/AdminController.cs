@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RideBooking.Services;
-using RideBooking.ViewModels;
+using RideReady.Services;
+using RideReady.ViewModels;
 
-namespace RideBooking.Controllers
+namespace RideReady.Controllers
 {
     [Authorize(AuthenticationSchemes = "AdminAuth")]
     public class AdminController : Controller

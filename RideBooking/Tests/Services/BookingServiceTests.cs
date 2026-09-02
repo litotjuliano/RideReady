@@ -1,21 +1,21 @@
 using Xunit;
-using RideBooking.Models;
-using RideBooking.Services;
-using RideBooking.Data;
+using RideReady.Models;
+using RideReady.Services;
+using RideReady.Data;
 using Microsoft.EntityFrameworkCore;
-using RideBooking.ViewModels;
+using RideReady.ViewModels;
 
-namespace RideBooking.Tests.Services
+namespace RideReady.Tests.Services
 {
     public class BookingServiceTests
     {
-        private RideBookingDbContext GetInMemoryDbContext()
+        private RideReadyDbContext GetInMemoryDbContext()
         {
-            var options = new DbContextOptionsBuilder<RideBookingDbContext>()
+            var options = new DbContextOptionsBuilder<RideReadyDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
-            return new RideBookingDbContext(options);
+            return new RideReadyDbContext(options);
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace RideBooking.Tests.Services
             Assert.True(quote.TotalEstimatedFare > 0);
         }
 
-        private async Task SeedPricingSettings(RideBookingDbContext context)
+        private async Task SeedPricingSettings(RideReadyDbContext context)
         {
             context.PricingSettings.Add(new PricingSetting
             {

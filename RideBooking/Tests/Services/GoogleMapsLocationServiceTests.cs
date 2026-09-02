@@ -1,10 +1,10 @@
 using System.Net;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using RideBooking.Services;
+using RideReady.Services;
 using Xunit;
 
-namespace RideBooking.Tests.Services
+namespace RideReady.Tests.Services
 {
     public class FakeHttpMessageHandler : HttpMessageHandler
     {

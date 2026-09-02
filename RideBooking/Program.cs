@@ -1,6 +1,6 @@
-using RideBooking.Data;
-using RideBooking.Jobs;
-using RideBooking.Services;
+using RideReady.Data;
+using RideReady.Jobs;
+using RideReady.Services;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
 
@@ -13,7 +13,7 @@ builder.Services.AddControllersWithViews();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddDbContext<RideBookingDbContext>(options =>
+builder.Services.AddDbContext<RideReadyDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddMemoryCache();
@@ -73,27 +73,27 @@ builder.Services.Configure<AdminCredentialsSettings>(builder.Configuration.GetSe
 builder.Services.AddAuthentication()
     .AddCookie("AdminAuth", options =>
     {
-        options.Cookie.Name = "RideBooking.AdminAuth";
+        options.Cookie.Name = "RideReady.AdminAuth";
         options.LoginPath = "/AdminAuth/Login";
         options.AccessDeniedPath = "/AdminAuth/Login";
     })
     .AddCookie("DriverAuth", options =>
     {
-        options.Cookie.Name = "RideBooking.DriverAuth";
+        options.Cookie.Name = "RideReady.DriverAuth";
         options.LoginPath = "/DriverAuth/Login";
         options.AccessDeniedPath = "/DriverAuth/Login";
     });
 builder.Services.AddAuthorization();
 
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<RideBookingDbContext>();
+    .AddDbContextCheck<RideReadyDbContext>();
 
 var app = builder.Build();
 
 // Apply pending EF Core migrations automatically on startup.
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<RideBookingDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<RideReadyDbContext>();
     await db.Database.MigrateAsync();
 }
 

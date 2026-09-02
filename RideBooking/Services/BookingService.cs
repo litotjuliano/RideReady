@@ -1,20 +1,20 @@
-using RideBooking.Data;
-using RideBooking.Models;
-using RideBooking.ViewModels;
+using RideReady.Data;
+using RideReady.Models;
+using RideReady.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Cryptography;
 
-namespace RideBooking.Services
+namespace RideReady.Services
 {
     public class BookingService : IBookingService
     {
-        private readonly RideBookingDbContext _context;
+        private readonly RideReadyDbContext _context;
         private readonly ILocationService _locationService;
         private readonly ILogger<BookingService> _logger;
 
-        public BookingService(RideBookingDbContext context, ILocationService? locationService = null, ILogger<BookingService>? logger = null)
+        public BookingService(RideReadyDbContext context, ILocationService? locationService = null, ILogger<BookingService>? logger = null)
         {
             _context = context;
             _locationService = locationService ?? new MockLocationService();
