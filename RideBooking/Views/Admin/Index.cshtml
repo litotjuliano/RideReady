@@ -82,13 +82,20 @@
         <p class="mb-1">@booking.PickupLocation &rarr; @booking.Destination</p>
         <p class="text-muted small">@booking.Passengers pax &middot; @booking.Bags bags &middot; @booking.RequestedVehicleType</p>
 
+        @{
+            // Default to only drivers whose registered vehicle type matches the request,
+            // so the common case can't be mis-clicked into a mismatch. If none exist, fall
+            // back to showing everyone rather than leaving the admin unable to assign anyone.
+            var matchingDrivers = drivers.Where(d => d.VehicleType == booking.RequestedVehicleType).ToList();
+            var dropdownDrivers = matchingDrivers.Any() ? matchingDrivers : drivers;
+        }
         <div class="row g-2 mt-2">
             <div class="col-md-6">
                 <form asp-controller="Admin" asp-action="AssignDriver" method="post" class="d-flex gap-2">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="BookingId" value="@booking.BookingId" />
                     <select name="DriverId" class="form-select ride-input">
-                        @foreach (var driver in drivers)
+                        @foreach (var driver in dropdownDrivers)
                         {
                             @if (driver.Id == booking.AssignedDriverId)
                             {
@@ -102,6 +109,10 @@
                     </select>
                     <button type="submit" class="btn ride-btn-primary text-nowrap">Assign</button>
                 </form>
+                @if (!matchingDrivers.Any())
+                {
+                    <p class="text-warning small mt-1 mb-0">No @booking.RequestedVehicleType drivers available — showing all drivers</p>
+                }
             </div>
             <div class="col-md-6">
                 <form asp-controller="Admin" asp-action="UpdateStatus" method="post" class="d-flex gap-2">
