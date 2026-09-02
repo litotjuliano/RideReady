@@ -65,8 +65,35 @@ namespace RideBooking.Services
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
 
-                // Create quote
-                var quote = await GetQuoteAsync(request);
+                // Create quote. If the automatic estimate fails (Google Maps unavailable/misconfigured,
+                // or no pricing tier configured for this vehicle type), don't block the booking — still
+                // create it with a zeroed-out quote so the operator can key in a price manually from the
+                // admin dashboard once the estimate is unavailable. The customer never sees this either
+                // way, since pricing is admin-only (spec §6).
+                BookingQuoteViewModel quote;
+                try
+                {
+                    quote = await GetQuoteAsync(request);
+                }
+                catch (Exception)
+                {
+                    quote = new BookingQuoteViewModel
+                    {
+                        BaseFare = 0,
+                        DistanceKm = 0,
+                        DistanceCharge = 0,
+                        DurationHours = 0,
+                        TimeCharge = 0,
+                        PassengerSurcharge = 0,
+                        LuggageFee = 0,
+                        Subtotal = 0,
+                        ServiceTax = 0,
+                        TotalEstimatedFare = 0,
+                        EstimatedDuration = "Pending",
+                        PaymentMethods = new List<string> { "Pay_at_Pickup", "Bank_Transfer" }
+                    };
+                }
+
                 var quoteEntity = new BookingQuote
                 {
                     BookingId = booking.Id,
@@ -132,6 +159,28 @@ namespace RideBooking.Services
                 EstimatedDuration = FormatDuration(duration),
                 PaymentMethods = new List<string> { "Pay_at_Pickup", "Bank_Transfer" }
             };
+        }
+
+        public async Task SetManualFareAsync(int bookingId, decimal fare)
+        {
+            if (fare <= 0)
+            {
+                throw new InvalidOperationException("Fare must be greater than zero");
+            }
+
+            var booking = await _context.Bookings
+                .Include(b => b.Quote)
+                .FirstOrDefaultAsync(b => b.Id == bookingId)
+                ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            if (booking.Quote == null)
+            {
+                throw new InvalidOperationException("This booking has no quote record to update");
+            }
+
+            booking.Quote.TotalEstimatedFare = fare;
+            booking.Quote.ActualFare = fare;
+            await _context.SaveChangesAsync();
         }
 
         public async Task<Booking?> GetBookingByReferenceAsync(string reference)

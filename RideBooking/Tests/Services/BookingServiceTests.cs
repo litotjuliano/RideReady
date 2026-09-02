@@ -98,5 +98,108 @@ namespace RideBooking.Tests.Services
             });
             await context.SaveChangesAsync();
         }
+
+        private class ThrowingLocationService : ILocationService
+        {
+            public Task<decimal> GetDistanceAsync(string pickup, string destination) =>
+                throw new InvalidOperationException("Google Directions API returned status: REQUEST_DENIED");
+
+            public Task<decimal> GetDurationAsync(string pickup, string destination) =>
+                throw new InvalidOperationException("Google Directions API returned status: REQUEST_DENIED");
+        }
+
+        private static BookingRequestViewModel ValidRequest() => new()
+        {
+            CustomerName = "Uncle Sim",
+            CustomerPhone = "0125183838",
+            CustomerEmail = "sim@email.com",
+            PickupLocation = "KL Visa Center",
+            Destination = "Hyt Ipoh Office",
+            PickupDate = new DateOnly(2026, 9, 5),
+            PickupTime = new TimeOnly(13, 8),
+            Passengers = 2,
+            Bags = 2,
+            VehicleType = "Car",
+            PaymentMethod = "Pay_at_Pickup",
+            AcceptedTerms = true
+        };
+
+        [Fact]
+        public async Task CreateBooking_WhenLocationServiceFails_StillCreatesBookingWithZeroedQuote()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            await SeedPricingSettings(context);
+            var service = new BookingService(context, new ThrowingLocationService());
+
+            // Act
+            var booking = await service.CreateBookingAsync(ValidRequest());
+
+            // Assert
+            Assert.NotNull(booking);
+            Assert.NotEmpty(booking.BookingReference);
+            Assert.NotNull(booking.Quote);
+            Assert.Equal(0, booking.Quote!.TotalEstimatedFare);
+            Assert.Equal("Pay_at_Pickup", booking.Quote.PaymentMethod);
+            Assert.Null(booking.Quote.ActualFare);
+        }
+
+        [Fact]
+        public async Task CreateBooking_WhenNoPricingConfiguredForVehicleType_StillCreatesBookingWithZeroedQuote()
+        {
+            // Arrange: no SeedPricingSettings() call, so GetQuoteAsync throws "Pricing not configured for Car"
+            var context = GetInMemoryDbContext();
+            var service = new BookingService(context);
+
+            // Act
+            var booking = await service.CreateBookingAsync(ValidRequest());
+
+            // Assert
+            Assert.NotNull(booking);
+            Assert.NotNull(booking.Quote);
+            Assert.Equal(0, booking.Quote!.TotalEstimatedFare);
+        }
+
+        [Fact]
+        public async Task SetManualFareAsync_WithValidFare_UpdatesTotalEstimatedFareAndActualFare()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new BookingService(context, new ThrowingLocationService());
+            var booking = await service.CreateBookingAsync(ValidRequest());
+
+            // Act
+            await service.SetManualFareAsync(booking.Id, 275.50m);
+
+            // Assert
+            var quote = await context.BookingQuotes.FirstAsync(q => q.BookingId == booking.Id);
+            Assert.Equal(275.50m, quote.TotalEstimatedFare);
+            Assert.Equal(275.50m, quote.ActualFare);
+        }
+
+        [Fact]
+        public async Task SetManualFareAsync_WithZeroOrNegativeFare_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new BookingService(context, new ThrowingLocationService());
+            var booking = await service.CreateBookingAsync(ValidRequest());
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.SetManualFareAsync(booking.Id, 0m));
+        }
+
+        [Fact]
+        public async Task SetManualFareAsync_WithNonexistentBooking_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new BookingService(context);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.SetManualFareAsync(9999, 50m));
+        }
     }
 }

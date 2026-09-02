@@ -37,7 +37,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var context = GetInMemoryDbContext();
             var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service, BuildNotificationService(context));
+            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context));
 
             // Act
             var result = await controller.Index();
@@ -53,7 +53,7 @@ namespace RideBooking.Tests.Controllers
             // Arrange
             var context = GetInMemoryDbContext();
             var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service, BuildNotificationService(context))
+            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -118,7 +118,7 @@ namespace RideBooking.Tests.Controllers
         {
             // Arrange
             var (context, booking, driver) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context))
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -140,7 +140,7 @@ namespace RideBooking.Tests.Controllers
         {
             // Arrange
             var (context, _, driver) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context))
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -160,7 +160,7 @@ namespace RideBooking.Tests.Controllers
         {
             // Arrange
             var (context, booking, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context))
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -182,7 +182,7 @@ namespace RideBooking.Tests.Controllers
         {
             // Arrange
             var (context, booking, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context))
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
             {
                 TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
                     new Microsoft.AspNetCore.Http.DefaultHttpContext(),
@@ -191,6 +191,57 @@ namespace RideBooking.Tests.Controllers
 
             // Act
             var result = await controller.UpdateStatus(new UpdateStatusViewModel { BookingId = booking.Id, NewStatus = "NotARealStatus" });
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.NotNull(controller.TempData["ErrorMessage"]);
+        }
+
+        [Fact]
+        public async Task SetFare_WithValidFare_RedirectsAndUpdatesQuote()
+        {
+            // Arrange
+            var (context, booking, _) = await SeedBookingAndDriverAsync();
+            context.BookingQuotes.Add(new Models.BookingQuote
+            {
+                BookingId = booking.Id,
+                TotalEstimatedFare = 0,
+                PaymentMethod = "Pay_at_Pickup"
+            });
+            await context.SaveChangesAsync();
+
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
+            {
+                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
+                    new NullTempDataProvider())
+            };
+
+            // Act
+            var result = await controller.SetFare(new SetFareViewModel { BookingId = booking.Id, Fare = 123.45m });
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            var quote = await context.BookingQuotes.FirstAsync(q => q.BookingId == booking.Id);
+            Assert.Equal(123.45m, quote.TotalEstimatedFare);
+            Assert.Equal(123.45m, quote.ActualFare);
+            Assert.Equal("Fare saved.", controller.TempData["SuccessMessage"]);
+        }
+
+        [Fact]
+        public async Task SetFare_WithNonexistentBooking_RedirectsWithErrorMessageInsteadOfThrowing()
+        {
+            // Arrange
+            var (context, _, _) = await SeedBookingAndDriverAsync();
+            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
+            {
+                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
+                    new NullTempDataProvider())
+            };
+
+            // Act
+            var result = await controller.SetFare(new SetFareViewModel { BookingId = 9999, Fare = 50m });
 
             // Assert
             Assert.IsType<RedirectToActionResult>(result);

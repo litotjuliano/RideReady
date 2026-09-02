@@ -10,11 +10,16 @@ namespace RideBooking.Controllers
     {
         private readonly IDriverAssignmentService _driverAssignmentService;
         private readonly INotificationService _notificationService;
+        private readonly IBookingService _bookingService;
 
-        public AdminController(IDriverAssignmentService driverAssignmentService, INotificationService notificationService)
+        public AdminController(
+            IDriverAssignmentService driverAssignmentService,
+            INotificationService notificationService,
+            IBookingService bookingService)
         {
             _driverAssignmentService = driverAssignmentService;
             _notificationService = notificationService;
+            _bookingService = bookingService;
         }
 
         public async Task<IActionResult> Index()
@@ -88,6 +93,29 @@ namespace RideBooking.Controllers
                 }
 
                 TempData["SuccessMessage"] = "Status updated.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetFare(SetFareViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Enter a valid fare greater than zero.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                await _bookingService.SetManualFareAsync(model.BookingId, model.Fare);
+                TempData["SuccessMessage"] = "Fare saved.";
             }
             catch (InvalidOperationException ex)
             {

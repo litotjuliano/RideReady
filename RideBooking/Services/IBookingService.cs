@@ -8,5 +8,6 @@ namespace RideBooking.Services
         Task<Booking> CreateBookingAsync(BookingRequestViewModel request);
         Task<BookingQuoteViewModel> GetQuoteAsync(BookingRequestViewModel request);
         Task<Booking?> GetBookingByReferenceAsync(string reference);
+        Task SetManualFareAsync(int bookingId, decimal fare);
     }
 }
