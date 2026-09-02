@@ -16,10 +16,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore
-        run: dotnet restore RideReady/RideReady.csproj
+        run: dotnet restore App/RideReady.csproj
 
       - name: Build
-        run: dotnet build RideReady/RideReady.csproj --configuration Release --no-restore
+        run: dotnet build App/RideReady.csproj --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test RideReady/RideReady.csproj --configuration Release --no-build --verbosity normal
+        run: dotnet test App/RideReady.csproj --configuration Release --no-build --verbosity normal

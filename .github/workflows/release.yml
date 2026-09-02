@@ -54,7 +54,7 @@ jobs:
       - name: Build and push versioned + branch tags
         uses: docker/build-push-action@v5
         with:
-          context: ./RideReady
+          context: ./App
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ needs.release.outputs.new_release_version }}
