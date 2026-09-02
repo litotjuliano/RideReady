@@ -121,3 +121,30 @@ warning text remains, "Assigned: driver (phone) - status" line still renders cor
 Noted but out of scope: Quartz NoShowDetectionJob fails to instantiate on startup ("no empty
 constructor") - pre-existing, unrelated to this change, does not block app health or the
 dashboard. Flagged to user as a follow-up, not fixed.
+
+## APP RENAME: RideBooking -> RideReady (commit 4bbf90b)
+User asked to rename the app. Renamed the C# namespace, .csproj/assembly/DLL name
+(RideBooking.csproj -> RideReady.csproj), DbContext class + EF migration snapshot file,
+Docker image tag (ridebooking:local -> rideready:local), package.json name, and every
+user-visible string (page titles, navbar, footer, admin header, appsettings.json sender
+name/email placeholders) - 89 files.
+
+Deliberately left unchanged: the Postgres database name ("ride_booking") and its connection
+strings, to avoid orphaning the already-seeded live dev database without a real data
+migration.
+
+Physical folder rename (RideBooking/RideBooking/RideBooking, requested explicitly) was
+attempted repeatedly but blocked by Windows "Access Denied" - this Claude Code session runs
+inside VSCode's own process tree, and even a full taskkill of every Code.exe process
+triggered an automatic respawn rather than releasing the lock (confirming the session's own
+host process is among them). Forcing it further risked ending the session mid-task, so the
+folder stays named `RideBooking` on disk; path references that depend on that (run.bat's
+Docker build context, ci.yml's dotnet paths, release.yml's Docker build context) were kept
+pointing at the real folder while still referencing the renamed RideReady.csproj/.dll inside
+it. The droplet deploy path (/opt/rideready) was renamed since it's an independent remote
+path unaffected by the local lock.
+
+Verified: clean rebuild (rm -rf bin obj) succeeds producing RideReady.dll, 79/79 tests pass,
+Docker image rebuilds as rideready:local, and the live app shows "RideReady" everywhere
+user-visible (home page title/navbar/footer, admin login, booking form) with zero leftover
+"RideBooking" text.
