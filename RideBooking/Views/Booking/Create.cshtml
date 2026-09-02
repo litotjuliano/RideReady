@@ -56,32 +56,28 @@
 
                     <p class="ride-section-label">Trip</p>
                     <div class="row g-2 mb-1 align-items-center">
-                        <div class="col-sm-3"><label asp-for="PickupLocation" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                        <div class="col-sm-2"><label asp-for="PickupLocation" class="form-label fw-semibold mb-0"></label></div>
+                        <div class="col-sm-4">
                             <input asp-for="PickupLocation" class="form-control ride-input" placeholder="e.g. KL Sentral" />
                             <span asp-validation-for="PickupLocation" class="text-danger small"></span>
                         </div>
-                    </div>
-                    <div class="row g-2 mb-1 align-items-center">
-                        <div class="col-sm-3"><label asp-for="Destination" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                        <div class="col-sm-2"><label asp-for="Destination" class="form-label fw-semibold mb-0"></label></div>
+                        <div class="col-sm-4">
                             <input asp-for="Destination" class="form-control ride-input" placeholder="e.g. KLIA Terminal 1" />
                             <span asp-validation-for="Destination" class="text-danger small"></span>
                         </div>
                     </div>
-                    <div class="row g-2 mb-1 align-items-center">
-                        <div class="col-sm-3"><label asp-for="PickupDate" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                    <div class="row g-2 mb-3 align-items-center">
+                        <div class="col-sm-2"><label asp-for="PickupDate" class="form-label fw-semibold mb-0"></label></div>
+                        <div class="col-sm-4">
                             <input asp-for="PickupDate" type="date" min="@today" max="@maxDate" class="form-control ride-input" />
                             <span asp-validation-for="PickupDate" class="text-danger small"></span>
                         </div>
-                    </div>
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-sm-3"><label asp-for="PickupTime" class="form-label fw-semibold mb-0"></label></div>
-                        <div class="col-sm-9">
+                        <div class="col-sm-2"><label asp-for="PickupTime" class="form-label fw-semibold mb-0"></label></div>
+                        <div class="col-sm-4">
                             <input asp-for="PickupTime" type="time" min="06:00" max="23:45" step="900" class="form-control ride-input" />
                             <span asp-validation-for="PickupTime" class="text-danger small"></span>
-                            <div class="form-text">Bookings available 6:00 AM - midnight, 15-minute slots.</div>
+                            <div class="form-text">6:00 AM - midnight, 15-minute slots.</div>
                         </div>
                     </div>
 
