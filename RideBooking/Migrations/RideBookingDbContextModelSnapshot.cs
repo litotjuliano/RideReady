@@ -76,6 +76,9 @@ namespace RideBooking.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BookingReference")
+                        .IsUnique();
+
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("Status", "PickupDate");
@@ -201,6 +204,9 @@ namespace RideBooking.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
                     b.ToTable("Customers");
                 });
 
@@ -247,6 +253,9 @@ namespace RideBooking.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
 
                     b.ToTable("Drivers");
                 });

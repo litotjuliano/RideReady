@@ -12,8 +12,8 @@ using RideBooking.Data;
 namespace RideBooking.Migrations
 {
     [DbContext(typeof(RideBookingDbContext))]
-    [Migration("20260901231818_AddNotificationRetryFields")]
-    partial class AddNotificationRetryFields
+    [Migration("20260902002329_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -78,6 +78,9 @@ namespace RideBooking.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BookingReference")
+                        .IsUnique();
 
                     b.HasIndex("CustomerId");
 
@@ -204,6 +207,9 @@ namespace RideBooking.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
                     b.ToTable("Customers");
                 });
 
@@ -250,6 +256,9 @@ namespace RideBooking.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
 
                     b.ToTable("Drivers");
                 });

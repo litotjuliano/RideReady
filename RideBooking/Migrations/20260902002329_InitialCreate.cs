@@ -39,6 +39,7 @@ namespace RideBooking.Migrations
                     Phone = table.Column<string>(type: "text", nullable: false),
                     VehicleType = table.Column<string>(type: "text", nullable: false),
                     VehicleNumber = table.Column<string>(type: "text", nullable: true),
+                    PinHash = table.Column<string>(type: "text", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     Rating = table.Column<decimal>(type: "numeric", nullable: true),
                     CancellationRate = table.Column<decimal>(type: "numeric", nullable: false),
@@ -63,6 +64,7 @@ namespace RideBooking.Migrations
                     FirstKmDistance = table.Column<int>(type: "integer", nullable: false),
                     FirstKmCharge = table.Column<decimal>(type: "numeric", nullable: true),
                     PassengerSurcharge = table.Column<decimal>(type: "numeric", nullable: true),
+                    LuggageFeePerExtra = table.Column<decimal>(type: "numeric", nullable: true),
                     ServiceTaxPercent = table.Column<decimal>(type: "numeric", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -223,10 +225,13 @@ namespace RideBooking.Migrations
                     BookingId = table.Column<int>(type: "integer", nullable: false),
                     RecipientType = table.Column<string>(type: "text", nullable: false),
                     RecipientId = table.Column<int>(type: "integer", nullable: true),
+                    RecipientContact = table.Column<string>(type: "text", nullable: false),
                     Channel = table.Column<string>(type: "text", nullable: false),
                     EventType = table.Column<string>(type: "text", nullable: false),
+                    Subject = table.Column<string>(type: "text", nullable: true),
                     MessageContent = table.Column<string>(type: "text", nullable: true),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastAttemptAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeliveryStatus = table.Column<string>(type: "text", nullable: false),
                     ErrorMessage = table.Column<string>(type: "text", nullable: true),
                     RetryCount = table.Column<int>(type: "integer", nullable: false),
@@ -272,6 +277,12 @@ namespace RideBooking.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Bookings_BookingReference",
+                table: "Bookings",
+                column: "BookingReference",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Bookings_CustomerId",
                 table: "Bookings",
                 column: "CustomerId");
@@ -285,6 +296,12 @@ namespace RideBooking.Migrations
                 name: "IX_BookingStatusHistories_BookingId",
                 table: "BookingStatusHistories",
                 column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Customers_Phone",
+                table: "Customers",
+                column: "Phone",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_DriverAssignments_BookingId",
@@ -308,6 +325,12 @@ namespace RideBooking.Migrations
                 table: "DriverLocations",
                 columns: new[] { "DriverId", "BookingId", "RecordedAt" },
                 descending: new[] { false, false, true });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Drivers_Phone",
+                table: "Drivers",
+                column: "Phone",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_BookingId",

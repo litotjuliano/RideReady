@@ -27,6 +27,18 @@ namespace RideBooking.Data
             modelBuilder.Entity<Booking>()
                 .HasIndex(b => new { b.Status, b.PickupDate });
 
+            modelBuilder.Entity<Booking>()
+                .HasIndex(b => b.BookingReference)
+                .IsUnique();
+
+            modelBuilder.Entity<Customer>()
+                .HasIndex(c => c.Phone)
+                .IsUnique();
+
+            modelBuilder.Entity<Driver>()
+                .HasIndex(d => d.Phone)
+                .IsUnique();
+
             modelBuilder.Entity<DriverLocation>()
                 .HasIndex(dl => new { dl.DriverId, dl.BookingId, dl.RecordedAt })
                 .IsDescending(false, false, true);
