@@ -1,0 +1,17 @@
+@{
+    var heading = ViewData["PageHeading"] as string ?? ViewData["Title"] as string ?? string.Empty;
+}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="ride-eyebrow mb-1">RideBooking</p>
+        <h1 class="fw-bold">@heading</h1>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-outline-secondary">Dashboard</a>
+        <a asp-controller="Admin" asp-action="Drivers" class="btn btn-sm btn-outline-secondary">Drivers</a>
+        <form asp-controller="AdminAuth" asp-action="Logout" method="post" class="mb-0">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-secondary rounded-pill">Sign out</button>
+        </form>
+    </div>
+</div>

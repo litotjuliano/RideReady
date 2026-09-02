@@ -75,6 +75,13 @@ namespace RideBooking.Services
                 .ToListAsync();
         }
 
+        public async Task<List<Driver>> GetAllDriversAsync()
+        {
+            return await _context.Drivers
+                .OrderBy(d => d.Name)
+                .ToListAsync();
+        }
+
         public async Task<Driver> CreateDriverAsync(CreateDriverViewModel request)
         {
             var driver = new Driver

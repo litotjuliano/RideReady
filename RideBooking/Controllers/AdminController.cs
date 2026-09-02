@@ -29,6 +29,12 @@ namespace RideBooking.Controllers
             return View(bookings);
         }
 
+        public async Task<IActionResult> Drivers()
+        {
+            var drivers = await _driverAssignmentService.GetAllDriversAsync();
+            return View(drivers);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignDriver(AssignDriverViewModel model)
@@ -60,12 +66,12 @@ namespace RideBooking.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Could not add driver — check the details and try again.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Drivers));
             }
 
             await _driverAssignmentService.CreateDriverAsync(model);
             TempData["SuccessMessage"] = "Driver added.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Drivers));
         }
 
         [HttpPost]

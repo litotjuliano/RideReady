@@ -1,6 +1,7 @@
 @model List<RideBooking.ViewModels.AdminBookingListItemViewModel>
 @{
     ViewData["Title"] = "Dispatch Back Office";
+    ViewData["PageHeading"] = "Dispatch back office";
     var drivers = ViewBag.ActiveDrivers as List<RideBooking.Models.Driver> ?? new();
     // "Driver_Assigned" is intentionally excluded here — it can only be reached via the
     // "Assign" form/button, which creates the matching DriverAssignment row. Setting it
@@ -9,16 +10,7 @@
     var statuses = new[] { "New", "Confirmed", "Picked_Up", "In_Transit", "Dropped_Off", "Completed", "Cancelled", "No_Show" };
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <p class="ride-eyebrow mb-1">RideBooking</p>
-        <h1 class="fw-bold">Dispatch back office</h1>
-    </div>
-    <form asp-controller="AdminAuth" asp-action="Logout" method="post">
-        @Html.AntiForgeryToken()
-        <button type="submit" class="btn btn-outline-secondary rounded-pill">Sign out</button>
-    </form>
-</div>
+@await Html.PartialAsync("_AdminHeader")
 
 @if (TempData["SuccessMessage"] is string successMessage)
 {
@@ -28,25 +20,6 @@
 {
     <div class="alert alert-danger">@errorMessage</div>
 }
-
-<div class="ride-card mb-4">
-    <h2 class="h5 fw-bold mb-3">Add a driver</h2>
-    <form asp-controller="Admin" asp-action="CreateDriver" method="post" class="row g-2 align-items-end">
-        @Html.AntiForgeryToken()
-        <div class="col-md-2"><input name="Name" class="form-control ride-input" placeholder="Driver name" required /></div>
-        <div class="col-md-2"><input name="Phone" class="form-control ride-input" placeholder="Phone" required /></div>
-        <div class="col-md-2">
-            <select name="VehicleType" class="form-select ride-input" required>
-                <option value="Car">Car</option>
-                <option value="Van">Van</option>
-                <option value="Bus">Bus</option>
-            </select>
-        </div>
-        <div class="col-md-2"><input name="VehicleNumber" class="form-control ride-input" placeholder="Plate no." required /></div>
-        <div class="col-md-2"><input name="Pin" class="form-control ride-input" placeholder="4-6 digit PIN" required /></div>
-        <div class="col-md-2"><button type="submit" class="btn ride-btn-primary w-100">Add driver</button></div>
-    </form>
-</div>
 
 @foreach (var booking in Model)
 {

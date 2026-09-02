@@ -48,7 +48,7 @@ namespace RideBooking.Tests.Controllers
         }
 
         [Fact]
-        public async Task CreateDriver_WithValidModel_RedirectsToIndex()
+        public async Task CreateDriver_WithValidModel_RedirectsToDrivers()
         {
             // Arrange
             var context = GetInMemoryDbContext();
@@ -72,8 +72,46 @@ namespace RideBooking.Tests.Controllers
             var result = await controller.CreateDriver(model);
 
             // Assert
-            Assert.IsType<RedirectToActionResult>(result);
+            var redirect = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Drivers", redirect.ActionName);
             Assert.Equal(1, await context.Drivers.CountAsync());
+        }
+
+        [Fact]
+        public async Task Drivers_ReturnsAllDriversIncludingInactive()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context));
+
+            await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+            var inactiveDriver = await service.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Kumar",
+                Phone = "0129876543",
+                VehicleType = "Van",
+                VehicleNumber = "XYZ 9999",
+                Pin = "5678"
+            });
+            inactiveDriver.IsActive = false;
+            await context.SaveChangesAsync();
+
+            // Act
+            var result = await controller.Drivers();
+
+            // Assert
+            var view = Assert.IsType<ViewResult>(result);
+            var drivers = Assert.IsType<List<Models.Driver>>(view.Model);
+            Assert.Equal(2, drivers.Count);
+            Assert.Contains(drivers, d => d.Name == "Kumar" && !d.IsActive);
         }
 
         private async Task<(RideBookingDbContext Context, Models.Booking Booking, Models.Driver Driver)> SeedBookingAndDriverAsync()
