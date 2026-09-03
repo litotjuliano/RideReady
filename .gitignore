@@ -2,3 +2,6 @@
 # These must never be committed — they hold real deploy credentials.
 .env
 .env.*
+
+# Local brainstorming-session scratch (mockups/state for the visual companion tool).
+.superpowers/
