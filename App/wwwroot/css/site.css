@@ -206,3 +206,71 @@ body {
     flex-shrink: 0;
     width: 200px;
 }
+
+.ride-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.ride-month-dow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ride-text-muted);
+    text-align: center;
+    padding-bottom: 4px;
+}
+
+.ride-month-day {
+    background: var(--ride-bg-2);
+    border: 1px solid var(--ride-border);
+    border-radius: 10px;
+    min-height: 84px;
+    padding: 6px;
+}
+
+.ride-month-day--blank {
+    background: transparent;
+    border: none;
+}
+
+.ride-month-day.today {
+    border-color: var(--ride-vivid-green);
+    border-width: 2px;
+}
+
+.ride-month-daynum {
+    font-weight: 700;
+    color: var(--ride-text);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.ride-month-daynum:hover {
+    color: var(--ride-mid-green);
+}
+
+.ride-month-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 6px;
+}
+
+.ride-month-chip {
+    background: var(--ride-bg-4);
+    color: var(--ride-mid-green);
+    border: 1px solid var(--ride-bright-green);
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 1px 6px;
+}
+
+.ride-month-chip--timeoff {
+    background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 3px, #d4d4d4 3px, #d4d4d4 6px);
+    color: var(--ride-text-muted);
+    border-color: #d4d4d4;
+}

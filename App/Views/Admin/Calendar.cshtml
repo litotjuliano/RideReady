@@ -3,8 +3,14 @@
     ViewData["Title"] = "Driver Calendar";
     ViewData["PageHeading"] = "Driver calendar";
     var selectedDate = (DateOnly)ViewBag.SelectedDate;
-    var prevDate = selectedDate.AddDays(-1);
-    var nextDate = selectedDate.AddDays(1);
+    var calendarView = (string)ViewBag.CalendarView;
+    var isMonthView = calendarView == "month";
+    var firstOfMonth = new DateOnly(selectedDate.Year, selectedDate.Month, 1);
+
+    // Day mode steps Prev/Next by one day; month mode steps by one calendar month,
+    // anchored to the 1st so "Next" from any day in the month lands on next month's 1st.
+    var prevDate = isMonthView ? firstOfMonth.AddMonths(-1) : selectedDate.AddDays(-1);
+    var nextDate = isMonthView ? firstOfMonth.AddMonths(1) : selectedDate.AddDays(1);
 }
 
 @functions {
@@ -32,65 +38,77 @@
 
 <div class="ride-card mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div class="d-flex align-items-center gap-2">
-        <a class="btn btn-sm btn-outline-secondary" asp-action="Calendar" asp-route-date="@prevDate.ToString("yyyy-MM-dd")">&larr; Prev</a>
+        <div class="btn-group" role="group">
+            <a class="btn btn-sm @(isMonthView ? "btn-outline-secondary" : "ride-btn-primary")" asp-action="Calendar" asp-route-date="@selectedDate.ToString("yyyy-MM-dd")" asp-route-view="day">Day</a>
+            <a class="btn btn-sm @(isMonthView ? "ride-btn-primary" : "btn-outline-secondary")" asp-action="Calendar" asp-route-date="@selectedDate.ToString("yyyy-MM-dd")" asp-route-view="month">Month</a>
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Calendar" asp-route-date="@prevDate.ToString("yyyy-MM-dd")" asp-route-view="@calendarView">&larr; Prev</a>
         <form asp-action="Calendar" method="get" class="d-flex align-items-center gap-2 mb-0">
+            <input type="hidden" name="view" value="@calendarView" />
             <input type="date" name="date" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" />
             <button type="submit" class="btn btn-sm btn-outline-secondary">Go</button>
         </form>
-        <a class="btn btn-sm btn-outline-secondary" asp-action="Calendar" asp-route-date="@nextDate.ToString("yyyy-MM-dd")">Next &rarr;</a>
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Calendar" asp-route-date="@nextDate.ToString("yyyy-MM-dd")" asp-route-view="@calendarView">Next &rarr;</a>
     </div>
-    <p class="fw-bold mb-0">@selectedDate.ToString("yyyy-MM-dd")</p>
+    <p class="fw-bold mb-0">@(isMonthView ? selectedDate.ToString("yyyy-MM") : selectedDate.ToString("yyyy-MM-dd"))</p>
 </div>
 
-<div class="ride-card">
-    <div class="ride-timeline-scale">
-        @for (var hour = 6; hour <= 24; hour += 3)
+@if (isMonthView)
+{
+    @await Html.PartialAsync("_CalendarMonth", (Dictionary<DateOnly, List<RideReady.ViewModels.DriverDayScheduleViewModel>>)ViewBag.MonthSchedule)
+}
+else
+{
+    <div class="ride-card">
+        <div class="ride-timeline-scale">
+            @for (var hour = 6; hour <= 24; hour += 3)
+            {
+                var markerTime = hour == 24 ? new TimeOnly(23, 59) : new TimeOnly(hour, 0);
+                <span style="left: @(ToPercent(markerTime).ToString("0.##"))%">@(hour == 24 ? "24:00" : $"{hour:00}:00")</span>
+            }
+        </div>
+
+        @foreach (var driver in Model)
         {
-            var markerTime = hour == 24 ? new TimeOnly(23, 59) : new TimeOnly(hour, 0);
-            <span style="left: @(ToPercent(markerTime).ToString("0.##"))%">@(hour == 24 ? "24:00" : $"{hour:00}:00")</span>
+            <div class="ride-timeline-row">
+                <div class="ride-timeline-label">
+                    <p class="fw-semibold mb-0">@driver.DriverName</p>
+                    <p class="text-muted small mb-0">@driver.VehicleType</p>
+                </div>
+                <div class="ride-timeline-track">
+                    @if (driver.IsOnTimeOff)
+                    {
+                        <div class="ride-timeline-block ride-timeline-block--timeoff" title="@(driver.TimeOffReason ?? "Time off")">
+                            Time off@(string.IsNullOrEmpty(driver.TimeOffReason) ? "" : $": {driver.TimeOffReason}")
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var block in driver.Blocks)
+                        {
+                            var left = ToPercent(block.Start);
+                            var right = ToPercent(block.End);
+                            var width = Math.Max(right - left, 1);
+                            <a asp-controller="Admin" asp-action="Index" class="ride-timeline-block ride-timeline-block--booked"
+                               style="left: @(left.ToString("0.##"))%; width: @(width.ToString("0.##"))%;"
+                               title="@block.BookingReference: @block.PickupLocation &rarr; @block.Destination">
+                                @block.Start.ToString("HH:mm")-@block.End.ToString("HH:mm") @block.BookingReference
+                            </a>
+                        }
+                    }
+                </div>
+                <div class="ride-timeline-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('timeoff-form-@driver.DriverId').classList.toggle('d-none');">+ Time off</button>
+                    <form id="timeoff-form-@driver.DriverId" asp-controller="Admin" asp-action="AddTimeOff" method="post" class="d-flex gap-1 mt-2 d-none flex-wrap">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="DriverId" value="@driver.DriverId" />
+                        <input type="date" name="StartDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" required />
+                        <input type="date" name="EndDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" required />
+                        <input type="text" name="Reason" placeholder="Reason (optional)" class="form-control form-control-sm ride-input" />
+                        <button type="submit" class="btn btn-sm ride-btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
         }
     </div>
-
-    @foreach (var driver in Model)
-    {
-        <div class="ride-timeline-row">
-            <div class="ride-timeline-label">
-                <p class="fw-semibold mb-0">@driver.DriverName</p>
-                <p class="text-muted small mb-0">@driver.VehicleType</p>
-            </div>
-            <div class="ride-timeline-track">
-                @if (driver.IsOnTimeOff)
-                {
-                    <div class="ride-timeline-block ride-timeline-block--timeoff" title="@(driver.TimeOffReason ?? "Time off")">
-                        Time off@(string.IsNullOrEmpty(driver.TimeOffReason) ? "" : $": {driver.TimeOffReason}")
-                    </div>
-                }
-                else
-                {
-                    @foreach (var block in driver.Blocks)
-                    {
-                        var left = ToPercent(block.Start);
-                        var right = ToPercent(block.End);
-                        var width = Math.Max(right - left, 1);
-                        <a asp-controller="Admin" asp-action="Index" class="ride-timeline-block ride-timeline-block--booked"
-                           style="left: @(left.ToString("0.##"))%; width: @(width.ToString("0.##"))%;"
-                           title="@block.BookingReference: @block.PickupLocation &rarr; @block.Destination">
-                            @block.Start.ToString("HH:mm")-@block.End.ToString("HH:mm") @block.BookingReference
-                        </a>
-                    }
-                }
-            </div>
-            <div class="ride-timeline-actions">
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('timeoff-form-@driver.DriverId').classList.toggle('d-none');">+ Time off</button>
-                <form id="timeoff-form-@driver.DriverId" asp-controller="Admin" asp-action="AddTimeOff" method="post" class="d-flex gap-1 mt-2 d-none flex-wrap">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="DriverId" value="@driver.DriverId" />
-                    <input type="date" name="StartDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" required />
-                    <input type="date" name="EndDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" required />
-                    <input type="text" name="Reason" placeholder="Reason (optional)" class="form-control form-control-sm ride-input" />
-                    <button type="submit" class="btn btn-sm ride-btn-primary">Save</button>
-                </form>
-            </div>
-        </div>
-    }
-</div>
+}
