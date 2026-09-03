@@ -28,13 +28,10 @@ namespace RideReady.Services
                 .OrderBy(d => d.Name)
                 .ToListAsync();
 
-            var assignments = await _context.DriverAssignments
-                .Include(a => a.Booking)
-                    .ThenInclude(b => b!.Quote)
-                .Where(a => a.AssignmentStatus != "Rejected"
-                    && a.Booking != null
-                    && a.Booking.PickupDate == date
-                    && !InactiveBookingStatuses.Contains(a.Booking.Status))
+            var assignments = await ActiveAssignments(_context.DriverAssignments
+                    .Include(a => a.Booking)
+                        .ThenInclude(b => b!.Quote))
+                .Where(a => a.Booking!.PickupDate == date)
                 .ToListAsync();
 
             var timeOffs = await _context.DriverTimeOffs
@@ -71,14 +68,11 @@ namespace RideReady.Services
                 return (false, "on time off");
             }
 
-            var assignments = await _context.DriverAssignments
-                .Include(a => a.Booking)
-                    .ThenInclude(b => b!.Quote)
+            var assignments = await ActiveAssignments(_context.DriverAssignments
+                    .Include(a => a.Booking)
+                        .ThenInclude(b => b!.Quote))
                 .Where(a => a.DriverId == driverId
-                    && a.AssignmentStatus != "Rejected"
-                    && a.Booking != null
-                    && a.Booking.PickupDate == date
-                    && !InactiveBookingStatuses.Contains(a.Booking.Status)
+                    && a.Booking!.PickupDate == date
                     && (excludeBookingId == null || a.BookingId != excludeBookingId))
                 .ToListAsync();
 
@@ -107,13 +101,10 @@ namespace RideReady.Services
                 throw new InvalidOperationException($"Driver {driverId} not found");
             }
 
-            var conflict = await _context.DriverAssignments
-                .Include(a => a.Booking)
+            var conflict = await ActiveAssignments(_context.DriverAssignments
+                    .Include(a => a.Booking))
                 .Where(a => a.DriverId == driverId
-                    && a.AssignmentStatus != "Rejected"
-                    && a.Booking != null
-                    && !InactiveBookingStatuses.Contains(a.Booking.Status)
-                    && a.Booking.PickupDate >= startDate
+                    && a.Booking!.PickupDate >= startDate
                     && a.Booking.PickupDate <= endDate)
                 .Select(a => a.Booking!.BookingReference)
                 .FirstOrDefaultAsync();
@@ -134,6 +125,11 @@ namespace RideReady.Services
 
             await _context.SaveChangesAsync();
         }
+
+        private static IQueryable<DriverAssignment> ActiveAssignments(IQueryable<DriverAssignment> query) =>
+            query.Where(a => a.AssignmentStatus != "Rejected"
+                && a.Booking != null
+                && !InactiveBookingStatuses.Contains(a.Booking.Status));
 
         private static DriverScheduleBlockViewModel ToBlock(Booking booking)
         {
