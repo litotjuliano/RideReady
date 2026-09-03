@@ -31,16 +31,40 @@ namespace RideReady.Controllers
             var activeDrivers = await _driverAssignmentService.GetActiveDriversAsync();
             ViewBag.ActiveDrivers = activeDrivers;
 
+            var distinctDates = bookings.Select(b => b.PickupDate).Distinct();
+            var schedulesByDate = new Dictionary<DateOnly, List<DriverDayScheduleViewModel>>();
+            foreach (var date in distinctDates)
+            {
+                schedulesByDate[date] = await _driverAvailabilityService.GetDriverDayScheduleAsync(date);
+            }
+
             foreach (var booking in bookings)
             {
-                foreach (var driver in activeDrivers)
+                var schedule = schedulesByDate[booking.PickupDate];
+                foreach (var driver in schedule)
                 {
-                    var (isAvailable, reason) = await _driverAvailabilityService.IsDriverAvailableAsync(
-                        driver.Id, booking.PickupDate, booking.PickupTime, booking.BookingId);
+                    string? reason = null;
 
-                    if (!isAvailable && reason != null)
+                    if (driver.IsOnTimeOff)
                     {
-                        booking.DriverConflicts[driver.Id] = reason;
+                        reason = "on time off";
+                    }
+                    else
+                    {
+                        var block = driver.Blocks.FirstOrDefault(b =>
+                            b.BookingId != booking.BookingId
+                            && booking.PickupTime >= b.Start
+                            && booking.PickupTime < b.End);
+
+                        if (block != null)
+                        {
+                            reason = $"busy: {block.BookingReference} {block.Start:HH:mm}-{block.End:HH:mm}";
+                        }
+                    }
+
+                    if (reason != null)
+                    {
+                        booking.DriverConflicts[driver.DriverId] = reason;
                     }
                 }
             }
