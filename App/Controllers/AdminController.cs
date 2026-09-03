@@ -11,15 +11,18 @@ namespace RideReady.Controllers
         private readonly IDriverAssignmentService _driverAssignmentService;
         private readonly INotificationService _notificationService;
         private readonly IBookingService _bookingService;
+        private readonly IDriverAvailabilityService _driverAvailabilityService;
 
         public AdminController(
             IDriverAssignmentService driverAssignmentService,
             INotificationService notificationService,
-            IBookingService bookingService)
+            IBookingService bookingService,
+            IDriverAvailabilityService driverAvailabilityService)
         {
             _driverAssignmentService = driverAssignmentService;
             _notificationService = notificationService;
             _bookingService = bookingService;
+            _driverAvailabilityService = driverAvailabilityService;
         }
 
         public async Task<IActionResult> Index()

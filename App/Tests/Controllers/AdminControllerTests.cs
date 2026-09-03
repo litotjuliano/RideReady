@@ -31,13 +31,30 @@ namespace RideReady.Tests.Controllers
                     OperatorEmail = "operator@rideready.my"
                 }));
 
+        private static AdminController BuildController(RideReadyDbContext context, bool withTempData = true)
+        {
+            var controller = new AdminController(
+                new DriverAssignmentService(context),
+                BuildNotificationService(context),
+                new BookingService(context),
+                new DriverAvailabilityService(context));
+
+            if (withTempData)
+            {
+                controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
+                    new NullTempDataProvider());
+            }
+
+            return controller;
+        }
+
         [Fact]
         public async Task Index_ReturnsViewWithBookingList()
         {
             // Arrange
             var context = GetInMemoryDbContext();
-            var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context));
+            var controller = BuildController(context, withTempData: false);
 
             // Act
             var result = await controller.Index();
@@ -52,13 +69,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var context = GetInMemoryDbContext();
-            var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
             var model = new CreateDriverViewModel
             {
                 Name = "Ah Seng",
@@ -83,7 +94,7 @@ namespace RideReady.Tests.Controllers
             // Arrange
             var context = GetInMemoryDbContext();
             var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context));
+            var controller = BuildController(context, withTempData: false);
 
             await service.CreateDriverAsync(new CreateDriverViewModel
             {
@@ -156,12 +167,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, booking, driver) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.AssignDriver(new AssignDriverViewModel { BookingId = booking.Id, DriverId = driver.Id });
@@ -178,12 +184,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, _, driver) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.AssignDriver(new AssignDriverViewModel { BookingId = 9999, DriverId = driver.Id });
@@ -198,12 +199,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, booking, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.UpdateStatus(new UpdateStatusViewModel { BookingId = booking.Id, NewStatus = "Confirmed" });
@@ -220,12 +216,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, booking, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.UpdateStatus(new UpdateStatusViewModel { BookingId = booking.Id, NewStatus = "NotARealStatus" });
@@ -248,12 +239,7 @@ namespace RideReady.Tests.Controllers
             });
             await context.SaveChangesAsync();
 
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.SetFare(new SetFareViewModel { BookingId = booking.Id, Fare = 123.45m });
@@ -271,12 +257,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, _, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.SetFare(new SetFareViewModel { BookingId = 9999, Fare = 50m });

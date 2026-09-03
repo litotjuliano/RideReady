@@ -29,6 +29,7 @@ builder.Services.AddHttpClient<GoogleMapsLocationService>(client =>
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ILocationService>(sp => sp.GetRequiredService<GoogleMapsLocationService>());
 builder.Services.AddScoped<IDriverAssignmentService, DriverAssignmentService>();
+builder.Services.AddScoped<IDriverAvailabilityService, DriverAvailabilityService>();
 builder.Services.AddScoped<IDriverPortalService, DriverPortalService>();
 
 // Register notification services (Email, WhatsApp, Google Calendar)
