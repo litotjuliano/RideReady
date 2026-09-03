@@ -391,6 +391,7 @@ namespace RideReady.Tests.Services
             var day1 = schedule[new DateOnly(2026, 9, 1)];
             var block = Assert.Single(day1[0].Blocks);
             Assert.Equal("RR-FIRSTDAY", block.BookingReference);
+            Assert.Empty(schedule[new DateOnly(2026, 9, 2)][0].Blocks);
         }
 
         [Fact]
@@ -410,6 +411,7 @@ namespace RideReady.Tests.Services
             var lastDay = schedule[new DateOnly(2026, 9, 30)];
             var block = Assert.Single(lastDay[0].Blocks);
             Assert.Equal("RR-LASTDAY0", block.BookingReference);
+            Assert.Empty(schedule[new DateOnly(2026, 9, 29)][0].Blocks);
         }
 
         [Fact]
