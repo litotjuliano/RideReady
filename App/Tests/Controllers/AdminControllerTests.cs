@@ -307,6 +307,60 @@ namespace RideReady.Tests.Controllers
             Assert.Equal(requestedDate, controller.ViewBag.SelectedDate);
         }
 
+        [Fact]
+        public async Task AddTimeOff_WithValidModel_RedirectsToCalendarAndCreatesTimeOff()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context);
+            var driver = await new DriverAssignmentService(context).CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+
+            // Act
+            var result = await controller.AddTimeOff(new AddTimeOffViewModel
+            {
+                DriverId = driver.Id,
+                StartDate = new DateOnly(2026, 9, 20),
+                EndDate = new DateOnly(2026, 9, 22),
+                Reason = "Annual leave"
+            });
+
+            // Assert
+            var redirect = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Calendar", redirect.ActionName);
+            Assert.Equal(1, await context.DriverTimeOffs.CountAsync());
+            Assert.Equal("Time off added.", controller.TempData["SuccessMessage"]);
+        }
+
+        [Fact]
+        public async Task AddTimeOff_WithConflictingAssignment_RedirectsWithErrorMessageInsteadOfThrowing()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            var controller = BuildController(context);
+            await new DriverAssignmentService(context).AssignDriverAsync(booking.Id, driver.Id);
+
+            // Act
+            var result = await controller.AddTimeOff(new AddTimeOffViewModel
+            {
+                DriverId = driver.Id,
+                StartDate = booking.PickupDate,
+                EndDate = booking.PickupDate,
+                Reason = null
+            });
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.NotNull(controller.TempData["ErrorMessage"]);
+            Assert.Equal(0, await context.DriverTimeOffs.CountAsync());
+        }
+
         internal class NullTempDataProvider : Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider
         {
             public IDictionary<string, object> LoadTempData(Microsoft.AspNetCore.Http.HttpContext context) => new Dictionary<string, object>();

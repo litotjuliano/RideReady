@@ -82,6 +82,14 @@
             </div>
             <div class="ride-timeline-actions">
                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('timeoff-form-@driver.DriverId').classList.toggle('d-none');">+ Time off</button>
+                <form id="timeoff-form-@driver.DriverId" asp-controller="Admin" asp-action="AddTimeOff" method="post" class="d-flex gap-1 mt-2 d-none flex-wrap">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="DriverId" value="@driver.DriverId" />
+                    <input type="date" name="StartDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" required />
+                    <input type="date" name="EndDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" required />
+                    <input type="text" name="Reason" placeholder="Reason (optional)" class="form-control form-control-sm ride-input" />
+                    <button type="submit" class="btn btn-sm ride-btn-primary">Save</button>
+                </form>
             </div>
         </div>
     }

@@ -48,6 +48,29 @@ namespace RideReady.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddTimeOff(AddTimeOffViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Choose a driver and a valid date range.";
+                return RedirectToAction(nameof(Calendar), new { date = model.StartDate });
+            }
+
+            try
+            {
+                await _driverAvailabilityService.AddTimeOffAsync(model.DriverId, model.StartDate, model.EndDate, model.Reason);
+                TempData["SuccessMessage"] = "Time off added.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Calendar), new { date = model.StartDate });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignDriver(AssignDriverViewModel model)
         {
             if (!ModelState.IsValid)
