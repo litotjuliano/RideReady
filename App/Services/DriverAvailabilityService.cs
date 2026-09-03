@@ -38,25 +38,38 @@ namespace RideReady.Services
                 .Where(t => t.StartDate <= date && t.EndDate >= date)
                 .ToListAsync();
 
-            return drivers.Select(driver =>
-            {
-                var timeOff = timeOffs.FirstOrDefault(t => t.DriverId == driver.Id);
-                var blocks = assignments
-                    .Where(a => a.DriverId == driver.Id)
-                    .Select(a => ToBlock(a.Booking!))
-                    .OrderBy(b => b.Start)
-                    .ToList();
+            return drivers.Select(driver => BuildDaySchedule(driver, assignments, timeOffs)).ToList();
+        }
 
-                return new DriverDayScheduleViewModel
-                {
-                    DriverId = driver.Id,
-                    DriverName = driver.Name,
-                    VehicleType = driver.VehicleType,
-                    IsOnTimeOff = timeOff != null,
-                    TimeOffReason = timeOff?.Reason,
-                    Blocks = blocks
-                };
-            }).ToList();
+        public async Task<Dictionary<DateOnly, List<DriverDayScheduleViewModel>>> GetDriverMonthScheduleAsync(int year, int month)
+        {
+            var monthStart = new DateOnly(year, month, 1);
+            var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+
+            var drivers = await _context.Drivers
+                .Where(d => d.IsActive)
+                .OrderBy(d => d.Name)
+                .ToListAsync();
+
+            var assignments = await ActiveAssignments(_context.DriverAssignments
+                    .Include(a => a.Booking)
+                        .ThenInclude(b => b!.Quote))
+                .Where(a => a.Booking!.PickupDate >= monthStart && a.Booking.PickupDate <= monthEnd)
+                .ToListAsync();
+
+            var timeOffs = await _context.DriverTimeOffs
+                .Where(t => t.StartDate <= monthEnd && t.EndDate >= monthStart)
+                .ToListAsync();
+
+            var result = new Dictionary<DateOnly, List<DriverDayScheduleViewModel>>();
+            for (var date = monthStart; date <= monthEnd; date = date.AddDays(1))
+            {
+                var assignmentsForDay = assignments.Where(a => a.Booking!.PickupDate == date).ToList();
+                var timeOffsForDay = timeOffs.Where(t => t.StartDate <= date && t.EndDate >= date).ToList();
+                result[date] = drivers.Select(driver => BuildDaySchedule(driver, assignmentsForDay, timeOffsForDay)).ToList();
+            }
+
+            return result;
         }
 
         public async Task<(bool IsAvailable, string? ConflictReason)> IsDriverAvailableAsync(int driverId, DateOnly date, TimeOnly time, int? excludeBookingId = null)
@@ -130,6 +143,32 @@ namespace RideReady.Services
             query.Where(a => a.AssignmentStatus != "Rejected"
                 && a.Booking != null
                 && !InactiveBookingStatuses.Contains(a.Booking.Status));
+
+        // Builds one driver's schedule entry for a single day, given assignments/time-offs
+        // already filtered down to that day (or, for the month view, pre-sliced per day from
+        // a month's worth of data — see GetDriverMonthScheduleAsync). Shared by both callers
+        // so the "which assignment counts, what a time-off looks like" rules can't drift
+        // between the single-day and whole-month code paths.
+        private static DriverDayScheduleViewModel BuildDaySchedule(
+            Driver driver, List<DriverAssignment> assignmentsForDay, List<DriverTimeOff> timeOffsCoveringDay)
+        {
+            var timeOff = timeOffsCoveringDay.FirstOrDefault(t => t.DriverId == driver.Id);
+            var blocks = assignmentsForDay
+                .Where(a => a.DriverId == driver.Id)
+                .Select(a => ToBlock(a.Booking!))
+                .OrderBy(b => b.Start)
+                .ToList();
+
+            return new DriverDayScheduleViewModel
+            {
+                DriverId = driver.Id,
+                DriverName = driver.Name,
+                VehicleType = driver.VehicleType,
+                IsOnTimeOff = timeOff != null,
+                TimeOffReason = timeOff?.Reason,
+                Blocks = blocks
+            };
+        }
 
         private static DriverScheduleBlockViewModel ToBlock(Booking booking)
         {

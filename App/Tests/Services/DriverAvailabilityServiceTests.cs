@@ -356,5 +356,147 @@ namespace RideReady.Tests.Services
             // Assert
             Assert.Equal(1, await context.DriverTimeOffs.CountAsync());
         }
+
+        [Fact]
+        public async Task GetDriverMonthScheduleAsync_ReturnsOneEntryPerDayOfTheMonth()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            await SeedDriverAsync(context);
+
+            // Act
+            var schedule = await service.GetDriverMonthScheduleAsync(2026, 9);
+
+            // Assert
+            Assert.Equal(30, schedule.Count);
+            Assert.True(schedule.ContainsKey(new DateOnly(2026, 9, 1)));
+            Assert.True(schedule.ContainsKey(new DateOnly(2026, 9, 30)));
+        }
+
+        [Fact]
+        public async Task GetDriverMonthScheduleAsync_IncludesBookingOnFirstDayOfMonth()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var booking = await SeedBookingAsync(context, "RR-FIRSTDAY", new DateOnly(2026, 9, 1), new TimeOnly(9, 0));
+            await AssignAsync(context, booking, driver);
+
+            // Act
+            var schedule = await service.GetDriverMonthScheduleAsync(2026, 9);
+
+            // Assert
+            var day1 = schedule[new DateOnly(2026, 9, 1)];
+            var block = Assert.Single(day1[0].Blocks);
+            Assert.Equal("RR-FIRSTDAY", block.BookingReference);
+        }
+
+        [Fact]
+        public async Task GetDriverMonthScheduleAsync_IncludesBookingOnLastDayOfMonth()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var booking = await SeedBookingAsync(context, "RR-LASTDAY0", new DateOnly(2026, 9, 30), new TimeOnly(9, 0));
+            await AssignAsync(context, booking, driver);
+
+            // Act
+            var schedule = await service.GetDriverMonthScheduleAsync(2026, 9);
+
+            // Assert
+            var lastDay = schedule[new DateOnly(2026, 9, 30)];
+            var block = Assert.Single(lastDay[0].Blocks);
+            Assert.Equal("RR-LASTDAY0", block.BookingReference);
+        }
+
+        [Fact]
+        public async Task GetDriverMonthScheduleAsync_DriverWithTwoBookingsSameDay_BothBlocksInOneDayEntry()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var date = new DateOnly(2026, 9, 15);
+            var morning = await SeedBookingAsync(context, "RR-MORNING1", date, new TimeOnly(6, 0));
+            await AssignAsync(context, morning, driver);
+            var evening = await SeedBookingAsync(context, "RR-EVENING1", date, new TimeOnly(20, 0));
+            await AssignAsync(context, evening, driver);
+
+            // Act
+            var schedule = await service.GetDriverMonthScheduleAsync(2026, 9);
+
+            // Assert
+            var day = schedule[date];
+            Assert.Equal(2, day[0].Blocks.Count);
+            Assert.Contains(day[0].Blocks, b => b.BookingReference == "RR-MORNING1");
+            Assert.Contains(day[0].Blocks, b => b.BookingReference == "RR-EVENING1");
+        }
+
+        [Fact]
+        public async Task GetDriverMonthScheduleAsync_TimeOffStartingBeforeMonthAndEndingInsideIt_AppliesWithinTheMonth()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            context.DriverTimeOffs.Add(new DriverTimeOff
+            {
+                DriverId = driver.Id,
+                StartDate = new DateOnly(2026, 8, 28),
+                EndDate = new DateOnly(2026, 9, 3),
+                Reason = "Carried over leave"
+            });
+            await context.SaveChangesAsync();
+
+            // Act
+            var schedule = await service.GetDriverMonthScheduleAsync(2026, 9);
+
+            // Assert
+            Assert.True(schedule[new DateOnly(2026, 9, 1)][0].IsOnTimeOff);
+            Assert.True(schedule[new DateOnly(2026, 9, 3)][0].IsOnTimeOff);
+            Assert.False(schedule[new DateOnly(2026, 9, 4)][0].IsOnTimeOff);
+        }
+
+        [Fact]
+        public async Task GetDriverMonthScheduleAsync_TimeOffStartingInsideMonthAndEndingAfterIt_AppliesWithinTheMonth()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            context.DriverTimeOffs.Add(new DriverTimeOff
+            {
+                DriverId = driver.Id,
+                StartDate = new DateOnly(2026, 9, 28),
+                EndDate = new DateOnly(2026, 10, 5),
+                Reason = "Spills into next month"
+            });
+            await context.SaveChangesAsync();
+
+            // Act
+            var schedule = await service.GetDriverMonthScheduleAsync(2026, 9);
+
+            // Assert
+            Assert.True(schedule[new DateOnly(2026, 9, 28)][0].IsOnTimeOff);
+            Assert.True(schedule[new DateOnly(2026, 9, 30)][0].IsOnTimeOff);
+        }
+
+        [Fact]
+        public async Task GetDriverMonthScheduleAsync_WithNoActiveDrivers_ReturnsEmptyListForEveryDay()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+
+            // Act
+            var schedule = await service.GetDriverMonthScheduleAsync(2026, 9);
+
+            // Assert
+            Assert.Equal(30, schedule.Count);
+            Assert.All(schedule.Values, day => Assert.Empty(day));
+        }
     }
 }
