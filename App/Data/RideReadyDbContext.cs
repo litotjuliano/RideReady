@@ -18,6 +18,7 @@ namespace RideReady.Data
         public DbSet<Notification> Notifications => Set<Notification>();
         public DbSet<DriverLocation> DriverLocations => Set<DriverLocation>();
         public DbSet<OperatorCalendarEvent> OperatorCalendarEvents => Set<OperatorCalendarEvent>();
+        public DbSet<DriverTimeOff> DriverTimeOffs => Set<DriverTimeOff>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +47,9 @@ namespace RideReady.Data
             modelBuilder.Entity<DriverAssignment>()
                 .HasIndex(da => new { da.BookingId, da.DriverId })
                 .IsUnique();
+
+            modelBuilder.Entity<DriverTimeOff>()
+                .HasIndex(t => t.DriverId);
 
             // Relationships
             modelBuilder.Entity<Booking>()

@@ -16,5 +16,6 @@ namespace RideReady.Models
 
         public ICollection<DriverAssignment> Assignments { get; set; } = new List<DriverAssignment>();
         public ICollection<DriverLocation> Locations { get; set; } = new List<DriverLocation>();
+        public ICollection<DriverTimeOff> TimeOffs { get; set; } = new List<DriverTimeOff>();
     }
 }
