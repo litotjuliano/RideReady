@@ -352,6 +352,47 @@ namespace RideReady.Tests.Controllers
         }
 
         [Fact]
+        public async Task Calendar_WithMonthView_ReturnsMonthScheduleInViewBag()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context, withTempData: false);
+            await new DriverAssignmentService(context).CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+
+            // Act
+            var result = await controller.Calendar(new DateOnly(2026, 9, 15), "month");
+
+            // Assert
+            Assert.IsType<ViewResult>(result);
+            var monthSchedule = Assert.IsType<Dictionary<DateOnly, List<DriverDayScheduleViewModel>>>(controller.ViewBag.MonthSchedule);
+            Assert.Equal(30, monthSchedule.Count);
+            Assert.Equal("month", controller.ViewBag.CalendarView);
+        }
+
+        [Fact]
+        public async Task Calendar_WithoutViewParam_DefaultsToDayModeUnchanged()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context, withTempData: false);
+
+            // Act
+            var result = await controller.Calendar(new DateOnly(2026, 9, 15));
+
+            // Assert
+            var view = Assert.IsType<ViewResult>(result);
+            Assert.IsType<List<DriverDayScheduleViewModel>>(view.Model);
+            Assert.Equal("day", controller.ViewBag.CalendarView);
+        }
+
+        [Fact]
         public async Task AddTimeOff_WithValidModel_RedirectsToCalendarAndCreatesTimeOff()
         {
             // Arrange

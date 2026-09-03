@@ -78,11 +78,20 @@ namespace RideReady.Controllers
             return View(drivers);
         }
 
-        public async Task<IActionResult> Calendar(DateOnly? date)
+        public async Task<IActionResult> Calendar(DateOnly? date, string? view = null)
         {
             var day = date ?? DateOnly.FromDateTime(DateTime.Today);
-            var schedule = await _driverAvailabilityService.GetDriverDayScheduleAsync(day);
+            var calendarView = view == "month" ? "month" : "day";
             ViewBag.SelectedDate = day;
+            ViewBag.CalendarView = calendarView;
+
+            if (calendarView == "month")
+            {
+                ViewBag.MonthSchedule = await _driverAvailabilityService.GetDriverMonthScheduleAsync(day.Year, day.Month);
+                return View(new List<DriverDayScheduleViewModel>());
+            }
+
+            var schedule = await _driverAvailabilityService.GetDriverDayScheduleAsync(day);
             return View(schedule);
         }
 
