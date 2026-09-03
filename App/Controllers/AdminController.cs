@@ -38,6 +38,14 @@ namespace RideReady.Controllers
             return View(drivers);
         }
 
+        public async Task<IActionResult> Calendar(DateOnly? date)
+        {
+            var day = date ?? DateOnly.FromDateTime(DateTime.Today);
+            var schedule = await _driverAvailabilityService.GetDriverDayScheduleAsync(day);
+            ViewBag.SelectedDate = day;
+            return View(schedule);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignDriver(AssignDriverViewModel model)

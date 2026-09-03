@@ -127,3 +127,82 @@ body {
     background-color: var(--ride-mid-green);
     color: #fff;
 }
+
+.ride-timeline-scale {
+    position: relative;
+    height: 20px;
+    margin-left: 152px;
+    font-size: 0.75rem;
+    color: var(--ride-text-muted);
+}
+
+.ride-timeline-scale span {
+    position: absolute;
+    transform: translateX(-50%);
+}
+
+.ride-timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--ride-border);
+}
+
+.ride-timeline-row:first-of-type {
+    border-top: none;
+}
+
+.ride-timeline-label {
+    width: 140px;
+    flex-shrink: 0;
+}
+
+.ride-timeline-track {
+    position: relative;
+    flex: 1;
+    height: 36px;
+    background: var(--ride-bg-2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ride-timeline-block {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.ride-timeline-block--booked {
+    background: var(--ride-bg-4);
+    color: var(--ride-mid-green);
+    border: 1px solid var(--ride-bright-green);
+}
+
+.ride-timeline-block--booked:hover {
+    background: var(--ride-bright-green);
+    color: #fff;
+}
+
+.ride-timeline-block--timeoff {
+    left: 0;
+    width: 100%;
+    justify-content: center;
+    background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 6px, #d4d4d4 6px, #d4d4d4 12px);
+    color: var(--ride-text-muted);
+}
+
+.ride-timeline-actions {
+    flex-shrink: 0;
+    width: 200px;
+}

@@ -1,0 +1,88 @@
+@model List<RideReady.ViewModels.DriverDayScheduleViewModel>
+@{
+    ViewData["Title"] = "Driver Calendar";
+    ViewData["PageHeading"] = "Driver calendar";
+    var selectedDate = (DateOnly)ViewBag.SelectedDate;
+    var prevDate = selectedDate.AddDays(-1);
+    var nextDate = selectedDate.AddDays(1);
+}
+
+@functions {
+    double ToPercent(TimeOnly t)
+    {
+        var windowStartMinutes = 6 * 60.0;
+        var totalMinutes = 18 * 60.0;
+        var minutes = t.Hour * 60.0 + t.Minute - windowStartMinutes;
+        if (minutes < 0) minutes = 0;
+        if (minutes > totalMinutes) minutes = totalMinutes;
+        return minutes / totalMinutes * 100;
+    }
+}
+
+@await Html.PartialAsync("_AdminHeader")
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="ride-card mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Calendar" asp-route-date="@prevDate.ToString("yyyy-MM-dd")">&larr; Prev</a>
+        <form asp-action="Calendar" method="get" class="d-flex align-items-center gap-2 mb-0">
+            <input type="date" name="date" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" />
+            <button type="submit" class="btn btn-sm btn-outline-secondary">Go</button>
+        </form>
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Calendar" asp-route-date="@nextDate.ToString("yyyy-MM-dd")">Next &rarr;</a>
+    </div>
+    <p class="fw-bold mb-0">@selectedDate.ToString("yyyy-MM-dd")</p>
+</div>
+
+<div class="ride-card">
+    <div class="ride-timeline-scale">
+        @for (var hour = 6; hour <= 24; hour += 3)
+        {
+            var markerTime = hour == 24 ? new TimeOnly(23, 59) : new TimeOnly(hour, 0);
+            <span style="left: @(ToPercent(markerTime).ToString("0.##"))%">@(hour == 24 ? "24:00" : $"{hour:00}:00")</span>
+        }
+    </div>
+
+    @foreach (var driver in Model)
+    {
+        <div class="ride-timeline-row">
+            <div class="ride-timeline-label">
+                <p class="fw-semibold mb-0">@driver.DriverName</p>
+                <p class="text-muted small mb-0">@driver.VehicleType</p>
+            </div>
+            <div class="ride-timeline-track">
+                @if (driver.IsOnTimeOff)
+                {
+                    <div class="ride-timeline-block ride-timeline-block--timeoff" title="@(driver.TimeOffReason ?? "Time off")">
+                        Time off@(string.IsNullOrEmpty(driver.TimeOffReason) ? "" : $": {driver.TimeOffReason}")
+                    </div>
+                }
+                else
+                {
+                    @foreach (var block in driver.Blocks)
+                    {
+                        var left = ToPercent(block.Start);
+                        var right = ToPercent(block.End);
+                        var width = Math.Max(right - left, 1);
+                        <a asp-controller="Admin" asp-action="Index" class="ride-timeline-block ride-timeline-block--booked"
+                           style="left: @(left.ToString("0.##"))%; width: @(width.ToString("0.##"))%;"
+                           title="@block.BookingReference: @block.PickupLocation &rarr; @block.Destination">
+                            @block.Start.ToString("HH:mm")-@block.End.ToString("HH:mm") @block.BookingReference
+                        </a>
+                    }
+                }
+            </div>
+            <div class="ride-timeline-actions">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('timeoff-form-@driver.DriverId').classList.toggle('d-none');">+ Time off</button>
+            </div>
+        </div>
+    }
+</div>

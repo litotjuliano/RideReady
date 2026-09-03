@@ -267,6 +267,46 @@ namespace RideReady.Tests.Controllers
             Assert.NotNull(controller.TempData["ErrorMessage"]);
         }
 
+        [Fact]
+        public async Task Calendar_WithNoDateParam_DefaultsToTodayAndReturnsSchedule()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context, withTempData: false);
+            await new DriverAssignmentService(context).CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+
+            // Act
+            var result = await controller.Calendar(null);
+
+            // Assert
+            var view = Assert.IsType<ViewResult>(result);
+            var schedule = Assert.IsType<List<DriverDayScheduleViewModel>>(view.Model);
+            Assert.Single(schedule);
+            Assert.Equal(DateOnly.FromDateTime(DateTime.Today), controller.ViewBag.SelectedDate);
+        }
+
+        [Fact]
+        public async Task Calendar_WithDateParam_UsesThatDate()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context, withTempData: false);
+            var requestedDate = new DateOnly(2026, 12, 25);
+
+            // Act
+            await controller.Calendar(requestedDate);
+
+            // Assert
+            Assert.Equal(requestedDate, controller.ViewBag.SelectedDate);
+        }
+
         internal class NullTempDataProvider : Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider
         {
             public IDictionary<string, object> LoadTempData(Microsoft.AspNetCore.Http.HttpContext context) => new Dictionary<string, object>();
