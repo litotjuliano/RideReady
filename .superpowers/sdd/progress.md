@@ -9,3 +9,158 @@ Task 3: complete (commits f0a453c..f3708bb, 2 fix rounds)
 ## PHASE 1 COMPLETE
 Foundation tasks 1-3 complete, all tests passing, all code review findings addressed.
 Branch ready for Tasks 4-11 planning.
+
+## PHASE 1 CONTINUED — Tasks 4-11 (branch: phase1-tasks-4-11)
+Task 4: complete (commit dd9463b, spec compliant, code review clean, 0 fix rounds)
+Task 5: fix round 1/1 (API key log leak fixed + verified, malformed-response guard added; commits 686cb1d..85171f7)
+Task 5: complete (commits 686cb1d..85171f7, 1 fix round)
+Task 6: fix round 1/1 (reassignment DbUpdateException bug fixed at root cause, error handling + tests added; commits 880de96..35f79b8; fix subagent hit a rate limit mid-work, orchestrator completed it directly)
+Task 6: complete (commits 880de96..35f79b8, 1 fix round)
+Task 7: fix round 1/1 (missing error handling + terminal-booking gap fixed, tests added; commits 3447947..1207864)
+Task 7: complete (commits 3447947..1207864, 1 fix round)
+Task 8: fix round 1/1 (unguarded notification-status save fixed, 5 missing tests added; commits 37f3a3e..0494b1f)
+Task 8: complete (commits 37f3a3e..0494b1f, 1 fix round)
+Task 9: fix round 1/1 (Calendar-channel dead-letter fix + per-item exception isolation added; commits 632c1f9..91cdd20)
+Task 9: complete (commits 632c1f9..91cdd20, 1 fix round)
+Task 10: fix round 1/1 (Docker build context bug, permissions, CI gate fixed; commits 257186e..e36e096)
+Task 10: complete (commits 257186e..e36e096, 1 fix round)
+Task 11: fix round 1/2 (.env gitignore, curl in runtime image, rollback tag guidance fixed; commits de950bb..cc18e63)
+Task 11: fix round 2/2 (rollback guidance corrected to point at GitHub Releases/git tags; commits cc18e63..4a162ef)
+Task 11: complete (commits de950bb..4a162ef, 2 fix rounds)
+
+## PHASE 1 (TASKS 4-11) COMPLETE
+All 8 tasks (4-11) implemented, spec-reviewed, code-reviewed, and fix rounds resolved.
+
+Final holistic cross-branch review (commit f6cb8ad): found 2 Critical state-machine bugs
+visible only when Task 6 (driver assignment) and Task 7 (driver trip lifecycle) are traced
+together — mid-trip driver reassignment could corrupt an in-progress trip's status/assignment,
+and the admin status dropdown could jump a booking to "Driver_Assigned" without ever creating
+a DriverAssignment row. Both fixed and independently verified (commit dfe5fa4, incl. mutation
+testing to confirm the new guards are load-bearing). 3 Important findings (admin auth using
+plaintext compare instead of the PasswordHasher pattern; no TLS in the Task 11 deploy pipeline;
+deploy.yml not checking new_release_published) surfaced to the user as follow-up recommendations
+rather than fixed now — they involve infra/architecture tradeoffs beyond a quick correctness patch.
+
+Branch phase1-tasks-4-11 ready for merge decision. Final test count: 67/67 passing.
+
+## LIVE TESTING (commit 3c71ddc)
+User asked to actually run the app before deciding merge/PR/discard. Stood up the real stack
+via Docker (run.bat: builds the image, starts Docker Desktop if needed, docker-compose up,
+waits for /health). This is the first time in the project's history any environment had a
+reachable database.
+
+Found and fixed a Critical, previously-undetectable bug: two migrations from before Task 4
+(AddUniqueConstraints, AddLuggageFeeToProductSetting) had no .Designer.cs, so EF Core silently
+skipped them on every MigrateAsync() call, in every environment, always. First real booking
+submission failed with "column p.LuggageFeePerExtra does not exist". Also found the 3 unique
+constraints those migrations were meant to add were never in the C# model either. Fixed by
+adding them properly via Fluent API and squashing all migrations into one fresh,
+tool-verified InitialCreate (safe — no environment has ever had these migrations applied to
+real data).
+
+Re-verified end-to-end against the corrected schema: customer booking (blocked gracefully on
+missing pricing seed data and placeholder Google Maps key — expected, not bugs), admin
+login/dashboard, driver creation/login, and the full assign -> accept -> pick up -> complete
+lifecycle. Both of this branch's earlier critical state-machine fixes (mid-trip reassignment
+block, direct Driver_Assigned jump block) were exercised live via crafted requests and held
+up correctly, including a full audit-trail check in BookingStatusHistory.
+
+## MANUAL FARE FALLBACK (commits 7efc131, d0a7069)
+While clicking through the running app, the user hit "Pricing not configured for Van" (no
+PricingSettings seeded for Van/Bus — only Car had been manually seeded during the earlier live
+test) and then, after that was fixed, "Google Directions API returned status: REQUEST_DENIED"
+(no real Google Maps key configured). User asked: let admin key in the price manually until
+the API key is set up, rather than blocking booking creation entirely.
+
+Design confirmed with user (booking still gets created; admin sees "Price not set" + a form to
+enter it), then implemented: BookingService.CreateBookingAsync now catches any quote-calculation
+failure and creates the booking anyway with a zeroed BookingQuote (preserving PaymentMethod);
+new IBookingService.SetManualFareAsync + AdminController.SetFare + an inline dashboard form for
+bookings without a real estimate. Code-quality reviewed (Ready to merge: Yes, one cheap
+recommendation - log the swallowed exception - implemented immediately after).
+
+Verified live: submitted a real booking with the Maps key still unconfigured, confirmed it
+succeeded (previously would have hard-failed), dashboard showed "Price not set", set a manual
+fare via the new form, confirmed it displayed correctly afterward.
+
+## DRIVER DOUBLE-BOOKING / VEHICLE MISMATCH (commit 1f8e127)
+User created two bookings with identical pickup date/time/route and assigned the same driver
+to both via the dashboard - nothing blocked it, and the driver (registered as "Car") was also
+assigned to two "Van" requests with no indication of mismatch. Confirmed with user: block
+double-booking outright (same pattern as the existing assignment guards); vehicle type
+mismatch is warn-but-allow, not blocked (operators may know a driver has access to a different
+vehicle than what's on file).
+
+AssignDriverAsync now rejects assigning a driver who already has another active assignment at
+the exact same pickup date/time, naming the conflicting booking reference in the error.
+Dashboard now shows a visible warning when the assigned driver's registered vehicle type
+doesn't match the booking's requested type. Verified live against the exact two-booking
+scenario from the user's screenshot: reassignment now correctly rejected, existing mismatch
+now visibly flagged.
+
+Final test count: 77/77 passing. Branch ready for a merge decision, verified by automated
+tests, live use, and two rounds of iterative fixing driven by the user's own hands-on testing.
+
+## DRIVER-VEHICLE-TYPE DROPDOWN FILTER + MISMATCH WARNING REMOVAL (commit a2ee631)
+User asked the driver dropdown on Assign forms to default to only drivers whose registered
+vehicle type matches the booking's requested type (falling back to showing everyone if none
+match) - this makes the earlier mismatch scenario rare by construction rather than relying on
+the admin to notice a warning after the fact. Implemented in Views/Admin/Index.cshtml.
+
+With mismatches now rare, the user then said the standalone mismatch warning "no longer
+applies" and asked to remove it entirely rather than leave it alongside the new filter.
+Removed AssignedDriverVehicleType end-to-end: the warning block in Index.cshtml, the property
+on AdminBookingListItemViewModel, and its population in
+DriverAssignmentService.GetDashboardBookingsAsync. The double-booking guard (unrelated,
+added in the same earlier session) is untouched.
+
+Verified: 77/77 tests passing, Docker image rebuilt and redeployed, confirmed live via curl
+against the two bookings from the original screenshot (RR-9RLI63YS, RR-AQ7HZH8I) - no mismatch
+warning text remains, "Assigned: driver (phone) - status" line still renders correctly.
+
+Noted but out of scope: Quartz NoShowDetectionJob fails to instantiate on startup ("no empty
+constructor") - pre-existing, unrelated to this change, does not block app health or the
+dashboard. Flagged to user as a follow-up, not fixed.
+
+## APP RENAME: RideBooking -> RideReady (commit 4bbf90b)
+User asked to rename the app. Renamed the C# namespace, .csproj/assembly/DLL name
+(RideBooking.csproj -> RideReady.csproj), DbContext class + EF migration snapshot file,
+Docker image tag (ridebooking:local -> rideready:local), package.json name, and every
+user-visible string (page titles, navbar, footer, admin header, appsettings.json sender
+name/email placeholders) - 89 files.
+
+Deliberately left unchanged: the Postgres database name ("ride_booking") and its connection
+strings, to avoid orphaning the already-seeded live dev database without a real data
+migration.
+
+Physical folder rename (RideBooking/RideBooking/RideBooking, requested explicitly) was
+attempted repeatedly but blocked by Windows "Access Denied" - this Claude Code session runs
+inside VSCode's own process tree, and even a full taskkill of every Code.exe process
+triggered an automatic respawn rather than releasing the lock (confirming the session's own
+host process is among them). Forcing it further risked ending the session mid-task, so at
+this point the folder stayed named `RideBooking` on disk; path references that depend on that
+(run.bat's Docker build context, ci.yml's dotnet paths, release.yml's Docker build context)
+were kept pointing at the real folder while still referencing the renamed RideReady.csproj/.dll
+inside it. The droplet deploy path (/opt/rideready) was renamed since it's an independent remote
+path unaffected by the local lock.
+
+Verified: clean rebuild (rm -rf bin obj) succeeds producing RideReady.dll, 79/79 tests pass,
+Docker image rebuilds as rideready:local, and the live app shows "RideReady" everywhere
+user-visible (home page title/navbar/footer, admin login, booking form) with zero leftover
+"RideBooking" text.
+
+## REPO LAYOUT FLATTENED + SUBFOLDER RENAMED TO App (commits 6cb0fe9, 444712a)
+The Windows file lock blocking the physical folder rename above was resolved in a later
+session. Repo layout flattened from `RideBooking/RideBooking` down to a single `RideReady`
+folder (commit 6cb0fe9, via copy+delete with a temporary out-of-repo backup at
+`RideBooking - Copy` since removed), then that folder renamed again to the generic `App`
+(commit 444712a) per explicit user request. Each stage independently re-verified: clean
+build, 79/79 tests, Docker image rebuild, and container health check. run.bat, ci.yml, and
+release.yml were updated in lockstep with each move so their build contexts/dotnet paths
+correctly resolve to the final `App/` location.
+
+Code-reviewed (fb4b469..444712a, all 4 rename/flatten commits): Ready to merge - Yes. No
+stray "RideBooking" text anywhere in the tracked tree, Postgres DB name ("ride_booking") and
+connection strings confirmed unchanged throughout, all path-dependent build/CI/deploy files
+correctly resolve to `App/`. No `.sln` file exists (single-project repo), removing a class of
+solution-file drift risk.

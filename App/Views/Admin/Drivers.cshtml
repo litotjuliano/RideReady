@@ -1,0 +1,80 @@
+@model List<RideReady.Models.Driver>
+@{
+    ViewData["Title"] = "Drivers";
+    ViewData["PageHeading"] = "Drivers";
+}
+
+@await Html.PartialAsync("_AdminHeader")
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="ride-card mb-4">
+    <h2 class="h5 fw-bold mb-3">Add a driver</h2>
+    <form asp-controller="Admin" asp-action="CreateDriver" method="post" class="row g-2 align-items-end">
+        @Html.AntiForgeryToken()
+        <div class="col-md-2"><input name="Name" class="form-control ride-input" placeholder="Driver name" required /></div>
+        <div class="col-md-2"><input name="Phone" class="form-control ride-input" placeholder="Phone" required /></div>
+        <div class="col-md-2">
+            <select name="VehicleType" class="form-select ride-input" required>
+                <option value="Car">Car</option>
+                <option value="Van">Van</option>
+                <option value="Bus">Bus</option>
+            </select>
+        </div>
+        <div class="col-md-2"><input name="VehicleNumber" class="form-control ride-input" placeholder="Plate no." required /></div>
+        <div class="col-md-2"><input name="Pin" class="form-control ride-input" placeholder="4-6 digit PIN" required /></div>
+        <div class="col-md-2"><button type="submit" class="btn ride-btn-primary w-100">Add driver</button></div>
+    </form>
+</div>
+
+<div class="ride-card">
+    <h2 class="h5 fw-bold mb-3">All drivers</h2>
+    @if (!Model.Any())
+    {
+        <p class="text-muted mb-0">No drivers yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Vehicle type</th>
+                        <th>Plate no.</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var driver in Model)
+                    {
+                        <tr>
+                            <td>@driver.Name</td>
+                            <td>@driver.Phone</td>
+                            <td>@driver.VehicleType</td>
+                            <td>@driver.VehicleNumber</td>
+                            <td>
+                                @if (driver.IsActive)
+                                {
+                                    <span class="ride-pill">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Inactive</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

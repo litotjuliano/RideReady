@@ -13,7 +13,7 @@
 This is a **standalone vehicle booking platform** for managing car, van, and bus bookings. The system enables customers to book rides through a web portal, allows admins/operators to manage bookings and assign drivers, and enables drivers to accept/reject assignments via a dedicated portal.
 
 **Key Features:**
-- Customer booking form with real-time pricing
+- Customer booking form with admin-only fare estimation
 - Multi-stage admin dashboard for booking & driver management
 - Driver acceptance/rejection workflow
 - Multi-channel notifications (Email, WhatsApp, Google Calendar, SMS)
@@ -391,9 +391,9 @@ CREATE TABLE operator_calendar_events (
 |-------|------|-----------|----------|
 | Special Notes | Textarea | Max 500 chars | No |
 
-**Step 5: Pricing Review**
+**Step 5: Review & Confirm**
 
-- Display calculated quote with breakdown
+- Review entered trip details (no fare/price shown — pricing is admin-only, see Section 6)
 - Show payment method options (Pay at Pickup, Bank Transfer)
 - Accept terms & conditions checkbox
 - Confirm Booking button
@@ -417,6 +417,8 @@ CREATE TABLE operator_calendar_events (
 ---
 
 ## 6. Pricing System
+
+**Visibility:** Admin-only. The system calculates and stores a fare estimate for every booking, but this is never displayed to the customer during or after booking — only in the Admin Dashboard's booking details (Section 3.2), for the operator's reference when assigning a driver or reconciling payment.
 
 ### 6.1 Pricing Calculation Logic
 
@@ -531,10 +533,14 @@ TOTAL ESTIMATED FARE      RM 280.37
 
 ### 8.2 Driver Location Tracking
 
+**Approach:** Browser-based via the Driver Portal — no dedicated GPS hardware or native app required. The Driver Portal web page uses the phone browser's Geolocation API (`navigator.geolocation`) to read the driver's GPS and post it to the server while the portal page is open.
+
 - Driver GPS coordinates stored every 30 seconds
 - Real-time location broadcast to admin dashboard via SignalR
 - ETA calculation to destination
 - Geofencing alerts (future): Driver near pickup/dropoff
+
+**Known limitation:** browser geolocation only reports reliably while the Driver Portal page is open and in the foreground. Mobile browsers throttle or suspend location updates once the driver backgrounds the tab or locks their phone, so tracking is best-effort/foreground-only in this phase — not continuous background tracking. A native mobile app or dedicated in-vehicle tracker would be needed for reliable background tracking, and is not in scope here.
 
 ---
 
@@ -757,7 +763,7 @@ Complete logging of:
 
 ## 16. Success Criteria
 
-✅ Customers can book rides with pricing quote  
+✅ Customers can book rides; admins can view the fare estimate for each booking  
 ✅ Operators receive notifications on multiple channels  
 ✅ Drivers accept/reject assignments within 5 minutes  
 ✅ Booking status tracked from creation to completion  
@@ -828,6 +834,44 @@ Complete logging of:
 
 ---
 
-**Document Version:** 1.0.0  
+---
+
+## 20. UI/Visual Design Reference
+
+A working prototype ("RideReady") was reviewed for visual style only — its functional flows (no pricing shown, WhatsApp-only driver assignment, ad-hoc drivers, no accounts) do **not** apply; the system continues to follow Sections 3-11 above. Razor views for the Customer Booking Portal, Admin Dashboard, and Driver Portal should be styled with Bootstrap 5 + custom CSS to approximate this look, not by adopting Tailwind.
+
+### 20.1 Color Palette
+
+| Role | Hex | Usage |
+|---|---|---|
+| Primary dark green | `#173f2b` | Headers, primary buttons |
+| Accent green (mid) | `#20653d` | Links, hover states |
+| Accent green (bright) | `#2b7a4b` | Badges, secondary accents |
+| Accent green (vivid) | `#1f9d55` | CTA highlights |
+| WhatsApp green | `#25D366` | WhatsApp-related actions only |
+| Background tint 1 | `#f4f7f3` | Page background (customer-facing) |
+| Background tint 2 | `#eef3ef` | Page background (admin/driver) |
+| Background tint 3 | `#e8f4eb` | Badge/card fill |
+| Background tint 4 | `#dff3e5` | Pill/tag fill |
+| Border | `#dce5de` / `#d7e2da` / `#cbdacf` | Card and input borders |
+| Text primary | `#132219` | Headings, body text |
+| Text muted | `#5b6960` / `#68756d` | Secondary/helper text |
+
+### 20.2 Layout Patterns
+
+- Cards use large border radii (16-28px) with soft box-shadows, not sharp edges or heavy borders
+- Buttons and status badges are pill-shaped (`border-radius: 999px`), bold, uppercase for badges
+- Admin dashboard booking queue renders as a vertical list of cards, not a dense data-grid table
+- Customer booking page uses a two-column layout: marketing copy/steps on the left, the form in a sticky card on the right (collapses to single column on mobile)
+- Header bars are simple: a colored square logo mark + brand wordmark, with nav links right-aligned
+- Status indicators are small, uppercase, bold pill badges with a tinted background matching the status
+
+### 20.3 Typography
+
+The prototype uses Geist/Geist Mono. Since the project uses Bootstrap 5 rather than Tailwind, substitute a comparable clean sans-serif (e.g. Inter via Google Fonts) for headings and body text, keeping the same visual weight and letter-spacing feel.
+
+---
+
+**Document Version:** 1.3.0  
 **Last Updated:** 2026-09-01  
 **Next Review:** After Phase 1 completion
