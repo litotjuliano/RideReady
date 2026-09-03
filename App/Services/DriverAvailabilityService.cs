@@ -62,9 +62,36 @@ namespace RideReady.Services
             }).ToList();
         }
 
-        public Task<(bool IsAvailable, string? ConflictReason)> IsDriverAvailableAsync(int driverId, DateOnly date, TimeOnly time, int? excludeBookingId = null)
+        public async Task<(bool IsAvailable, string? ConflictReason)> IsDriverAvailableAsync(int driverId, DateOnly date, TimeOnly time, int? excludeBookingId = null)
         {
-            throw new NotImplementedException();
+            var onTimeOff = await _context.DriverTimeOffs
+                .AnyAsync(t => t.DriverId == driverId && t.StartDate <= date && t.EndDate >= date);
+            if (onTimeOff)
+            {
+                return (false, "on time off");
+            }
+
+            var assignments = await _context.DriverAssignments
+                .Include(a => a.Booking)
+                    .ThenInclude(b => b!.Quote)
+                .Where(a => a.DriverId == driverId
+                    && a.AssignmentStatus != "Rejected"
+                    && a.Booking != null
+                    && a.Booking.PickupDate == date
+                    && !InactiveBookingStatuses.Contains(a.Booking.Status)
+                    && (excludeBookingId == null || a.BookingId != excludeBookingId))
+                .ToListAsync();
+
+            foreach (var assignment in assignments)
+            {
+                var block = ToBlock(assignment.Booking!);
+                if (time >= block.Start && time < block.End)
+                {
+                    return (false, $"busy: {block.BookingReference} {block.Start:HH:mm}-{block.End:HH:mm}");
+                }
+            }
+
+            return (true, null);
         }
 
         public Task AddTimeOffAsync(int driverId, DateOnly startDate, DateOnly endDate, string? reason)
@@ -77,7 +104,10 @@ namespace RideReady.Services
             var durationHours = booking.Quote != null && booking.Quote.DurationHours > 0
                 ? booking.Quote.DurationHours
                 : FallbackBlockDurationHours;
-            var end = booking.PickupTime.Add(TimeSpan.FromHours((double)durationHours));
+            var duration = TimeSpan.FromHours((double)durationHours);
+            var end = booking.PickupTime.ToTimeSpan() + duration >= TimeSpan.FromDays(1)
+                ? new TimeOnly(23, 59)
+                : booking.PickupTime.Add(duration);
 
             return new DriverScheduleBlockViewModel
             {

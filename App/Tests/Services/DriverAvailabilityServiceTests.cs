@@ -183,5 +183,101 @@ namespace RideReady.Tests.Services
             // Assert
             Assert.Empty(schedule);
         }
+
+        [Fact]
+        public async Task GetDriverDayScheduleAsync_ForLateNightAssignmentWithoutQuoteDuration_ClampsBlockEndAtEndOfDay()
+        {
+            // Arrange — 23:00 pickup + 2h fallback would wrap past midnight to 01:00 if not clamped
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var date = new DateOnly(2026, 9, 10);
+            var booking = await SeedBookingAsync(context, "RR-LATENIGHT", date, new TimeOnly(23, 0));
+            await AssignAsync(context, booking, driver);
+
+            // Act
+            var schedule = await service.GetDriverDayScheduleAsync(date);
+
+            // Assert
+            var block = Assert.Single(schedule[0].Blocks);
+            Assert.Equal(new TimeOnly(23, 59), block.End);
+
+            var (isAvailable, reason) = await service.IsDriverAvailableAsync(driver.Id, date, new TimeOnly(23, 30));
+            Assert.False(isAvailable);
+            Assert.Contains("RR-LATENIGHT", reason);
+        }
+
+        [Fact]
+        public async Task IsDriverAvailableAsync_WhenDriverHasNoBookingsThatDay_ReturnsAvailable()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+
+            // Act
+            var (isAvailable, reason) = await service.IsDriverAvailableAsync(driver.Id, new DateOnly(2026, 9, 10), new TimeOnly(9, 0));
+
+            // Assert
+            Assert.True(isAvailable);
+            Assert.Null(reason);
+        }
+
+        [Fact]
+        public async Task IsDriverAvailableAsync_WhenTimeFallsInsideAnExistingBlock_ReturnsBusyWithBookingReference()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var date = new DateOnly(2026, 9, 10);
+            var booking = await SeedBookingAsync(context, "RR-BUSY0001", date, new TimeOnly(9, 0));
+            await AssignAsync(context, booking, driver);
+
+            // Act — 10:00 falls inside the default 09:00-11:00 fallback block
+            var (isAvailable, reason) = await service.IsDriverAvailableAsync(driver.Id, date, new TimeOnly(10, 0));
+
+            // Assert
+            Assert.False(isAvailable);
+            Assert.Contains("RR-BUSY0001", reason);
+        }
+
+        [Fact]
+        public async Task IsDriverAvailableAsync_WhenDriverOnTimeOff_ReturnsBusyWithTimeOffReason()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var date = new DateOnly(2026, 9, 10);
+            context.DriverTimeOffs.Add(new DriverTimeOff { DriverId = driver.Id, StartDate = date, EndDate = date });
+            await context.SaveChangesAsync();
+
+            // Act
+            var (isAvailable, reason) = await service.IsDriverAvailableAsync(driver.Id, date, new TimeOnly(9, 0));
+
+            // Assert
+            Assert.False(isAvailable);
+            Assert.Equal("on time off", reason);
+        }
+
+        [Fact]
+        public async Task IsDriverAvailableAsync_WhenExcludingTheConflictingBookingItself_ReturnsAvailable()
+        {
+            // Arrange — reassigning the same booking to the same driver shouldn't flag it as busy with itself
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var date = new DateOnly(2026, 9, 10);
+            var booking = await SeedBookingAsync(context, "RR-SELF0001", date, new TimeOnly(9, 0));
+            await AssignAsync(context, booking, driver);
+
+            // Act
+            var (isAvailable, reason) = await service.IsDriverAvailableAsync(driver.Id, date, new TimeOnly(9, 0), excludeBookingId: booking.Id);
+
+            // Assert
+            Assert.True(isAvailable);
+            Assert.Null(reason);
+        }
     }
 }
