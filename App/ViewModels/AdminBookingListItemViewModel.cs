@@ -19,5 +19,10 @@ namespace RideReady.ViewModels
         public string? AssignedDriverName { get; set; }
         public string? AssignedDriverPhone { get; set; }
         public string? AssignmentStatus { get; set; }
+
+        // Populated by AdminController.Index — key is a driver id, value is why that
+        // driver isn't free at this booking's pickup time (e.g. "busy: RR-... 09:00-11:00"
+        // or "on time off"). Absence from the dictionary means no known conflict.
+        public Dictionary<int, string> DriverConflicts { get; set; } = new();
     }
 }

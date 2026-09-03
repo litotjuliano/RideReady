@@ -65,6 +65,50 @@ namespace RideReady.Tests.Controllers
         }
 
         [Fact]
+        public async Task Index_AnnotatesDriverConflictsForBusyDrivers()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            var assignmentService = new DriverAssignmentService(context);
+            await assignmentService.AssignDriverAsync(booking.Id, driver.Id);
+
+            // A second booking at the same pickup time as `booking`, for the same driver
+            var customer = new Models.Customer { Name = "Second Customer", Phone = "0129998888", Email = "second@email.com" };
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+            var secondBooking = new Models.Booking
+            {
+                BookingReference = "RR-SECOND01",
+                CustomerId = customer.Id,
+                PickupLocation = "Mid Valley",
+                Destination = "KLIA Terminal 1",
+                PickupDate = booking.PickupDate,
+                PickupTime = booking.PickupTime,
+                Passengers = 1,
+                Bags = 0,
+                RequestedVehicleType = "Car",
+                Status = "New"
+            };
+            context.Bookings.Add(secondBooking);
+            await context.SaveChangesAsync();
+
+            var controller = BuildController(context, withTempData: false);
+
+            // Act
+            var result = await controller.Index();
+
+            // Assert
+            var view = Assert.IsType<ViewResult>(result);
+            var bookings = Assert.IsType<List<AdminBookingListItemViewModel>>(view.Model);
+            var secondBookingItem = bookings.Single(b => b.BookingReference == "RR-SECOND01");
+            Assert.True(secondBookingItem.DriverConflicts.ContainsKey(driver.Id));
+            Assert.Contains(booking.BookingReference, secondBookingItem.DriverConflicts[driver.Id]);
+
+            var firstBookingItem = bookings.Single(b => b.BookingId == booking.Id);
+            Assert.False(firstBookingItem.DriverConflicts.ContainsKey(driver.Id));
+        }
+
+        [Fact]
         public async Task CreateDriver_WithValidModel_RedirectsToDrivers()
         {
             // Arrange

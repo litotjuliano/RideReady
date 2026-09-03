@@ -95,13 +95,20 @@
                     <select name="DriverId" class="form-select ride-input">
                         @foreach (var driver in dropdownDrivers)
                         {
+                            var label = $"{driver.Name} ({driver.VehicleType})";
+                            var hasConflict = booking.DriverConflicts.TryGetValue(driver.Id, out var conflictReason);
+                            if (hasConflict)
+                            {
+                                label += $" - {conflictReason}";
+                            }
+                            var optionClass = hasConflict ? "text-muted" : "";
                             @if (driver.Id == booking.AssignedDriverId)
                             {
-                                <option value="@driver.Id" selected>@driver.Name (@driver.VehicleType)</option>
+                                <option value="@driver.Id" selected class="@optionClass">@label</option>
                             }
                             else
                             {
-                                <option value="@driver.Id">@driver.Name (@driver.VehicleType)</option>
+                                <option value="@driver.Id" class="@optionClass">@label</option>
                             }
                         }
                     </select>

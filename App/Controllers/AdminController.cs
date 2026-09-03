@@ -28,7 +28,23 @@ namespace RideReady.Controllers
         public async Task<IActionResult> Index()
         {
             var bookings = await _driverAssignmentService.GetDashboardBookingsAsync();
-            ViewBag.ActiveDrivers = await _driverAssignmentService.GetActiveDriversAsync();
+            var activeDrivers = await _driverAssignmentService.GetActiveDriversAsync();
+            ViewBag.ActiveDrivers = activeDrivers;
+
+            foreach (var booking in bookings)
+            {
+                foreach (var driver in activeDrivers)
+                {
+                    var (isAvailable, reason) = await _driverAvailabilityService.IsDriverAvailableAsync(
+                        driver.Id, booking.PickupDate, booking.PickupTime, booking.BookingId);
+
+                    if (!isAvailable && reason != null)
+                    {
+                        booking.DriverConflicts[driver.Id] = reason;
+                    }
+                }
+            }
+
             return View(bookings);
         }
 
