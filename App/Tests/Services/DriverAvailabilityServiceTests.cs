@@ -279,5 +279,82 @@ namespace RideReady.Tests.Services
             Assert.True(isAvailable);
             Assert.Null(reason);
         }
+
+        [Fact]
+        public async Task AddTimeOffAsync_WithValidRange_CreatesTimeOffRow()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+
+            // Act
+            await service.AddTimeOffAsync(driver.Id, new DateOnly(2026, 9, 20), new DateOnly(2026, 9, 22), "Annual leave");
+
+            // Assert
+            var timeOff = await context.DriverTimeOffs.SingleAsync();
+            Assert.Equal(driver.Id, timeOff.DriverId);
+            Assert.Equal(new DateOnly(2026, 9, 20), timeOff.StartDate);
+            Assert.Equal(new DateOnly(2026, 9, 22), timeOff.EndDate);
+            Assert.Equal("Annual leave", timeOff.Reason);
+        }
+
+        [Fact]
+        public async Task AddTimeOffAsync_WithEndDateBeforeStartDate_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.AddTimeOffAsync(driver.Id, new DateOnly(2026, 9, 22), new DateOnly(2026, 9, 20), null));
+        }
+
+        [Fact]
+        public async Task AddTimeOffAsync_WithNonexistentDriver_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.AddTimeOffAsync(9999, new DateOnly(2026, 9, 20), new DateOnly(2026, 9, 22), null));
+        }
+
+        [Fact]
+        public async Task AddTimeOffAsync_WithConflictingActiveAssignment_ThrowsExceptionNamingTheBooking()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var booking = await SeedBookingAsync(context, "RR-TIMEOFF1", new DateOnly(2026, 9, 21), new TimeOnly(9, 0));
+            await AssignAsync(context, booking, driver);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.AddTimeOffAsync(driver.Id, new DateOnly(2026, 9, 20), new DateOnly(2026, 9, 22), null));
+            Assert.Contains("RR-TIMEOFF1", ex.Message);
+        }
+
+        [Fact]
+        public async Task AddTimeOffAsync_IgnoresCancelledBookingsWhenCheckingConflicts()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new DriverAvailabilityService(context);
+            var driver = await SeedDriverAsync(context);
+            var booking = await SeedBookingAsync(context, "RR-CANCELLED2", new DateOnly(2026, 9, 21), new TimeOnly(9, 0), status: "Cancelled");
+            await AssignAsync(context, booking, driver);
+
+            // Act
+            await service.AddTimeOffAsync(driver.Id, new DateOnly(2026, 9, 20), new DateOnly(2026, 9, 22), null);
+
+            // Assert
+            Assert.Equal(1, await context.DriverTimeOffs.CountAsync());
+        }
     }
 }

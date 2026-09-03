@@ -94,9 +94,45 @@ namespace RideReady.Services
             return (true, null);
         }
 
-        public Task AddTimeOffAsync(int driverId, DateOnly startDate, DateOnly endDate, string? reason)
+        public async Task AddTimeOffAsync(int driverId, DateOnly startDate, DateOnly endDate, string? reason)
         {
-            throw new NotImplementedException();
+            if (endDate < startDate)
+            {
+                throw new InvalidOperationException("End date must be on or after the start date");
+            }
+
+            var driverExists = await _context.Drivers.AnyAsync(d => d.Id == driverId);
+            if (!driverExists)
+            {
+                throw new InvalidOperationException($"Driver {driverId} not found");
+            }
+
+            var conflict = await _context.DriverAssignments
+                .Include(a => a.Booking)
+                .Where(a => a.DriverId == driverId
+                    && a.AssignmentStatus != "Rejected"
+                    && a.Booking != null
+                    && !InactiveBookingStatuses.Contains(a.Booking.Status)
+                    && a.Booking.PickupDate >= startDate
+                    && a.Booking.PickupDate <= endDate)
+                .Select(a => a.Booking!.BookingReference)
+                .FirstOrDefaultAsync();
+
+            if (conflict != null)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot mark time off — driver has an active assignment ({conflict}) during that period");
+            }
+
+            _context.DriverTimeOffs.Add(new DriverTimeOff
+            {
+                DriverId = driverId,
+                StartDate = startDate,
+                EndDate = endDate,
+                Reason = reason
+            });
+
+            await _context.SaveChangesAsync();
         }
 
         private static DriverScheduleBlockViewModel ToBlock(Booking booking)
