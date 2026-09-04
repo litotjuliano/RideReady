@@ -33,7 +33,13 @@ namespace RideReady.Services
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _settings.AccessToken);
 
             var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException(
+                    $"WhatsApp API request failed ({(int)response.StatusCode} {response.StatusCode}): {body}");
+            }
         }
 
         internal static string NormalizePhone(string phone)
