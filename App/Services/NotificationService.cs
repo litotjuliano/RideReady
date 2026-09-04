@@ -12,19 +12,22 @@ namespace RideReady.Services
         private readonly IWhatsAppSender _whatsAppSender;
         private readonly ICalendarSyncService _calendarSyncService;
         private readonly EmailSettings _emailSettings;
+        private readonly WhatsAppSettings _whatsAppSettings;
 
         public NotificationService(
             RideReadyDbContext context,
             IEmailSender emailSender,
             IWhatsAppSender whatsAppSender,
             ICalendarSyncService calendarSyncService,
-            IOptions<EmailSettings> emailSettings)
+            IOptions<EmailSettings> emailSettings,
+            IOptions<WhatsAppSettings> whatsAppSettings)
         {
             _context = context;
             _emailSender = emailSender;
             _whatsAppSender = whatsAppSender;
             _calendarSyncService = calendarSyncService;
             _emailSettings = emailSettings.Value;
+            _whatsAppSettings = whatsAppSettings.Value;
         }
 
         public async Task SendBookingCreatedNotificationAsync(int bookingId)
@@ -42,6 +45,10 @@ namespace RideReady.Services
             await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", "BookingCreated",
                 "New booking received", operatorMessage,
                 () => _emailSender.SendAsync(_emailSettings.OperatorEmail, "New booking received", operatorMessage));
+
+            await SendAndLogAsync(bookingId, "Operator", null, _whatsAppSettings.OperatorPhone, "WhatsApp", "BookingCreated",
+                null, operatorMessage,
+                () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
 
             await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Calendar", "BookingCreated",
                 null, "Calendar event created",

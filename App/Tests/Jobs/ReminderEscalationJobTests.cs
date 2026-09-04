@@ -45,7 +45,8 @@ namespace RideReady.Tests.Jobs
         private INotificationService BuildNotificationService(RideReadyDbContext context) =>
             new NotificationService(context, new RideReady.Tests.Services.FakeEmailSender(), new RideReady.Tests.Services.FakeWhatsAppSender(),
                 new RideReady.Tests.Services.FakeCalendarSyncService(),
-                Options.Create(new EmailSettings { SenderEmail = "noreply@rideready.my", SenderName = "RideReady", OperatorEmail = "operator@rideready.my" }));
+                Options.Create(new EmailSettings { SenderEmail = "noreply@rideready.my", SenderName = "RideReady", OperatorEmail = "operator@rideready.my" }),
+                Options.Create(new WhatsAppSettings { ApiUrl = "https://graph.facebook.com/v18.0", AccessToken = "test-token", PhoneNumberId = "1234567890", OperatorPhone = "0192462592" }));
 
         // Decorates a real INotificationService but throws for one specific booking, simulating
         // a downstream failure (e.g. a malformed record) that the job's per-item try/catch must

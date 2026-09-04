@@ -86,6 +86,14 @@ namespace RideReady.Tests.Services
             OperatorEmail = "operator@rideready.my"
         });
 
+        private static IOptions<WhatsAppSettings> WhatsAppOptions() => Options.Create(new WhatsAppSettings
+        {
+            ApiUrl = "https://graph.facebook.com/v18.0",
+            AccessToken = "test-token",
+            PhoneNumberId = "1234567890",
+            OperatorPhone = "0192462592"
+        });
+
         [Fact]
         public async Task SendBookingCreatedNotificationAsync_SendsEmailToCustomerAndOperatorAndSyncsCalendar()
         {
@@ -95,7 +103,7 @@ namespace RideReady.Tests.Services
             var emailSender = new FakeEmailSender();
             var whatsAppSender = new FakeWhatsAppSender();
             var calendarSync = new FakeCalendarSyncService();
-            var service = new NotificationService(context, emailSender, whatsAppSender, calendarSync, Settings());
+            var service = new NotificationService(context, emailSender, whatsAppSender, calendarSync, Settings(), WhatsAppOptions());
 
             // Act
             await service.SendBookingCreatedNotificationAsync(booking.Id);
@@ -104,9 +112,11 @@ namespace RideReady.Tests.Services
             Assert.Equal(2, emailSender.Sent.Count);
             Assert.Contains(emailSender.Sent, s => s.To == "sim@email.com");
             Assert.Contains(emailSender.Sent, s => s.To == "operator@rideready.my");
+            Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0192462592", whatsAppSender.Sent[0].To);
             Assert.Equal(1, calendarSync.CallCount);
             var notifications = await context.Notifications.Where(n => n.BookingId == booking.Id).ToListAsync();
-            Assert.Equal(3, notifications.Count);
+            Assert.Equal(4, notifications.Count);
             Assert.All(notifications, n => Assert.Equal("Sent", n.DeliveryStatus));
         }
 
@@ -119,7 +129,7 @@ namespace RideReady.Tests.Services
             var emailSender = new FakeEmailSender { ShouldThrow = true };
             var whatsAppSender = new FakeWhatsAppSender();
             var calendarSync = new FakeCalendarSyncService();
-            var service = new NotificationService(context, emailSender, whatsAppSender, calendarSync, Settings());
+            var service = new NotificationService(context, emailSender, whatsAppSender, calendarSync, Settings(), WhatsAppOptions());
 
             // Act
             await service.SendBookingCreatedNotificationAsync(booking.Id);
@@ -143,7 +153,7 @@ namespace RideReady.Tests.Services
             await context.SaveChangesAsync();
             var emailSender = new FakeEmailSender();
             var whatsAppSender = new FakeWhatsAppSender();
-            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
 
             // Act
             await service.SendDriverAssignedNotificationAsync(booking.Id, driver.Id);
@@ -172,7 +182,7 @@ namespace RideReady.Tests.Services
             await context.SaveChangesAsync();
             var emailSender = new FakeEmailSender();
             var whatsAppSender = new FakeWhatsAppSender();
-            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
 
             // Act
             await service.SendBookingCancelledNotificationAsync(booking.Id);
@@ -194,7 +204,7 @@ namespace RideReady.Tests.Services
             var booking = await SeedBookingAsync(context);
             var emailSender = new FakeEmailSender();
             var whatsAppSender = new FakeWhatsAppSender();
-            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
 
             // Act
             await service.SendBookingCancelledNotificationAsync(booking.Id);
@@ -223,7 +233,7 @@ namespace RideReady.Tests.Services
             await context.SaveChangesAsync();
             var emailSender = new FakeEmailSender();
             var whatsAppSender = new FakeWhatsAppSender();
-            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
 
             // Act
             await service.SendBookingCancelledNotificationAsync(booking.Id);
@@ -241,7 +251,7 @@ namespace RideReady.Tests.Services
             var booking = await SeedBookingAsync(context);
             var emailSender = new FakeEmailSender();
             var whatsAppSender = new FakeWhatsAppSender();
-            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
 
             // Act
             await service.SendBookingCompletedNotificationAsync(booking.Id);
@@ -259,7 +269,7 @@ namespace RideReady.Tests.Services
             var booking = await SeedBookingAsync(context);
             var emailSender = new FakeEmailSender();
             var whatsAppSender = new FakeWhatsAppSender();
-            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings());
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
 
             // Act
             await service.SendDriverAcceptedNotificationAsync(booking.Id);

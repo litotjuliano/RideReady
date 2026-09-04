@@ -32,6 +32,13 @@ namespace RideReady.Tests.Controllers
                     SenderEmail = "noreply@rideready.my",
                     SenderName = "RideReady",
                     OperatorEmail = "operator@rideready.my"
+                }),
+                Microsoft.Extensions.Options.Options.Create(new WhatsAppSettings
+                {
+                    ApiUrl = "https://graph.facebook.com/v18.0",
+                    AccessToken = "test-token",
+                    PhoneNumberId = "1234567890",
+                    OperatorPhone = "0192462592"
                 }));
 
         private static DriverController WithAuthenticatedDriver(RideReadyDbContext context, IDriverPortalService service, int driverId)

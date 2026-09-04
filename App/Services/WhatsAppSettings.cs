@@ -5,5 +5,6 @@ namespace RideReady.Services
         public string ApiUrl { get; set; } = string.Empty;
         public string AccessToken { get; set; } = string.Empty;
         public string PhoneNumberId { get; set; } = string.Empty;
+        public string OperatorPhone { get; set; } = string.Empty;
     }
 }
