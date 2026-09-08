@@ -204,6 +204,7 @@ namespace RideReady.Controllers
             try
             {
                 await _bookingService.SetManualFareAsync(model.BookingId, model.Fare);
+                await _notificationService.SendPriceSetNotificationAsync(model.BookingId);
                 TempData["SuccessMessage"] = "Fare saved.";
             }
             catch (InvalidOperationException ex)

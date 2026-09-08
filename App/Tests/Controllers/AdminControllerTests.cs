@@ -18,11 +18,11 @@ namespace RideReady.Tests.Controllers
             return new RideReadyDbContext(options);
         }
 
-        private static INotificationService BuildNotificationService(RideReadyDbContext context) =>
+        private static INotificationService BuildNotificationService(RideReadyDbContext context, RideReady.Tests.Services.FakeWhatsAppSender? whatsAppSender = null) =>
             new NotificationService(
                 context,
                 new RideReady.Tests.Services.FakeEmailSender(),
-                new RideReady.Tests.Services.FakeWhatsAppSender(),
+                whatsAppSender ?? new RideReady.Tests.Services.FakeWhatsAppSender(),
                 new RideReady.Tests.Services.FakeCalendarSyncService(),
                 Microsoft.Extensions.Options.Options.Create(new EmailSettings
                 {
@@ -38,11 +38,11 @@ namespace RideReady.Tests.Controllers
                     OperatorPhone = "0192462592"
                 }));
 
-        private static AdminController BuildController(RideReadyDbContext context, bool withTempData = true)
+        private static AdminController BuildController(RideReadyDbContext context, bool withTempData = true, RideReady.Tests.Services.FakeWhatsAppSender? whatsAppSender = null)
         {
             var controller = new AdminController(
                 new DriverAssignmentService(context),
-                BuildNotificationService(context),
+                BuildNotificationService(context, whatsAppSender),
                 new BookingService(context),
                 new DriverAvailabilityService(context));
 
@@ -301,6 +301,30 @@ namespace RideReady.Tests.Controllers
             Assert.Equal(123.45m, quote.TotalEstimatedFare);
             Assert.Equal(123.45m, quote.ActualFare);
             Assert.Equal("Fare saved.", controller.TempData["SuccessMessage"]);
+        }
+
+        [Fact]
+        public async Task SetFare_WithValidFare_SendsPriceNotificationToCustomer()
+        {
+            // Arrange
+            var (context, booking, _) = await SeedBookingAndDriverAsync();
+            context.BookingQuotes.Add(new Models.BookingQuote
+            {
+                BookingId = booking.Id,
+                TotalEstimatedFare = 0,
+                PaymentMethod = "Pay_at_Pickup"
+            });
+            await context.SaveChangesAsync();
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = BuildController(context, whatsAppSender: whatsAppSender);
+
+            // Act
+            await controller.SetFare(new SetFareViewModel { BookingId = booking.Id, Fare = 123.45m });
+
+            // Assert
+            Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0125183838", whatsAppSender.Sent[0].To);
+            Assert.Contains("RM123.45", whatsAppSender.Sent[0].Message);
         }
 
         [Fact]
