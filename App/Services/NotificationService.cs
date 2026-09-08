@@ -127,6 +127,15 @@ namespace RideReady.Services
             await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", "DriverAccepted",
                 "Driver confirmed", message,
                 () => _emailSender.SendAsync(booking.Customer.Email, "Driver confirmed", message));
+
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Phone, "WhatsApp", "DriverAccepted",
+                null, message,
+                () => _whatsAppSender.SendAsync(booking.Customer.Phone, message));
+
+            var operatorMessage = $"Driver accepted booking {booking.BookingReference}.";
+            await SendAndLogAsync(bookingId, "Operator", null, _whatsAppSettings.OperatorPhone, "WhatsApp", "DriverAccepted",
+                null, operatorMessage,
+                () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
         }
 
         public async Task SendBookingCompletedNotificationAsync(int bookingId)
