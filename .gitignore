@@ -5,3 +5,7 @@
 
 # Local brainstorming-session scratch (mockups/state for the visual companion tool).
 .superpowers/
+
+# Local git worktrees used for isolated implementation work.
+.worktrees/
+.claude/worktrees/
