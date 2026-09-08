@@ -244,7 +244,7 @@ namespace RideReady.Tests.Services
         }
 
         [Fact]
-        public async Task SendBookingCompletedNotificationAsync_SendsCustomerEmail()
+        public async Task SendBookingCompletedNotificationAsync_SendsCustomerEmailAndWhatsAppAndOperatorWhatsApp()
         {
             // Arrange
             var context = GetInMemoryDbContext();
@@ -259,6 +259,9 @@ namespace RideReady.Tests.Services
             // Assert
             Assert.Single(emailSender.Sent);
             Assert.Equal("sim@email.com", emailSender.Sent[0].To);
+            Assert.Equal(2, whatsAppSender.Sent.Count);
+            Assert.Contains(whatsAppSender.Sent, s => s.To == "0125183838");
+            Assert.Contains(whatsAppSender.Sent, s => s.To == "0192462592");
         }
 
         [Fact]
