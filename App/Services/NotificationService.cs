@@ -88,6 +88,35 @@ namespace RideReady.Services
                 () => _whatsAppSender.SendAsync(booking.Customer.Phone, message));
         }
 
+        public async Task SendTripStatusUpdateNotificationAsync(int bookingId, string newStatus)
+        {
+            var booking = await _context.Bookings.Include(b => b.Customer)
+                .FirstOrDefaultAsync(b => b.Id == bookingId)
+                ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            var (customerMessage, operatorMessage) = newStatus switch
+            {
+                "Picked_Up" => (
+                    $"Your RideReady driver has picked you up for booking {booking.BookingReference}. Enjoy your ride!",
+                    $"Booking {booking.BookingReference}: driver has picked up the customer."),
+                "In_Transit" => (
+                    $"You're on your way! Booking {booking.BookingReference} is now in transit.",
+                    $"Booking {booking.BookingReference} is now in transit."),
+                "Dropped_Off" => (
+                    $"You've arrived! Thanks for riding with RideReady (booking {booking.BookingReference}).",
+                    $"Booking {booking.BookingReference}: customer dropped off."),
+                _ => throw new ArgumentOutOfRangeException(nameof(newStatus), newStatus, "Not a supported trip status update")
+            };
+
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Phone, "WhatsApp", $"TripStatus_{newStatus}",
+                null, customerMessage,
+                () => _whatsAppSender.SendAsync(booking.Customer.Phone, customerMessage));
+
+            await SendAndLogAsync(bookingId, "Operator", null, _whatsAppSettings.OperatorPhone, "WhatsApp", $"TripStatus_{newStatus}",
+                null, operatorMessage,
+                () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
+        }
+
         public async Task SendDriverAcceptedNotificationAsync(int bookingId)
         {
             var booking = await _context.Bookings.Include(b => b.Customer)

@@ -307,5 +307,28 @@ namespace RideReady.Tests.Services
             Assert.Equal("Sent", notification.DeliveryStatus);
             Assert.Equal("WhatsApp", notification.Channel);
         }
+
+        [Theory]
+        [InlineData("Picked_Up", "picked you up")]
+        [InlineData("In_Transit", "in transit")]
+        [InlineData("Dropped_Off", "arrived")]
+        public async Task SendTripStatusUpdateNotificationAsync_SendsWhatsAppToCustomerAndOperator(string status, string expectedCustomerFragment)
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, new FakeEmailSender(), whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            // Act
+            await service.SendTripStatusUpdateNotificationAsync(booking.Id, status);
+
+            // Assert
+            Assert.Equal(2, whatsAppSender.Sent.Count);
+            var customerMessage = whatsAppSender.Sent.Single(s => s.To == "0125183838");
+            Assert.Contains(expectedCustomerFragment, customerMessage.Message);
+            var operatorMessage = whatsAppSender.Sent.Single(s => s.To == "0192462592");
+            Assert.Contains(booking.BookingReference, operatorMessage.Message);
+        }
     }
 }

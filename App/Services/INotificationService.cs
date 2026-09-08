@@ -8,6 +8,7 @@ namespace RideReady.Services
         Task SendBookingCompletedNotificationAsync(int bookingId);
         Task SendBookingCancelledNotificationAsync(int bookingId);
         Task SendPriceSetNotificationAsync(int bookingId);
+        Task SendTripStatusUpdateNotificationAsync(int bookingId, string newStatus);
         Task SendUnassignedReminderAsync(int bookingId, bool urgent);
         Task SendNoShowNotificationAsync(int bookingId);
     }
