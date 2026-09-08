@@ -278,5 +278,34 @@ namespace RideReady.Tests.Services
             Assert.Single(emailSender.Sent);
             Assert.Equal("sim@email.com", emailSender.Sent[0].To);
         }
+
+        [Fact]
+        public async Task SendPriceSetNotificationAsync_SendsWhatsAppToCustomerWithFareAndPaymentMethod()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            context.BookingQuotes.Add(new BookingQuote
+            {
+                BookingId = booking.Id,
+                TotalEstimatedFare = 45.50m,
+                PaymentMethod = "Bank_Transfer"
+            });
+            await context.SaveChangesAsync();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, new FakeEmailSender(), whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            // Act
+            await service.SendPriceSetNotificationAsync(booking.Id);
+
+            // Assert
+            Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0125183838", whatsAppSender.Sent[0].To);
+            Assert.Contains("RM45.50", whatsAppSender.Sent[0].Message);
+            Assert.Contains("Bank Transfer", whatsAppSender.Sent[0].Message);
+            var notification = await context.Notifications.SingleAsync(n => n.BookingId == booking.Id);
+            Assert.Equal("Sent", notification.DeliveryStatus);
+            Assert.Equal("WhatsApp", notification.Channel);
+        }
     }
 }

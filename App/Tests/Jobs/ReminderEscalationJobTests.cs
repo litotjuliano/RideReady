@@ -67,6 +67,7 @@ namespace RideReady.Tests.Jobs
             public Task SendDriverAcceptedNotificationAsync(int bookingId) => _inner.SendDriverAcceptedNotificationAsync(bookingId);
             public Task SendBookingCompletedNotificationAsync(int bookingId) => _inner.SendBookingCompletedNotificationAsync(bookingId);
             public Task SendBookingCancelledNotificationAsync(int bookingId) => _inner.SendBookingCancelledNotificationAsync(bookingId);
+            public Task SendPriceSetNotificationAsync(int bookingId) => _inner.SendPriceSetNotificationAsync(bookingId);
             public Task SendNoShowNotificationAsync(int bookingId) => _inner.SendNoShowNotificationAsync(bookingId);
 
             public Task SendUnassignedReminderAsync(int bookingId, bool urgent)

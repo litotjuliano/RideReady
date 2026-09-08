@@ -73,6 +73,21 @@ namespace RideReady.Services
                 () => _emailSender.SendAsync(_emailSettings.OperatorEmail, "Driver assigned", operatorMessage));
         }
 
+        public async Task SendPriceSetNotificationAsync(int bookingId)
+        {
+            var booking = await _context.Bookings.Include(b => b.Customer).Include(b => b.Quote)
+                .FirstOrDefaultAsync(b => b.Id == bookingId)
+                ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            var paymentMethodText = booking.Quote?.PaymentMethod == "Bank_Transfer" ? "Bank Transfer" : "Pay at Pickup";
+            var fare = booking.Quote?.TotalEstimatedFare ?? 0;
+            var message = $"Hi {booking.Customer!.Name}, the fare for your RideReady booking {booking.BookingReference} is RM{fare:F2} ({paymentMethodText}). Thank you!";
+
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Phone, "WhatsApp", "PriceSet",
+                null, message,
+                () => _whatsAppSender.SendAsync(booking.Customer.Phone, message));
+        }
+
         public async Task SendDriverAcceptedNotificationAsync(int bookingId)
         {
             var booking = await _context.Bookings.Include(b => b.Customer)
