@@ -112,11 +112,12 @@ namespace RideReady.Tests.Services
             Assert.Equal(2, emailSender.Sent.Count);
             Assert.Contains(emailSender.Sent, s => s.To == "sim@email.com");
             Assert.Contains(emailSender.Sent, s => s.To == "operator@rideready.my");
-            Assert.Single(whatsAppSender.Sent);
-            Assert.Equal("0192462592", whatsAppSender.Sent[0].To);
+            Assert.Equal(2, whatsAppSender.Sent.Count);
+            Assert.Contains(whatsAppSender.Sent, s => s.To == "0125183838");
+            Assert.Contains(whatsAppSender.Sent, s => s.To == "0192462592");
             Assert.Equal(1, calendarSync.CallCount);
             var notifications = await context.Notifications.Where(n => n.BookingId == booking.Id).ToListAsync();
-            Assert.Equal(4, notifications.Count);
+            Assert.Equal(5, notifications.Count);
             Assert.All(notifications, n => Assert.Equal("Sent", n.DeliveryStatus));
         }
 

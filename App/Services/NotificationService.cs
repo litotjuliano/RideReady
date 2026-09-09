@@ -41,6 +41,10 @@ namespace RideReady.Services
                 "Your RideReady reservation", customerMessage,
                 () => _emailSender.SendAsync(booking.Customer.Email, "Your RideReady reservation", customerMessage));
 
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Phone, "WhatsApp", "BookingCreated",
+                null, customerMessage,
+                () => _whatsAppSender.SendAsync(booking.Customer.Phone, customerMessage));
+
             var operatorMessage = $"New booking {booking.BookingReference}: {booking.PickupLocation} -> {booking.Destination} on {booking.PickupDate:yyyy-MM-dd} {booking.PickupTime:HH:mm}.";
             await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", "BookingCreated",
                 "New booking received", operatorMessage,
