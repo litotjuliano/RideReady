@@ -24,6 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Lowercase image name (registries require it)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+
       - name: Copy compose files to droplet
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -42,4 +46,4 @@ jobs:
           script: |
             cd /opt/rideready
             chmod +x scripts/deploy.sh
-            IMAGE_NAME=ghcr.io/${{ github.repository }} ./scripts/deploy.sh ${{ github.event.workflow_run.head_branch }}
+            IMAGE_NAME=${{ env.IMAGE }} ./scripts/deploy.sh ${{ github.event.workflow_run.head_branch }}
