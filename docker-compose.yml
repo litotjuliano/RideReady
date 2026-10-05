@@ -1,7 +1,7 @@
 # docker-compose.yml
 #
 # Deployed to the DigitalOcean droplet at /opt/rideready (see scripts/deploy.sh
-# and .github/workflows/deploy.yml). DB_USER, DB_PASSWORD, and IMAGE_NAME are
+# and .github/workflows/deploy.yml). DB_USER, DB_PASSWORD, ADMIN_USERNAME, ADMIN_PASSWORD, and IMAGE_NAME are
 # supplied on the droplet via a gitignored .env file next to this file — they are
 # never committed to the repo.
 services:
@@ -12,6 +12,8 @@ services:
       - "127.0.0.1:5100:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      AdminCredentials__Username: ${ADMIN_USERNAME}
+      AdminCredentials__Password: ${ADMIN_PASSWORD}
       ConnectionStrings__DefaultConnection: "Host=db;Database=rideready;Username=${DB_USER};Password=${DB_PASSWORD}"
     depends_on:
       db:
