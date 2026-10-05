@@ -3,6 +3,7 @@ using RideReady.Jobs;
 using RideReady.Services;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,6 +98,15 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<RideReadyDbContext>();
     await db.Database.MigrateAsync();
 }
+
+// Behind the droplet's nginx TLS proxy: trust X-Forwarded-Proto/For so the app sees https.
+var forwardedHeaders = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedHeaders.KnownNetworks.Clear();
+forwardedHeaders.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeaders);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
