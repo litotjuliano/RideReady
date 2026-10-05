@@ -71,7 +71,7 @@ namespace RideReady.Tests.Controllers
             CustomerEmail = "sim@email.com",
             PickupLocation = "KL Visa Center",
             Destination = "Hyt Ipoh Office",
-            PickupDate = new DateOnly(2026, 9, 5),
+            PickupDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             PickupTime = new TimeOnly(13, 8),
             Passengers = 2,
             Bags = 2,
