@@ -9,7 +9,7 @@ services:
     image: ${IMAGE_NAME:-ghcr.io/OWNER/REPO}:${IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "5100:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: "Host=db;Database=rideready;Username=${DB_USER};Password=${DB_PASSWORD}"
