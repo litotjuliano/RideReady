@@ -2,6 +2,7 @@ using RideReady.Data;
 using RideReady.Jobs;
 using RideReady.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 using Quartz;
 using Microsoft.AspNetCore.HttpOverrides;
 
@@ -9,6 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Persist data-protection keys (antiforgery tokens, auth cookies) across container restarts/deploys.
+var keysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrEmpty(keysPath))
+{
+    builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+}
 
 // Configure DbContext with PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")

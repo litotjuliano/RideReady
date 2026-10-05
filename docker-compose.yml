@@ -12,9 +12,12 @@ services:
       - "127.0.0.1:5100:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      DataProtection__KeysPath: /keys
       AdminCredentials__Username: ${ADMIN_USERNAME}
       AdminCredentials__Password: ${ADMIN_PASSWORD}
       ConnectionStrings__DefaultConnection: "Host=db;Database=rideready;Username=${DB_USER};Password=${DB_PASSWORD}"
+    volumes:
+      - app_keys:/keys
     depends_on:
       db:
         condition: service_healthy
@@ -41,3 +44,4 @@ services:
 
 volumes:
   postgres_data:
+  app_keys:
