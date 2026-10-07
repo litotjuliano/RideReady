@@ -131,4 +131,15 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // jquery-validate's "step" rule throws on <input type="time"> (step is in seconds there,
+        // and the browser's own picker already enforces it). Skip the rule for time inputs.
+        if (window.jQuery && jQuery.validator) {
+            var originalStep = jQuery.validator.methods.step;
+            jQuery.validator.methods.step = function (value, element, param) {
+                if (element.type === "time") { return true; }
+                return originalStep.call(this, value, element, param);
+            };
+        }
+    </script>
 }
