@@ -62,7 +62,7 @@ namespace RideReady.ViewModels
         [RegularExpression("^(Pay_at_Pickup|Bank_Transfer)$")]
         public string PaymentMethod { get; set; } = "Pay_at_Pickup";
 
-        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the terms and conditions")]
+        [MustBeTrue(ErrorMessage = "You must accept the terms and conditions")]
         public bool AcceptedTerms { get; set; }
     }
 }

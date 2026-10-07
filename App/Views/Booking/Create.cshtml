@@ -132,6 +132,12 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
+        // Client rule for [MustBeTrue]: the checkbox must be ticked.
+        if (window.jQuery && jQuery.validator && jQuery.validator.unobtrusive) {
+            jQuery.validator.addMethod("mustbetrue", function (value, element) { return element.checked; });
+            jQuery.validator.unobtrusive.adapters.addBool("mustbetrue");
+        }
+
         // jquery-validate's "step" rule throws on <input type="time"> (step is in seconds there,
         // and the browser's own picker already enforces it). Skip the rule for time inputs.
         if (window.jQuery && jQuery.validator) {
