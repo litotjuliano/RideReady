@@ -16,13 +16,19 @@ namespace RideReady.Services
 
         public async Task SendAsync(string toEmail, string subject, string body)
         {
+            if (_settings.SmtpUsername?.StartsWith("YOUR_", StringComparison.Ordinal) == true)
+            {
+                // Placeholder/empty SMTP credentials: fail immediately instead of waiting out a connection timeout.
+                throw new InvalidOperationException("SMTP is not configured (EmailSettings:SmtpUsername is a placeholder).");
+            }
+
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
             message.To.Add(MailboxAddress.Parse(toEmail));
             message.Subject = subject;
             message.Body = new TextPart("plain") { Text = body };
 
-            using var client = new SmtpClient();
+            using var client = new SmtpClient { Timeout = 15000 };
             await client.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, SecureSocketOptions.StartTls);
             if (!string.IsNullOrEmpty(_settings.SmtpUsername))
             {
