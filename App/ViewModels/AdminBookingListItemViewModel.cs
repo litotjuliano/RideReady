@@ -10,6 +10,9 @@ namespace RideReady.ViewModels
         public string Destination { get; set; } = string.Empty;
         public DateOnly PickupDate { get; set; }
         public TimeOnly PickupTime { get; set; }
+
+        /// <summary>When the booking was made, in Malaysia time (UTC+8, no DST) for display.</summary>
+        public DateTime BookedAt { get; set; }
         public int Passengers { get; set; }
         public int Bags { get; set; }
         public string RequestedVehicleType { get; set; } = string.Empty;

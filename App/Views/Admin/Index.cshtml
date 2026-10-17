@@ -21,6 +21,18 @@
     <div class="alert alert-danger">@errorMessage</div>
 }
 
+
+@{
+    var currentSort = ViewBag.Sort as string ?? "pickup";
+}
+<form method="get" class="d-flex align-items-center justify-content-end gap-2 mb-3">
+    <label for="sort" class="small text-muted mb-0">Sort by</label>
+    <select id="sort" name="sort" class="form-select form-select-sm ride-input" style="max-width: 240px" onchange="this.form.submit()">
+        <option value="pickup" selected="@(currentSort == "pickup")">Scheduled date (earliest first)</option>
+        <option value="booked" selected="@(currentSort == "booked")">Date booked (newest first)</option>
+    </select>
+    <noscript><button type="submit" class="btn btn-sm btn-outline-secondary">Apply</button></noscript>
+</form>
 @foreach (var booking in Model)
 {
     <div class="ride-card mb-3">
@@ -34,6 +46,7 @@
             </div>
             <div class="text-end">
                 <p class="fw-bold mb-0">@booking.PickupDate.ToString("yyyy-MM-dd") &middot; @booking.PickupTime.ToString("HH:mm")</p>
+                <p class="text-muted small mb-0">Booked @booking.BookedAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</p>
                 @{
                     // Once a booking has moved past "New" (confirmed, driver assigned, or
                     // further along the trip lifecycle), the fare is locked — editing it

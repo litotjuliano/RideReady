@@ -256,6 +256,61 @@ namespace RideReady.Tests.Services
         }
 
         [Fact]
+        public async Task GetDashboardBookingsAsync_DefaultSort_OrdersByPickupDateThenTime()
+        {
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var later = await SeedBookingAsync(context, "RR-LATER", new DateOnly(2026, 10, 20), new TimeOnly(9, 0));
+            var sooner = await SeedBookingAsync(context, "RR-SOONER", new DateOnly(2026, 10, 12), new TimeOnly(9, 0));
+
+            var result = await service.GetDashboardBookingsAsync();
+
+            Assert.Equal(new[] { sooner.Id, later.Id }, result.Select(r => r.BookingId));
+        }
+
+        [Fact]
+        public async Task GetDashboardBookingsAsync_SortByBooked_OrdersNewestBookingFirst()
+        {
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            // Earliest pickup, but booked first.
+            var bookedFirst = await SeedBookingAsync(context, "RR-FIRST", new DateOnly(2026, 10, 12), new TimeOnly(9, 0));
+            var bookedLast = await SeedBookingAsync(context, "RR-LAST", new DateOnly(2026, 10, 20), new TimeOnly(9, 0));
+            bookedFirst.CreatedAt = new DateTime(2026, 10, 1, 8, 0, 0, DateTimeKind.Utc);
+            bookedLast.CreatedAt = new DateTime(2026, 10, 5, 8, 0, 0, DateTimeKind.Utc);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetDashboardBookingsAsync(DashboardSort.Booked);
+
+            Assert.Equal(new[] { bookedLast.Id, bookedFirst.Id }, result.Select(r => r.BookingId));
+        }
+
+        [Fact]
+        public async Task GetDashboardBookingsAsync_ReportsBookedAtInMalaysiaTime()
+        {
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var booking = await SeedBookingAsync(context);
+            booking.CreatedAt = new DateTime(2026, 10, 17, 3, 9, 0, DateTimeKind.Utc);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetDashboardBookingsAsync();
+
+            Assert.Equal(new DateTime(2026, 10, 17, 11, 9, 0), Assert.Single(result).BookedAt);
+        }
+
+        [Theory]
+        [InlineData(null, "pickup")]
+        [InlineData("", "pickup")]
+        [InlineData("booked", "booked")]
+        [InlineData("pickup", "pickup")]
+        [InlineData("garbage", "pickup")]
+        public void DashboardSort_Normalize_FallsBackToPickup(string? input, string expected)
+        {
+            Assert.Equal(expected, DashboardSort.Normalize(input));
+        }
+
+        [Fact]
         public async Task UpdateBookingStatusAsync_WritesStatusHistory()
         {
             // Arrange

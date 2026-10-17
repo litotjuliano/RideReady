@@ -20,15 +20,19 @@ namespace RideReady.Services
             _context = context;
         }
 
-        public async Task<List<AdminBookingListItemViewModel>> GetDashboardBookingsAsync()
+        public async Task<List<AdminBookingListItemViewModel>> GetDashboardBookingsAsync(string? sort = null)
         {
-            var bookings = await _context.Bookings
+            var query = _context.Bookings
                 .Include(b => b.Customer)
                 .Include(b => b.Quote)
-                .Where(b => b.Status != "Completed" && b.Status != "Cancelled")
-                .OrderBy(b => b.PickupDate)
-                .ThenBy(b => b.PickupTime)
-                .ToListAsync();
+                .Where(b => b.Status != "Completed" && b.Status != "Cancelled");
+
+            // "booked" = newest booking first; anything else (default) = earliest pickup first.
+            var ordered = sort == DashboardSort.Booked
+                ? query.OrderByDescending(b => b.CreatedAt).ThenByDescending(b => b.Id)
+                : query.OrderBy(b => b.PickupDate).ThenBy(b => b.PickupTime);
+
+            var bookings = await ordered.ToListAsync();
 
             var bookingIds = bookings.Select(b => b.Id).ToList();
 
@@ -54,6 +58,7 @@ namespace RideReady.Services
                     Destination = b.Destination,
                     PickupDate = b.PickupDate,
                     PickupTime = b.PickupTime,
+                    BookedAt = b.CreatedAt.AddHours(8),
                     Passengers = b.Passengers,
                     Bags = b.Bags,
                     RequestedVehicleType = b.RequestedVehicleType,

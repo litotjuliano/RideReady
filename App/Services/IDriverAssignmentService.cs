@@ -5,7 +5,7 @@ namespace RideReady.Services
 {
     public interface IDriverAssignmentService
     {
-        Task<List<AdminBookingListItemViewModel>> GetDashboardBookingsAsync();
+        Task<List<AdminBookingListItemViewModel>> GetDashboardBookingsAsync(string? sort = null);
         Task<List<Driver>> GetActiveDriversAsync();
         Task<List<Driver>> GetAllDriversAsync();
         Task<Driver> CreateDriverAsync(CreateDriverViewModel request);
