@@ -84,7 +84,8 @@ namespace RideReady.Services
                     AssignedDriverId = assignment?.DriverId,
                     AssignedDriverName = assignment?.Driver?.Name,
                     AssignedDriverPhone = assignment?.Driver?.Phone,
-                    AssignmentStatus = assignment?.AssignmentStatus
+                    AssignmentStatus = assignment?.AssignmentStatus,
+                    PickupAlert = DashboardAttention.PickupAlert(b.Status, b.PickupDate, b.PickupTime, DateTime.UtcNow)
                 };
             }).ToList();
         }

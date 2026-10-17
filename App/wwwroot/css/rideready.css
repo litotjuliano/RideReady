@@ -596,3 +596,32 @@ body.rr-body {
     color: var(--ink-muted);
     font-size: 13px;
 }
+
+/* ---------- Dispatcher attention flags (work on restyled and not-yet-restyled admin pages) ---------- */
+.rr-flag {
+    display: inline-block;
+    white-space: nowrap;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+}
+
+.rr-flag-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    background: var(--surface-mint);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-4);
+    font-size: 14px;
+}

@@ -25,6 +25,24 @@
 @{
     var currentSort = ViewBag.Sort as string ?? "booked";
 }
+@{
+    var soonCount = Model.Count(b => b.PickupAlert == RideReady.ViewModels.DashboardAttention.PickupSoon);
+    var overdueCount = Model.Count(b => b.PickupAlert == RideReady.ViewModels.DashboardAttention.PickupOverdue);
+}
+@if (soonCount + overdueCount > 0)
+{
+    <div class="rr-flag-bar" role="status">
+        <span class="rr-flag">Needs attention</span>
+        @if (soonCount > 0)
+        {
+            <span><strong>@soonCount</strong> @(soonCount == 1 ? "pickup" : "pickups") within 2 hours</span>
+        }
+        @if (overdueCount > 0)
+        {
+            <span><strong>@overdueCount</strong> pickup @(overdueCount == 1 ? "is" : "are") overdue</span>
+        }
+    </div>
+}
 <form method="get" class="d-flex align-items-center justify-content-end gap-2 mb-3">
     <label for="sort" class="small text-muted mb-0">Sort by</label>
     <select id="sort" name="sort" class="form-select form-select-sm ride-input" style="max-width: 240px" onchange="this.form.submit()">
@@ -42,6 +60,10 @@
                 <div class="d-flex align-items-center gap-2">
                     <h2 class="h5 fw-bold mb-0">@booking.CustomerName</h2>
                     <span class="ride-pill">@booking.Status</span>
+                    @if (booking.PickupAlert != null)
+                    {
+                        <span class="rr-flag" role="status">@booking.PickupAlert</span>
+                    }
                 </div>
                 <p class="text-muted small mb-0">@booking.BookingReference &middot; @booking.CustomerPhone</p>
             </div>

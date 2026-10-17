@@ -9,6 +9,9 @@ namespace RideReady.ViewModels
         public string? CustomerEmail { get; set; }
         public string? Notes { get; set; }
         public string? PaymentMethod { get; set; }
+
+        /// <summary>"Pickup soon" / "Pickup overdue" when the dispatcher needs to act on the pickup time; otherwise null.</summary>
+        public string? PickupAlert { get; set; }
         public string PickupLocation { get; set; } = string.Empty;
         public string Destination { get; set; } = string.Empty;
         public string? FromName { get; set; }
