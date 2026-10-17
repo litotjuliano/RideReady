@@ -324,6 +324,64 @@ namespace RideReady.Tests.Services
         }
 
         [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_WhenFareIsSet_IncludesTheFareAndPaymentMethod()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            await SeedAcceptedDriverAsync(context, booking);
+            context.BookingQuotes.Add(new BookingQuote
+            {
+                BookingId = booking.Id,
+                TotalEstimatedFare = 150m,
+                PaymentMethod = "Bank_Transfer"
+            });
+            await context.SaveChangesAsync();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var emailSender = new FakeEmailSender();
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            // Act
+            await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            // Assert
+            Assert.Contains("Fare: RM150.00 (Bank Transfer).", Assert.Single(whatsAppSender.Sent).Message);
+            Assert.Contains("Fare: RM150.00 (Bank Transfer).", Assert.Single(emailSender.Sent).Body);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task SendDriverDetailsToCustomerAsync_WhenNoFareIsSet_SaysNothingAboutPrice(bool hasZeroFareQuote)
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            await SeedAcceptedDriverAsync(context, booking);
+            if (hasZeroFareQuote)
+            {
+                context.BookingQuotes.Add(new BookingQuote
+                {
+                    BookingId = booking.Id,
+                    TotalEstimatedFare = 0,
+                    PaymentMethod = "Pay_at_Pickup"
+                });
+                await context.SaveChangesAsync();
+            }
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, new FakeEmailSender(), whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            // Act
+            await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            // Assert
+            var message = Assert.Single(whatsAppSender.Sent).Message;
+            Assert.DoesNotContain("RM", message);
+            Assert.DoesNotContain("Fare", message);
+            Assert.EndsWith("at 09:00.", message);
+        }
+
+        [Fact]
         public async Task SendDriverDetailsToCustomerAsync_WhenDriverHasNotAccepted_Throws()
         {
             // Arrange

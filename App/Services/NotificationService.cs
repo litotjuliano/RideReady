@@ -86,7 +86,7 @@ namespace RideReady.Services
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
-            var paymentMethodText = booking.Quote?.PaymentMethod == "Bank_Transfer" ? "Bank Transfer" : "Pay at Pickup";
+            var paymentMethodText = PaymentMethodText(booking.Quote?.PaymentMethod);
             var fare = booking.Quote?.TotalEstimatedFare ?? 0;
             var message = $"Hi {booking.Customer!.Name}, the fare for your RideReady booking {booking.BookingReference} is RM{fare:F2} ({paymentMethodText}). Thank you!";
 
@@ -138,6 +138,9 @@ namespace RideReady.Services
                 () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
         }
 
+        private static string PaymentMethodText(string? paymentMethod) =>
+            paymentMethod == "Bank_Transfer" ? "Bank Transfer" : "Pay at Pickup";
+
         public async Task<bool> SendDriverDetailsToCustomerAsync(int bookingId)
         {
             var booking = await _context.Bookings.Include(b => b.Customer)
@@ -156,9 +159,15 @@ namespace RideReady.Services
             }
 
             var driver = assignment.Driver;
+
+            // Mention the fare only when the admin has set one; with no price, the message says nothing about it.
+            var quote = await _context.BookingQuotes.FirstOrDefaultAsync(q => q.BookingId == bookingId);
+            var fareText = quote != null && quote.TotalEstimatedFare > 0
+                ? $" Fare: RM{quote.TotalEstimatedFare:F2} ({PaymentMethodText(quote.PaymentMethod)})."
+                : string.Empty;
             var message = $"Your RideReady booking {booking.BookingReference} is confirmed. " +
                 $"Your driver is {driver.Name} ({driver.Phone}), {driver.VehicleType} {driver.VehicleNumber}. " +
-                $"Pickup: {booking.PickupLocation} on {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}.";
+                $"Pickup: {booking.PickupLocation} on {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}.{fareText}";
 
             await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", DriverDetailsEvent,
                 "Your RideReady driver", message,
