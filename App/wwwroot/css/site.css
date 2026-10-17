@@ -274,3 +274,96 @@ body {
     color: var(--ride-text-muted);
     border-color: #d4d4d4;
 }
+/* Booking progress strip (admin dashboard): numbered circles joined by arrows. */
+.ride-stepper {
+    list-style: none;
+    display: flex;
+    margin: 0 0 1.25rem;
+    padding: 0 0 0.25rem;
+    overflow-x: auto;
+}
+
+.ride-step {
+    position: relative;
+    flex: 1 0 76px;
+    text-align: center;
+}
+
+.ride-step-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--ride-border);
+    background: #fff;
+    color: var(--ride-text-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.ride-step-label {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--ride-text-muted);
+}
+
+/* connector line + arrowhead to the next step */
+.ride-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: calc(50% + 22px);
+    right: calc(-50% + 26px);
+    height: 2px;
+    background: var(--ride-border);
+}
+
+.ride-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 11px;
+    right: calc(-50% + 22px);
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--ride-border);
+    border-right: 2px solid var(--ride-border);
+    transform: rotate(45deg);
+}
+
+.ride-step-done .ride-step-circle {
+    background: var(--ride-mid-green);
+    border-color: var(--ride-mid-green);
+    color: #fff;
+}
+
+.ride-step-done:not(:last-child)::after {
+    background: var(--ride-vivid-green);
+}
+
+.ride-step-done:not(:last-child)::before {
+    border-color: var(--ride-vivid-green);
+}
+
+.ride-step-current .ride-step-circle {
+    background: var(--ride-vivid-green);
+    border-color: var(--ride-vivid-green);
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--ride-bg-4);
+}
+
+.ride-step-current .ride-step-label {
+    color: var(--ride-text);
+    font-weight: 700;
+}
+
+.ride-stepper-offtrack {
+    margin-bottom: 1.25rem;
+}
+
+.ride-pill-danger {
+    background: #fde8e8;
+    color: #b42318;
+}
