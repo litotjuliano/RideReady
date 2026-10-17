@@ -89,13 +89,13 @@ for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /C:"IPv4"') do (
 
 netsh advfirewall firewall show rule name="RideReady dev 5000" >nul 2>&1
 if errorlevel 1 (
-    netsh advfirewall firewall add rule name="RideReady dev 5000" dir=in action=allow protocol=TCP localport=5000 profile=private >nul 2>&1
+    netsh advfirewall firewall add rule name="RideReady dev 5000" dir=in action=allow protocol=TCP localport=5000 profile=any remoteip=localsubnet >nul 2>&1
     if errorlevel 1 (
         echo.
         echo NOTE: Windows Firewall is blocking other devices. Run this ONCE in an Administrator Command Prompt:
-        echo   netsh advfirewall firewall add rule name="RideReady dev 5000" dir=in action=allow protocol=TCP localport=5000 profile=private
+        echo   netsh advfirewall firewall add rule name="RideReady dev 5000" dir=in action=allow protocol=TCP localport=5000 profile=any remoteip=localsubnet
     ) else (
-        echo Firewall rule added for TCP 5000 on private networks.
+        echo Firewall rule added for TCP 5000 for devices on your local network.
     )
 )
 
