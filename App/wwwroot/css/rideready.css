@@ -19,7 +19,7 @@ body.rr-body {
     font-size: 16px;
     line-height: 24px;
     color: var(--ink);
-    background: var(--surface-100) url("../images/pattern-roads.svg") repeat;
+    background-color: var(--surface-100);
 }
 
 .rr-body *,
