@@ -5,7 +5,8 @@
 # compose file and deploy script to the target droplet and runs the deploy
 # script over SSH, gated on scripts/deploy.sh's post-deploy health check.
 #
-# `develop` and `uat` auto-deploy; `staging` and `production` require manual
+# NOTE: currently only `main` (production) deploys; develop/uat/staging run CI + release only (see the
+# `if:` guard on the deploy job). Originally `develop` and `uat` auto-deployed; `staging` and `production` required manual
 # approval via a required reviewer configured on those GitHub Environments
 # (see Task 11 documentation / repo Settings > Environments).
 name: Deploy
@@ -18,7 +19,9 @@ on:
 
 jobs:
   deploy:
-    if: github.event.workflow_run.conclusion == 'success'
+    # Only main deploys for now. develop/uat/staging share this droplet folder with production, so deploying
+    # them here would overwrite the live site. Remove this guard once they have their own environments.
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     environment: ${{ github.event.workflow_run.head_branch == 'main' && 'production' || github.event.workflow_run.head_branch }}
     steps:
