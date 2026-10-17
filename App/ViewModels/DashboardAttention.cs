@@ -35,5 +35,53 @@ namespace RideReady.ViewModels
             if (untilPickup <= PickupSoonWindow) return PickupSoon;
             return null;
         }
+
+        // ---- every flag the dashboard can raise, in priority order (also the order of the summary chips) ----
+
+        public sealed record AttentionFlag(string Key, string Label);
+
+        public static readonly AttentionFlag OverdueFlag = new("pickup-overdue", PickupOverdue);
+        public static readonly AttentionFlag SoonFlag = new("pickup-soon", PickupSoon);
+        public static readonly AttentionFlag NeedsDriverFlag = new("needs-driver", "Assign a driver");
+        public static readonly AttentionFlag WaitingFlag = new("waiting-driver", "Waiting for driver");
+        public static readonly AttentionFlag SendDetailsFlag = new("send-details", "Send details to customer");
+
+        public static IReadOnlyList<AttentionFlag> AllFlags { get; } =
+            new[] { OverdueFlag, SoonFlag, NeedsDriverFlag, WaitingFlag, SendDetailsFlag };
+
+        /// <summary>
+        /// Everything the dispatcher should act on for one booking, most urgent first:
+        /// the pickup time (soon or overdue), a booking still without a driver (or whose driver declined), a driver
+        /// who has not answered yet, and an accepted trip whose driver details have not been sent to the customer.
+        /// </summary>
+        public static IReadOnlyList<AttentionFlag> FlagsFor(
+            string status, string? assignmentStatus, bool detailsSentToCustomer,
+            DateOnly pickupDate, TimeOnly pickupTime, DateTime utcNow)
+        {
+            var flags = new List<AttentionFlag>();
+
+            switch (PickupAlert(status, pickupDate, pickupTime, utcNow))
+            {
+                case PickupOverdue: flags.Add(OverdueFlag); break;
+                case PickupSoon: flags.Add(SoonFlag); break;
+            }
+
+            if (status == "New" && (assignmentStatus == null || assignmentStatus == "Rejected"))
+            {
+                flags.Add(NeedsDriverFlag);
+            }
+
+            if (status == "Driver_Assigned" && assignmentStatus == "Pending")
+            {
+                flags.Add(WaitingFlag);
+            }
+
+            if (status == "Confirmed" && assignmentStatus == "Accepted" && !detailsSentToCustomer)
+            {
+                flags.Add(SendDetailsFlag);
+            }
+
+            return flags;
+        }
     }
 }

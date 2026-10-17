@@ -12,6 +12,9 @@ namespace RideReady.ViewModels
 
         /// <summary>"Pickup soon" / "Pickup overdue" when the dispatcher needs to act on the pickup time; otherwise null.</summary>
         public string? PickupAlert { get; set; }
+
+        /// <summary>Everything the dispatcher should act on for this booking, most urgent first (see DashboardAttention).</summary>
+        public IReadOnlyList<DashboardAttention.AttentionFlag> AttentionFlags { get; set; } = Array.Empty<DashboardAttention.AttentionFlag>();
         public string PickupLocation { get; set; } = string.Empty;
         public string Destination { get; set; } = string.Empty;
         public string? FromName { get; set; }

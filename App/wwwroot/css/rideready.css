@@ -1193,3 +1193,95 @@ body.rr-body {
 .rr-login form {
     margin-top: var(--space-4);
 }
+
+/* ---------- Dashboard search, filter chips and attention chips ---------- */
+.rr-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 20px 0 var(--space-3);
+}
+
+.rr-tools > .rr-input[type="search"] {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.rr-tools .rr-sort {
+    margin: 0;
+    margin-left: auto;
+}
+
+.rr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.rr-chip {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--surface-200);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-pill);
+    padding: 6px 14px;
+    min-height: 36px;
+    cursor: pointer;
+}
+
+.rr-chip:hover {
+    background: var(--surface-mint);
+}
+
+.rr-chip.on {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--on-brand);
+    font-weight: 700;
+}
+
+.rr-chip-n {
+    display: inline-block;
+    min-width: 20px;
+    margin-left: 4px;
+    padding: 0 6px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-mint);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: center;
+}
+
+.rr-chip.on .rr-chip-n {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+.rr-chip-flag.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+}
+
+.rr-count-line {
+    margin: 0 0 var(--space-3);
+    font-size: 14px;
+    color: var(--ink-muted);
+}
+
+.rr-count-line[hidden],
+.rr-acard[hidden] {
+    display: none;
+}
+
+/* Phone and WhatsApp links on a booking card. */
+.rr-ref a,
+.rr-note a {
+    color: var(--brand);
+    font-weight: 500;
+}
