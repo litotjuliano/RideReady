@@ -1,22 +1,35 @@
 @model RideReady.ViewModels.AdminLoginViewModel
 @{
     ViewData["Title"] = "Admin Login";
+    ViewData["Bare"] = true;
 }
 
-<div class="ride-card mx-auto" style="max-width: 420px;">
-    <p class="ride-eyebrow">Dispatch back office</p>
-    <h1 class="fw-bold h3">Admin login</h1>
-    <form asp-controller="AdminAuth" asp-action="Login" method="post" class="mt-3">
-        @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-        <div class="mb-3">
-            <label asp-for="Username" class="form-label fw-semibold"></label>
-            <input asp-for="Username" class="form-control ride-input" />
-        </div>
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label fw-semibold"></label>
-            <input asp-for="Password" type="password" class="form-control ride-input" />
-        </div>
-        <button type="submit" class="btn ride-btn-primary w-100 fw-bold">Sign in</button>
-    </form>
+<div class="rr-narrow rr-login">
+    <div class="rr-card">
+        <span class="rr-pill">Dispatch back office</span>
+        <h1>Admin login</h1>
+        <form asp-controller="AdminAuth" asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="rr-summary"></div>
+            <div class="rr-row">
+                <div class="rr-field">
+                    <label asp-for="Username" class="rr-label"></label>
+                    <input asp-for="Username" autocomplete="username" />
+                    <span asp-validation-for="Username" class="rr-error"></span>
+                </div>
+            </div>
+            <div class="rr-row">
+                <div class="rr-field">
+                    <label asp-for="Password" class="rr-label"></label>
+                    <input asp-for="Password" type="password" autocomplete="current-password" />
+                    <span asp-validation-for="Password" class="rr-error"></span>
+                </div>
+            </div>
+            <button type="submit" class="rr-go">Sign in <i aria-hidden="true"></i></button>
+        </form>
+    </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -7,18 +7,24 @@
 }
 @if (offTrackLabel != null)
 {
-    <div class="ride-stepper-offtrack" role="status">
-        <span class="ride-pill ride-pill-danger">@offTrackLabel</span>
+    <div class="rr-ts-off" role="status">
+        <span class="rr-flag rr-flag-danger">@offTrackLabel</span>
     </div>
 }
 else
 {
-    <ol class="ride-stepper" aria-label="@(current != null ? $"Status: {current.Label}, step {current.Number} of {BookingProgress.TotalSteps}" : "Booking progress")">
+    <ol class="rr-trip-steps" aria-label="@(current != null ? $"Trip progress: {current.Label}, step {current.Number} of {BookingProgress.TotalSteps}" : "Trip progress")">
         @foreach (var step in steps)
         {
-            <li class="ride-step ride-step-@step.State.ToString().ToLowerInvariant()" aria-current="@(step.State == StepState.Current ? "step" : null)">
-                <span class="ride-step-circle">@step.Number</span>
-                <span class="ride-step-label">@step.Label</span>
+            var css = step.State switch
+            {
+                StepState.Done => "rr-ts rr-ts-done",
+                StepState.Current => "rr-ts rr-ts-now",
+                _ => "rr-ts"
+            };
+            <li class="@css" aria-current="@(step.State == StepState.Current ? "step" : null)">
+                <span class="rr-ts-c">@step.Number</span>
+                @step.Label
             </li>
         }
     </ol>

@@ -1,22 +1,35 @@
 @model RideReady.ViewModels.DriverLoginViewModel
 @{
     ViewData["Title"] = "Driver Login";
+    ViewData["Bare"] = true;
 }
 
-<div class="ride-card mx-auto" style="max-width: 420px;">
-    <p class="ride-eyebrow">RideReady Driver</p>
-    <h1 class="fw-bold h3">Driver login</h1>
-    <form asp-controller="DriverAuth" asp-action="Login" method="post" class="mt-3">
-        @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-        <div class="mb-3">
-            <label asp-for="Phone" class="form-label fw-semibold"></label>
-            <input asp-for="Phone" class="form-control ride-input" placeholder="e.g. 0123456789" />
-        </div>
-        <div class="mb-3">
-            <label asp-for="Pin" class="form-label fw-semibold"></label>
-            <input asp-for="Pin" type="password" inputmode="numeric" class="form-control ride-input" />
-        </div>
-        <button type="submit" class="btn ride-btn-primary w-100 fw-bold">Sign in</button>
-    </form>
+<div class="rr-narrow rr-login">
+    <div class="rr-card">
+        <span class="rr-pill">RideReady driver</span>
+        <h1>Driver login</h1>
+        <form asp-controller="DriverAuth" asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="rr-summary"></div>
+            <div class="rr-row">
+                <div class="rr-field">
+                    <label asp-for="Phone" class="rr-label"></label>
+                    <input asp-for="Phone" autocomplete="username" inputmode="tel" placeholder="e.g. 0123456789" />
+                    <span asp-validation-for="Phone" class="rr-error"></span>
+                </div>
+            </div>
+            <div class="rr-row">
+                <div class="rr-field">
+                    <label asp-for="Pin" class="rr-label"></label>
+                    <input asp-for="Pin" type="password" inputmode="numeric" autocomplete="current-password" />
+                    <span asp-validation-for="Pin" class="rr-error"></span>
+                </div>
+            </div>
+            <button type="submit" class="rr-go">Sign in <i aria-hidden="true"></i></button>
+        </form>
+    </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

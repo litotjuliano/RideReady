@@ -7,6 +7,9 @@ namespace RideReady.Models
         public string Phone { get; set; } = string.Empty;
         public string VehicleType { get; set; } = string.Empty; // Car, Van, Bus
         public string? VehicleNumber { get; set; }
+
+        /// <summary>How many passengers this vehicle carries. Null for drivers added before capacity was recorded.</summary>
+        public int? PassengerCapacity { get; set; }
         public string PinHash { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public decimal? Rating { get; set; }

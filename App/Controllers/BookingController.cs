@@ -16,23 +16,27 @@ namespace RideReady.Controllers
         }
 
         [HttpGet("/Booking")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var model = new BookingRequestViewModel
-            {
-                PickupDate = DateOnly.FromDateTime(DateTime.Today),
-                DropOffDate = DateOnly.FromDateTime(DateTime.Today)
-            };
-            return View(model);
+            var model = BookingRequestViewModel.NewForm(DateOnly.FromDateTime(DateTime.Today));
+            return await FormViewAsync(model);
         }
 
         [HttpPost("/Booking")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookingRequestViewModel request)
         {
+            // The vehicle must be big enough for the passengers. The limit per vehicle type comes from the
+            // drivers' recorded capacities, so it is checked here (and again in the booking service).
+            var capacities = await _bookingService.GetVehicleCapacitiesAsync();
+            if (VehicleCapacity.ExceededMessage(capacities, request.VehicleType, request.Passengers) is string tooManyPassengers)
+            {
+                ModelState.AddModelError(nameof(request.Passengers), tooManyPassengers);
+            }
+
             if (!ModelState.IsValid)
             {
-                return View(request);
+                return await FormViewAsync(request);
             }
 
             try
@@ -45,7 +49,7 @@ namespace RideReady.Controllers
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                return View(request);
+                return await FormViewAsync(request);
             }
         }
 
@@ -60,6 +64,13 @@ namespace RideReady.Controllers
 
             ViewBag.BookingReference = reference;
             return View();
+        }
+
+        /// <summary>Shows the booking form, with the passenger limit per vehicle type for its hints and live check.</summary>
+        private async Task<IActionResult> FormViewAsync(BookingRequestViewModel model)
+        {
+            ViewBag.VehicleCapacities = await _bookingService.GetVehicleCapacitiesAsync();
+            return View(model);
         }
     }
 }
