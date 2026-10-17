@@ -1494,3 +1494,46 @@ body.rr-body {
         text-align: left;
     }
 }
+
+/* Driver: quick links, the big next-step button and the tucked-away dropdown */
+.rr-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.rr-quick .rr-btn {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.rr-actions .rr-next {
+    min-height: 60px;
+    font-size: 18px;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+}
+
+.rr-actions .rr-next:hover {
+    background: var(--accent);
+    border-color: var(--deep);
+    color: var(--on-accent);
+}
+
+.rr-more {
+    margin-top: var(--space-3);
+}
+
+.rr-more summary {
+    cursor: pointer;
+    color: var(--ink-muted);
+    font-size: 14px;
+    padding: 6px 0;
+}
+
+.rr-more .rr-actions {
+    margin-top: var(--space-2);
+}

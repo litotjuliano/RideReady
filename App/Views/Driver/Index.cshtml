@@ -58,6 +58,20 @@
                     <span class="rr-badge">@trip.AssignmentStatus / @trip.BookingStatus</span>
                 </div>
             </div>
+            <div class="rr-quick">
+                @if (RideReady.ViewModels.PhoneLinks.Tel(trip.CustomerPhone) is { Length: > 0 } tel)
+                {
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@tel">Call customer</a>
+                }
+                @if (RideReady.ViewModels.MapsLink.For(trip.PickupLocation) is { Length: > 0 } pickupMap)
+                {
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@pickupMap" target="_blank" rel="noopener">Pick-up in Maps</a>
+                }
+                @if (RideReady.ViewModels.MapsLink.For(trip.Destination) is { Length: > 0 } dropMap)
+                {
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@dropMap" target="_blank" rel="noopener">Drop-off in Maps</a>
+                }
+            </div>
             @await Html.PartialAsync("_TripDetails", RideReady.ViewModels.TripDetailsViewModel.ForDriver(trip))
 
             @if (trip.AssignmentStatus == "Pending")
@@ -77,17 +91,30 @@
             }
             else if (trip.AssignmentStatus == "Accepted" && trip.BookingStatus != "Completed")
             {
-                <form asp-controller="Driver" asp-action="UpdateStatus" method="post" class="rr-actions">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="bookingId" value="@trip.BookingId" />
-                    <select name="newStatus" aria-label="New status">
-                        <option value="Picked_Up">Picked Up</option>
-                        <option value="In_Transit">In Transit</option>
-                        <option value="Dropped_Off">Dropped Off</option>
-                        <option value="Completed">Completed</option>
-                    </select>
-                    <button type="submit" class="rr-btn">Update status</button>
-                </form>
+                var next = RideReady.ViewModels.DriverNextStep.For(trip.BookingStatus);
+                if (next != null)
+                {
+                    <form asp-controller="Driver" asp-action="UpdateStatus" method="post" class="rr-actions">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="bookingId" value="@trip.BookingId" />
+                        <input type="hidden" name="newStatus" value="@next.NewStatus" />
+                        <button type="submit" class="rr-btn rr-next">@next.ButtonLabel</button>
+                    </form>
+                }
+                <details class="rr-more">
+                    <summary>Something else?</summary>
+                    <form asp-controller="Driver" asp-action="UpdateStatus" method="post" class="rr-actions">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="bookingId" value="@trip.BookingId" />
+                        <select name="newStatus" aria-label="New status">
+                            <option value="Picked_Up">Picked Up</option>
+                            <option value="In_Transit">In Transit</option>
+                            <option value="Dropped_Off">Dropped Off</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <button type="submit" class="rr-btn rr-btn-sec">Update status</button>
+                    </form>
+                </details>
             }
         </article>
     }
