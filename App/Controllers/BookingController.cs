@@ -18,11 +18,7 @@ namespace RideReady.Controllers
         [HttpGet("/Booking")]
         public async Task<IActionResult> Create()
         {
-            var model = new BookingRequestViewModel
-            {
-                PickupDate = DateOnly.FromDateTime(DateTime.Today),
-                DropOffDate = DateOnly.FromDateTime(DateTime.Today)
-            };
+            var model = BookingRequestViewModel.NewForm(DateOnly.FromDateTime(DateTime.Today));
             return await FormViewAsync(model);
         }
 

@@ -20,11 +20,7 @@ public class HomeController : Controller
     // The site's front page is the booking form, so it needs the same data as BookingController.Create.
     public async Task<IActionResult> Index()
     {
-        var model = new BookingRequestViewModel
-        {
-            PickupDate = DateOnly.FromDateTime(DateTime.Today),
-            DropOffDate = DateOnly.FromDateTime(DateTime.Today)
-        };
+        var model = BookingRequestViewModel.NewForm(DateOnly.FromDateTime(DateTime.Today));
         ViewData["HideNav"] = true;
         ViewBag.VehicleCapacities = await _bookingService.GetVehicleCapacitiesAsync();
         return View("~/Views/Booking/Create.cshtml", model);
