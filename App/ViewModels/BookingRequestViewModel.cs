@@ -60,7 +60,7 @@ namespace RideReady.ViewModels
 
         [Display(Name = "Passengers")]
         [Required(ErrorMessage = "Passengers count is required")]
-        [Range(1, VehicleCapacity.Largest)]
+        [Range(1, VehicleCapacity.HardLimit)]
         public int Passengers { get; set; }
 
         [Display(Name = "Bags")]
@@ -88,12 +88,6 @@ namespace RideReady.ViewModels
         /// <summary>The approximate drop-off must come after the pickup.</summary>
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            // The chosen vehicle must be big enough for the passengers (see VehicleCapacity).
-            if (VehicleCapacity.ExceededMessage(VehicleType, Passengers) is string tooManyPassengers)
-            {
-                yield return new ValidationResult(tooManyPassengers, new[] { nameof(Passengers) });
-            }
-
             if (DropOffDate is DateOnly dropOffDate && DropOffTime is TimeOnly dropOffTime
                 && dropOffDate.ToDateTime(dropOffTime) <= PickupDate.ToDateTime(PickupTime))
             {

@@ -39,7 +39,8 @@ namespace RideReady.Services
             if (dropOffDate.ToDateTime(dropOffTime) <= requestedDateTime)
                 throw new InvalidOperationException("Drop-off must be after the pickup time");
 
-            if (VehicleCapacity.ExceededMessage(request.VehicleType, request.Passengers) is string tooManyPassengers)
+            var capacities = await GetVehicleCapacitiesAsync();
+            if (VehicleCapacity.ExceededMessage(capacities, request.VehicleType, request.Passengers) is string tooManyPassengers)
                 throw new InvalidOperationException(tooManyPassengers);
 
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -142,6 +143,19 @@ namespace RideReady.Services
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// The passenger limit per vehicle type: the largest capacity among the active drivers of that type
+        /// (falling back to the defaults for a type with no recorded capacity).
+        /// </summary>
+        public async Task<IReadOnlyDictionary<string, int>> GetVehicleCapacitiesAsync()
+        {
+            var drivers = await _context.Drivers
+                .Select(d => new { d.VehicleType, d.PassengerCapacity, d.IsActive })
+                .ToListAsync();
+
+            return VehicleCapacity.FromDrivers(drivers.Select(d => (d.VehicleType, d.PassengerCapacity, d.IsActive)));
         }
 
         public async Task<BookingQuoteViewModel> GetQuoteAsync(BookingRequestViewModel request)

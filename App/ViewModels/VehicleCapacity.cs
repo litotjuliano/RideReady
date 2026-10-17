@@ -1,18 +1,18 @@
 namespace RideReady.ViewModels
 {
     /// <summary>
-    /// The single source of truth for how many passengers each vehicle type carries. The booking page (hints and
-    /// the live check), the form validation and the booking service all read from here, so changing a number
-    /// changes it everywhere.
+    /// How many passengers each vehicle type can carry, and the friendly message when a booking asks for more.
+    /// The per-type limit comes from the drivers: it is the largest passenger capacity among the ACTIVE drivers of
+    /// that type. When no driver of a type has a capacity recorded, the default below is used. The booking page
+    /// (hints and live check), the booking controller and the booking service all use this one class.
     /// </summary>
     public static class VehicleCapacity
     {
-        /// <summary>The booking form never accepts more passengers than this, whatever the vehicle.</summary>
-        public const int Largest = 8;
+        /// <summary>No single booking may ask for more passengers than this, whatever the vehicle.</summary>
+        public const int HardLimit = 100;
 
-        // Car is 4. Van and Bus are set to the current overall limit of 8 until the real capacities are confirmed,
-        // so they are no stricter than before.
-        private static readonly (string Type, int Max)[] Table =
+        // Used for a vehicle type until at least one active driver of that type has a capacity recorded.
+        private static readonly (string Type, int Default)[] Defaults =
         {
             ("Car", 4),
             ("Van", 8),
@@ -20,30 +20,51 @@ namespace RideReady.ViewModels
         };
 
         /// <summary>The vehicle types in the order they are offered.</summary>
-        public static IReadOnlyList<string> Types => Table.Select(t => t.Type).ToList();
+        public static IReadOnlyList<string> Types => Defaults.Select(d => d.Type).ToList();
 
-        /// <summary>The maximum passengers for a vehicle type, or null when the type is unknown.</summary>
-        public static int? MaxFor(string? vehicleType)
+        /// <summary>The default limit per vehicle type (used when drivers have no capacity recorded).</summary>
+        public static IReadOnlyDictionary<string, int> DefaultCapacities() =>
+            Defaults.ToDictionary(d => d.Type, d => d.Default);
+
+        /// <summary>
+        /// The limit per vehicle type: the largest capacity among active drivers of that type that have one,
+        /// otherwise the default for that type.
+        /// </summary>
+        public static IReadOnlyDictionary<string, int> FromDrivers(
+            IEnumerable<(string VehicleType, int? PassengerCapacity, bool IsActive)> drivers)
         {
-            foreach (var (type, max) in Table)
+            var list = drivers.ToList();
+            var result = new Dictionary<string, int>();
+
+            foreach (var (type, defaultMax) in Defaults)
             {
-                if (type == vehicleType) return max;
+                var recorded = list
+                    .Where(d => d.IsActive && d.VehicleType == type && d.PassengerCapacity is > 0)
+                    .Select(d => d.PassengerCapacity!.Value)
+                    .ToList();
+
+                result[type] = recorded.Count > 0 ? recorded.Max() : defaultMax;
             }
-            return null;
+
+            return result;
         }
+
+        /// <summary>The limit for a vehicle type, or null when the type is unknown.</summary>
+        public static int? MaxFor(IReadOnlyDictionary<string, int> capacities, string? vehicleType) =>
+            vehicleType != null && capacities.TryGetValue(vehicleType, out var max) ? max : null;
 
         /// <summary>
         /// Null when the passenger count fits the vehicle (or the vehicle is unknown). Otherwise a short, friendly
-        /// message that says the limit and points to a bigger vehicle.
+        /// message that gives the limit and points to a bigger vehicle type.
         /// </summary>
-        public static string? ExceededMessage(string? vehicleType, int passengers)
+        public static string? ExceededMessage(IReadOnlyDictionary<string, int> capacities, string? vehicleType, int passengers)
         {
-            if (MaxFor(vehicleType) is not int max || passengers <= max)
+            if (MaxFor(capacities, vehicleType) is not int max || passengers <= max)
             {
                 return null;
             }
 
-            var bigger = Table.Where(t => t.Max >= passengers).Select(t => t.Type).ToList();
+            var bigger = Types.Where(t => capacities.TryGetValue(t, out var m) && m >= passengers).ToList();
             var advice = bigger.Count switch
             {
                 0 => "Please contact us for a larger group.",

@@ -105,14 +105,51 @@ namespace RideReady.Services
                 .ToListAsync();
         }
 
+        // The driver portal logs in by phone number, so each driver needs a different one (also enforced by a unique index).
+        private async Task EnsurePhoneIsFreeAsync(string phone, int? exceptDriverId)
+        {
+            var taken = await _context.Drivers.AnyAsync(d => d.Phone == phone && d.Id != exceptDriverId);
+            if (taken)
+            {
+                throw new InvalidOperationException("Another driver already uses that phone number.");
+            }
+        }
+
+        public async Task<Driver?> GetDriverAsync(int driverId)
+        {
+            return await _context.Drivers.FirstOrDefaultAsync(d => d.Id == driverId);
+        }
+
+        public async Task<Driver> UpdateDriverAsync(EditDriverViewModel request)
+        {
+            var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == request.Id)
+                ?? throw new InvalidOperationException($"Driver {request.Id} not found");
+
+            await EnsurePhoneIsFreeAsync(request.Phone.Trim(), request.Id);
+
+            driver.Name = request.Name.Trim();
+            driver.Phone = request.Phone.Trim();
+            driver.VehicleType = request.VehicleType;
+            driver.VehicleNumber = request.VehicleNumber.Trim();
+            driver.PassengerCapacity = request.PassengerCapacity;
+            driver.IsActive = request.IsActive;
+            driver.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return driver;
+        }
+
         public async Task<Driver> CreateDriverAsync(CreateDriverViewModel request)
         {
+            await EnsurePhoneIsFreeAsync(request.Phone.Trim(), exceptDriverId: null);
+
             var driver = new Driver
             {
                 Name = request.Name,
                 Phone = request.Phone,
                 VehicleType = request.VehicleType,
                 VehicleNumber = request.VehicleNumber,
+                PassengerCapacity = request.PassengerCapacity,
                 PinHash = PasswordHasher.Hash(request.Pin)
             };
 
@@ -138,10 +175,14 @@ namespace RideReady.Services
                 throw new InvalidOperationException($"Cannot assign a driver — booking is already '{booking.Status}'");
             }
 
-            var driverExists = await _context.Drivers.AnyAsync(d => d.Id == driverId);
-            if (!driverExists)
+            var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == driverId)
+                ?? throw new InvalidOperationException($"Driver {driverId} not found");
+
+            // The vehicle must be big enough (drivers added before capacity was recorded have no limit set).
+            if (driver.PassengerCapacity is int capacity && booking.Passengers > capacity)
             {
-                throw new InvalidOperationException($"Driver {driverId} not found");
+                throw new InvalidOperationException(
+                    $"{driver.Name}'s {driver.VehicleType} carries up to {capacity} passengers, but this booking has {booking.Passengers}. Choose a bigger vehicle.");
             }
 
             // Block double-booking: a driver can't be assigned to two active trips at the

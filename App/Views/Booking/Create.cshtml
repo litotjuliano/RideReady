@@ -6,9 +6,11 @@
     var maxDate = DateTime.Today.AddDays(30).ToString("yyyy-MM-dd");
     var maxDropOffDate = DateTime.Today.AddDays(31).ToString("yyyy-MM-dd");
     // Passenger limits per vehicle come from one place (VehicleCapacity), shared with the server-side checks.
-    var carMax = RideReady.ViewModels.VehicleCapacity.MaxFor("Car");
-    var vanMax = RideReady.ViewModels.VehicleCapacity.MaxFor("Van");
-    var busMax = RideReady.ViewModels.VehicleCapacity.MaxFor("Bus");
+    var capacities = ViewBag.VehicleCapacities as IReadOnlyDictionary<string, int> ?? RideReady.ViewModels.VehicleCapacity.DefaultCapacities();
+    var carMax = capacities["Car"];
+    var vanMax = capacities["Van"];
+    var busMax = capacities["Bus"];
+    var largestCapacity = capacities.Values.Max();
 }
 
 <div class="rr-hero">
@@ -115,8 +117,8 @@
                 <div class="rr-row rr-r2">
                     <div class="rr-field">
                         <label asp-for="Passengers" class="rr-label"></label>
-                        <input asp-for="Passengers" type="number" min="1" max="8" />
-                        <span class="rr-hint" id="PassengersHint">Up to 8 passengers.</span>
+                        <input asp-for="Passengers" type="number" min="1" data-largest="@largestCapacity" />
+                        <span class="rr-hint" id="PassengersHint">Up to @largestCapacity passengers.</span>
                         <span class="rr-error" id="PassengersCapacity" role="alert" hidden></span>
                         <span asp-validation-for="Passengers" class="rr-error"></span>
                     </div>
@@ -235,7 +237,7 @@
             var radios = Array.prototype.slice.call(document.querySelectorAll('input[name="VehicleType"]'));
             if (!passengers || !hint || !message || radios.length === 0) { return; }
 
-            var largest = Number(passengers.getAttribute("max")) || 8;
+            var largest = Number(passengers.getAttribute("data-largest")) || 8;
 
             function selected() {
                 return radios.filter(function (r) { return r.checked; })[0] || null;

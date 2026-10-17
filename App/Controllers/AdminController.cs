@@ -69,6 +69,15 @@ namespace RideReady.Controllers
                         booking.DriverConflicts[driver.DriverId] = reason;
                     }
                 }
+
+                // Vehicles too small for this booking are marked so they are not picked by mistake.
+                foreach (var candidate in activeDrivers)
+                {
+                    if (candidate.PassengerCapacity is int seats && booking.Passengers > seats && !booking.DriverConflicts.ContainsKey(candidate.Id))
+                    {
+                        booking.DriverConflicts[candidate.Id] = $"only {seats} seats";
+                    }
+                }
             }
 
             return View(bookings);
@@ -154,8 +163,62 @@ namespace RideReady.Controllers
                 return RedirectToAction(nameof(Drivers));
             }
 
-            await _driverAssignmentService.CreateDriverAsync(model);
+            try
+            {
+                await _driverAssignmentService.CreateDriverAsync(model);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Drivers));
+            }
+
             TempData["SuccessMessage"] = "Driver added.";
+            return RedirectToAction(nameof(Drivers));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditDriver(int id)
+        {
+            var driver = await _driverAssignmentService.GetDriverAsync(id);
+            if (driver == null)
+            {
+                TempData["ErrorMessage"] = "Driver not found.";
+                return RedirectToAction(nameof(Drivers));
+            }
+
+            return View(new EditDriverViewModel
+            {
+                Id = driver.Id,
+                Name = driver.Name,
+                Phone = driver.Phone,
+                VehicleType = driver.VehicleType,
+                VehicleNumber = driver.VehicleNumber ?? string.Empty,
+                PassengerCapacity = driver.PassengerCapacity,
+                IsActive = driver.IsActive
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditDriver(EditDriverViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                await _driverAssignmentService.UpdateDriverAsync(model);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "Driver updated.";
             return RedirectToAction(nameof(Drivers));
         }
 
