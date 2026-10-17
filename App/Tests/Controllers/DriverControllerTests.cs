@@ -230,7 +230,7 @@ namespace RideReady.Tests.Controllers
         }
 
         [Fact]
-        public async Task Accept_WithValidAssignment_SendsWhatsAppToCustomerAndOperator()
+        public async Task Accept_WithValidAssignment_NotifiesOnlyTheOperator_NotTheCustomer()
         {
             // Arrange
             var (context, driver, booking, assignment) = await SeedAssignedBookingAsync();
@@ -242,9 +242,10 @@ namespace RideReady.Tests.Controllers
             await controller.Accept(assignment.Id);
 
             // Assert
-            Assert.Equal(2, whatsAppSender.Sent.Count);
-            Assert.Contains(whatsAppSender.Sent, s => s.To == "0125183838");
-            Assert.Contains(whatsAppSender.Sent, s => s.To == "0192462592");
+            // The customer is told about the driver later, when the admin presses the manual button.
+            var sent = Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0192462592", sent.To);
+            Assert.DoesNotContain(whatsAppSender.Sent, s => s.To == "0125183838");
         }
 
         internal class NullTempDataProvider : Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider

@@ -195,6 +195,30 @@ namespace RideReady.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendDriverDetails(int bookingId)
+        {
+            try
+            {
+                var whatsAppSent = await _notificationService.SendDriverDetailsToCustomerAsync(bookingId);
+                if (whatsAppSent)
+                {
+                    TempData["SuccessMessage"] = "Driver details sent to the customer.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "The WhatsApp message to the customer could not be sent. Check the WhatsApp token and try again.";
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetFare(SetFareViewModel model)
         {
             if (!ModelState.IsValid)

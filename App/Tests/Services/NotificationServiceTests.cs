@@ -266,7 +266,7 @@ namespace RideReady.Tests.Services
         }
 
         [Fact]
-        public async Task SendDriverAcceptedNotificationAsync_SendsCustomerEmailAndWhatsAppAndOperatorWhatsApp()
+        public async Task SendDriverAcceptedNotificationAsync_NotifiesOnlyTheOperator_NotTheCustomer()
         {
             // Arrange
             var context = GetInMemoryDbContext();
@@ -278,13 +278,89 @@ namespace RideReady.Tests.Services
             // Act
             await service.SendDriverAcceptedNotificationAsync(booking.Id);
 
-            // Assert
-            Assert.Single(emailSender.Sent);
-            Assert.Equal("sim@email.com", emailSender.Sent[0].To);
-            Assert.Equal(2, whatsAppSender.Sent.Count);
-            Assert.Contains(whatsAppSender.Sent, s => s.To == "0125183838");
-            Assert.Contains(whatsAppSender.Sent, s => s.To == "0192462592");
+            // Assert: the customer only hears from us when the admin sends the driver details manually
+            Assert.Empty(emailSender.Sent);
+            var sent = Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0192462592", sent.To);
+            Assert.Contains(booking.BookingReference, sent.Message);
         }
+
+        private async Task<Driver> SeedAcceptedDriverAsync(RideReadyDbContext context, Booking booking, string assignmentStatus = "Accepted")
+        {
+            var driver = new Driver { Name = "Richard", Phone = "0167237377", VehicleType = "Car", VehicleNumber = "TEST 1234", PinHash = "x" };
+            context.Drivers.Add(driver);
+            await context.SaveChangesAsync();
+            context.DriverAssignments.Add(new DriverAssignment { BookingId = booking.Id, DriverId = driver.Id, AssignmentStatus = assignmentStatus });
+            await context.SaveChangesAsync();
+            return driver;
+        }
+
+        [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_SendsDriverNamePhoneAndVehicleToCustomerByEmailAndWhatsApp()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            await SeedAcceptedDriverAsync(context, booking);
+            var emailSender = new FakeEmailSender();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            // Act
+            var sent = await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            // Assert
+            Assert.True(sent);
+            var whatsApp = Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0125183838", whatsApp.To);
+            Assert.Contains("Richard", whatsApp.Message);
+            Assert.Contains("0167237377", whatsApp.Message);
+            Assert.Contains("Car TEST 1234", whatsApp.Message);
+            Assert.Contains(booking.BookingReference, whatsApp.Message);
+            var email = Assert.Single(emailSender.Sent);
+            Assert.Equal("sim@email.com", email.To);
+            Assert.True(await context.Notifications.AnyAsync(n =>
+                n.BookingId == booking.Id && n.EventType == NotificationService.DriverDetailsEvent && n.Channel == "WhatsApp" && n.DeliveryStatus == "Sent"));
+        }
+
+        [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_WhenDriverHasNotAccepted_Throws()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            await SeedAcceptedDriverAsync(context, booking, assignmentStatus: "Pending");
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, new FakeEmailSender(), whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => service.SendDriverDetailsToCustomerAsync(booking.Id));
+            Assert.Empty(whatsAppSender.Sent);
+        }
+
+        [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_WhenWhatsAppFails_ReturnsFalseAndLogsFailure()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            await SeedAcceptedDriverAsync(context, booking);
+            var service = new NotificationService(context, new FakeEmailSender(), new ThrowingWhatsAppSender(), new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            // Act
+            var sent = await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            // Assert
+            Assert.False(sent);
+            Assert.True(await context.Notifications.AnyAsync(n =>
+                n.EventType == NotificationService.DriverDetailsEvent && n.Channel == "WhatsApp" && n.DeliveryStatus == "Failed"));
+        }
+
+        private sealed class ThrowingWhatsAppSender : IWhatsAppSender
+        {
+            public Task SendAsync(string toPhone, string message) => throw new HttpRequestException("401 Unauthorized");
+        }
+
 
         [Fact]
         public async Task SendPriceSetNotificationAsync_SendsWhatsAppToCustomerWithFareAndPaymentMethod()

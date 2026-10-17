@@ -13,6 +13,9 @@ namespace RideReady.ViewModels
 
         /// <summary>When the booking was made, in Malaysia time (UTC+8, no DST) for display.</summary>
         public DateTime BookedAt { get; set; }
+
+        /// <summary>When the driver details were last sent to the customer via WhatsApp (Malaysia time), or null if not yet sent.</summary>
+        public DateTime? DriverDetailsSentAt { get; set; }
         public int Passengers { get; set; }
         public int Bags { get; set; }
         public string RequestedVehicleType { get; set; } = string.Empty;

@@ -7,6 +7,9 @@ namespace RideReady.Services
 {
     public class NotificationService : INotificationService
     {
+        /// <summary>EventType recorded when the admin manually sends driver details to the customer.</summary>
+        public const string DriverDetailsEvent = "DriverDetailsSent";
+
         private readonly RideReadyDbContext _context;
         private readonly IEmailSender _emailSender;
         private readonly IWhatsAppSender _whatsAppSender;
@@ -123,23 +126,47 @@ namespace RideReady.Services
 
         public async Task SendDriverAcceptedNotificationAsync(int bookingId)
         {
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.Id == bookingId)
+                ?? throw new InvalidOperationException($"Booking {bookingId} not found");
+
+            // The customer is deliberately NOT messaged here: the admin reviews the acceptance and
+            // sends the driver details to the customer manually (see SendDriverDetailsToCustomerAsync).
+            var operatorMessage = $"Driver accepted booking {booking.BookingReference}. Send the driver details to the customer from the dashboard.";
+            await SendAndLogAsync(bookingId, "Operator", null, _whatsAppSettings.OperatorPhone, "WhatsApp", "DriverAccepted",
+                null, operatorMessage,
+                () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
+        }
+
+        public async Task<bool> SendDriverDetailsToCustomerAsync(int bookingId)
+        {
             var booking = await _context.Bookings.Include(b => b.Customer)
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
-            var message = $"Good news! A driver has been confirmed for your booking {booking.BookingReference}.";
-            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", "DriverAccepted",
-                "Driver confirmed", message,
-                () => _emailSender.SendAsync(booking.Customer.Email, "Driver confirmed", message));
+            var assignment = await _context.DriverAssignments
+                .Include(a => a.Driver)
+                .Where(a => a.BookingId == bookingId && a.AssignmentStatus == "Accepted")
+                .OrderByDescending(a => a.AssignedAt)
+                .FirstOrDefaultAsync();
 
-            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Phone, "WhatsApp", "DriverAccepted",
+            if (assignment?.Driver == null)
+            {
+                throw new InvalidOperationException("The driver hasn't accepted this booking yet, so there are no driver details to send");
+            }
+
+            var driver = assignment.Driver;
+            var message = $"Your RideReady booking {booking.BookingReference} is confirmed. " +
+                $"Your driver is {driver.Name} ({driver.Phone}), {driver.VehicleType} {driver.VehicleNumber}. " +
+                $"Pickup: {booking.PickupLocation} on {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}.";
+
+            await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", DriverDetailsEvent,
+                "Your RideReady driver", message,
+                () => _emailSender.SendAsync(booking.Customer.Email, "Your RideReady driver", message));
+
+            return await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Phone, "WhatsApp", DriverDetailsEvent,
                 null, message,
                 () => _whatsAppSender.SendAsync(booking.Customer.Phone, message));
-
-            var operatorMessage = $"Driver accepted booking {booking.BookingReference}.";
-            await SendAndLogAsync(bookingId, "Operator", null, _whatsAppSettings.OperatorPhone, "WhatsApp", "DriverAccepted",
-                null, operatorMessage,
-                () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
         }
 
         public async Task SendBookingCompletedNotificationAsync(int bookingId)
@@ -220,7 +247,7 @@ namespace RideReady.Services
                 () => _emailSender.SendAsync(booking.Customer.Email, "Booking marked as no-show", message));
         }
 
-        private async Task SendAndLogAsync(
+        private async Task<bool> SendAndLogAsync(
             int bookingId, string recipientType, int? recipientId, string recipientContact, string channel,
             string eventType, string? subject, string messageContent, Func<Task> send)
         {
@@ -263,6 +290,8 @@ namespace RideReady.Services
                 // action that triggered this notification. Don't let it bubble up and turn an already-
                 // successful booking/assignment/etc. into an unhandled error for the caller.
             }
+
+            return notification.DeliveryStatus == "Sent";
         }
     }
 }

@@ -158,5 +158,27 @@
         {
             <p class="text-muted small mt-2 mb-0">Assigned: @booking.AssignedDriverName (@booking.AssignedDriverPhone) &middot; @booking.AssignmentStatus</p>
         }
+
+        @if (booking.AssignmentStatus == "Accepted")
+        {
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 p-2 rounded" style="background: #e8f5e9; border: 1px solid #b7dfb9">
+                <span class="fw-bold small">Driver accepted</span>
+                <span class="small text-muted">
+                    @if (booking.DriverDetailsSentAt is DateTime detailsSentAt)
+                    {
+                        <text>Sent to customer @detailsSentAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</text>
+                    }
+                    else
+                    {
+                        <text>Not sent to the customer yet</text>
+                    }
+                </span>
+                <form asp-controller="Admin" asp-action="SendDriverDetails" method="post" class="ms-auto">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="bookingId" value="@booking.BookingId" />
+                    <button type="submit" class="btn btn-sm ride-btn-primary text-nowrap">@(booking.DriverDetailsSentAt == null ? "Send driver details to customer" : "Resend to customer")</button>
+                </form>
+            </div>
+        }
     </div>
 }

@@ -45,9 +45,18 @@ namespace RideReady.Services
                 .GroupBy(a => a.BookingId)
                 .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.AssignedAt).First());
 
+            var sentAtByBooking = (await _context.Notifications
+                .Where(n => bookingIds.Contains(n.BookingId) && n.EventType == NotificationService.DriverDetailsEvent
+                    && n.Channel == "WhatsApp" && n.DeliveryStatus == "Sent" && n.SentAt != null)
+                .Select(n => new { n.BookingId, SentAt = n.SentAt!.Value })
+                .ToListAsync())
+                .GroupBy(n => n.BookingId)
+                .ToDictionary(g => g.Key, g => g.Max(n => n.SentAt));
+
             return bookings.Select(b =>
             {
                 latestByBooking.TryGetValue(b.Id, out var assignment);
+                DateTime? detailsSentAt = sentAtByBooking.TryGetValue(b.Id, out var sentAt) ? sentAt.AddHours(8) : null;
                 return new AdminBookingListItemViewModel
                 {
                     BookingId = b.Id,
@@ -59,6 +68,7 @@ namespace RideReady.Services
                     PickupDate = b.PickupDate,
                     PickupTime = b.PickupTime,
                     BookedAt = b.CreatedAt.AddHours(8),
+                    DriverDetailsSentAt = detailsSentAt,
                     Passengers = b.Passengers,
                     Bags = b.Bags,
                     RequestedVehicleType = b.RequestedVehicleType,

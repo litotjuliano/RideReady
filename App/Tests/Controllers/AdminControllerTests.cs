@@ -277,6 +277,49 @@ namespace RideReady.Tests.Controllers
             Assert.NotNull(controller.TempData["ErrorMessage"]);
         }
 
+
+        [Fact]
+        public async Task SendDriverDetails_WhenDriverAccepted_SendsDriverDetailsToCustomerOnly()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            await new DriverAssignmentService(context).AssignDriverAsync(booking.Id, driver.Id);
+            var assignment = await context.DriverAssignments.FirstAsync(a => a.BookingId == booking.Id);
+            assignment.AssignmentStatus = "Accepted";
+            await context.SaveChangesAsync();
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = BuildController(context, whatsAppSender: whatsAppSender);
+
+            // Act
+            var result = await controller.SendDriverDetails(booking.Id);
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            var sent = Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0125183838", sent.To);
+            Assert.Contains(driver.Name, sent.Message);
+            Assert.Contains(driver.Phone, sent.Message);
+            Assert.Contains(driver.VehicleNumber, sent.Message);
+            Assert.Equal("Driver details sent to the customer.", controller.TempData["SuccessMessage"]);
+        }
+
+        [Fact]
+        public async Task SendDriverDetails_WhenDriverHasNotAccepted_RedirectsWithErrorAndSendsNothing()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            await new DriverAssignmentService(context).AssignDriverAsync(booking.Id, driver.Id); // still Pending
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = BuildController(context, whatsAppSender: whatsAppSender);
+
+            // Act
+            var result = await controller.SendDriverDetails(booking.Id);
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Empty(whatsAppSender.Sent);
+            Assert.Contains("accepted", (string)controller.TempData["ErrorMessage"]!);
+        }
         [Fact]
         public async Task SetFare_WithValidFare_RedirectsAndUpdatesQuote()
         {

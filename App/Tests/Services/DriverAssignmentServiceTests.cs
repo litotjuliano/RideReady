@@ -299,6 +299,31 @@ namespace RideReady.Tests.Services
             Assert.Equal(new DateTime(2026, 10, 17, 11, 9, 0), Assert.Single(result).BookedAt);
         }
 
+
+        [Fact]
+        public async Task GetDashboardBookingsAsync_ReportsWhenDriverDetailsWereSentToCustomer()
+        {
+            var context = GetInMemoryDbContext();
+            var service = new DriverAssignmentService(context);
+            var sentBooking = await SeedBookingAsync(context, "RR-SENT", new DateOnly(2026, 10, 12), new TimeOnly(9, 0));
+            var unsentBooking = await SeedBookingAsync(context, "RR-UNSENT", new DateOnly(2026, 10, 13), new TimeOnly(9, 0));
+            context.Notifications.Add(new Notification
+            {
+                BookingId = sentBooking.Id,
+                RecipientType = "Customer",
+                RecipientContact = "0125183838",
+                Channel = "WhatsApp",
+                EventType = NotificationService.DriverDetailsEvent,
+                DeliveryStatus = "Sent",
+                SentAt = new DateTime(2026, 10, 17, 3, 30, 0, DateTimeKind.Utc)
+            });
+            await context.SaveChangesAsync();
+
+            var result = await service.GetDashboardBookingsAsync();
+
+            Assert.Equal(new DateTime(2026, 10, 17, 11, 30, 0), result.Single(r => r.BookingId == sentBooking.Id).DriverDetailsSentAt);
+            Assert.Null(result.Single(r => r.BookingId == unsentBooking.Id).DriverDetailsSentAt);
+        }
         [Theory]
         [InlineData(null, "pickup")]
         [InlineData("", "pickup")]
