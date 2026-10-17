@@ -14,8 +14,9 @@ namespace RideReady.ViewModels
             return "-";
         }
 
-        public static string Route(string? from, string? pickupAddress, string? to, string? dropOffAddress) =>
-            $"{Place(from, pickupAddress)} -> {Place(to, dropOffAddress)}";
+        /// <summary>"From -> To". Pass a different arrow (for example a real arrow for screens) when needed.</summary>
+        public static string Route(string? from, string? pickupAddress, string? to, string? dropOffAddress, string arrow = "->") =>
+            $"{Place(from, pickupAddress)} {arrow} {Place(to, dropOffAddress)}";
 
         /// <summary>Customer-facing wording for how the trip is paid.</summary>
         public static string PaymentMethod(string? paymentMethod) =>

@@ -2,33 +2,30 @@
 @{
     ViewData["Title"] = "Dispatch Back Office";
     ViewData["PageHeading"] = "Dispatch back office";
+    ViewData["Bare"] = true;
+    ViewData["HidePublicHeader"] = true;
     var drivers = ViewBag.ActiveDrivers as List<RideReady.Models.Driver> ?? new();
     // "Driver_Assigned" is intentionally excluded here — it can only be reached via the
     // "Assign" form/button, which creates the matching DriverAssignment row. Setting it
     // through this free-form dropdown would leave the booking marked as assigned with no
     // driver ever notified (see DriverAssignmentService.UpdateBookingStatusAsync).
     var statuses = new[] { "New", "Confirmed", "Picked_Up", "In_Transit", "Dropped_Off", "Completed", "Cancelled", "No_Show" };
+    var currentSort = ViewBag.Sort as string ?? "booked";
+    var soonCount = Model.Count(b => b.PickupAlert == RideReady.ViewModels.DashboardAttention.PickupSoon);
+    var overdueCount = Model.Count(b => b.PickupAlert == RideReady.ViewModels.DashboardAttention.PickupOverdue);
 }
 
 @await Html.PartialAsync("_AdminHeader")
 
 @if (TempData["SuccessMessage"] is string successMessage)
 {
-    <div class="alert alert-success">@successMessage</div>
+    <div class="rr-ok rr-msg" role="status"><div><b>Done.</b><span>@successMessage</span></div></div>
 }
 @if (TempData["ErrorMessage"] is string errorMessage)
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="rr-err rr-msg" role="alert"><div><b>Could not do that.</b><span>@errorMessage</span></div></div>
 }
 
-
-@{
-    var currentSort = ViewBag.Sort as string ?? "booked";
-}
-@{
-    var soonCount = Model.Count(b => b.PickupAlert == RideReady.ViewModels.DashboardAttention.PickupSoon);
-    var overdueCount = Model.Count(b => b.PickupAlert == RideReady.ViewModels.DashboardAttention.PickupOverdue);
-}
 @if (soonCount + overdueCount > 0)
 {
     <div class="rr-flag-bar" role="status">
@@ -43,33 +40,49 @@
         }
     </div>
 }
-<form method="get" class="d-flex align-items-center justify-content-end gap-2 mb-3">
-    <label for="sort" class="small text-muted mb-0">Sort by</label>
-    <select id="sort" name="sort" class="form-select form-select-sm ride-input" style="max-width: 240px" onchange="this.form.submit()">
+
+<form method="get" class="rr-sort">
+    <label for="sort">Sort by</label>
+    <select id="sort" name="sort" class="rr-input" onchange="this.form.submit()">
         <option value="booked" selected="@(currentSort == "booked")">Date booked (newest first)</option>
         <option value="pickup" selected="@(currentSort == "pickup")">Scheduled date (earliest first)</option>
     </select>
-    <noscript><button type="submit" class="btn btn-sm btn-outline-secondary">Apply</button></noscript>
+    <noscript><button type="submit" class="rr-btn rr-btn-sec rr-btn-sm">Apply</button></noscript>
 </form>
+
+@if (!Model.Any())
+{
+    <div class="rr-acard"><p class="rr-note mb-0">No active bookings right now. New bookings appear here as soon as customers submit them.</p></div>
+}
+
 @foreach (var booking in Model)
 {
-    <div class="ride-card mb-3">
+    var vehicleImage = booking.RequestedVehicleType switch
+    {
+        "Van" => "vehicle-van.svg",
+        "Bus" => "vehicle-bus.svg",
+        _ => "vehicle-sedan.svg"
+    };
+
+    <article class="rr-acard">
         @await Html.PartialAsync("_StatusStepper", booking.Status)
-        <div class="d-flex justify-content-between flex-wrap gap-2">
-            <div>
-                <div class="d-flex align-items-center gap-2">
-                    <h2 class="h5 fw-bold mb-0">@booking.CustomerName</h2>
-                    <span class="ride-pill">@booking.Status</span>
+
+        <div class="rr-head">
+            <div class="rr-who">
+                <img src="~/images/@vehicleImage" alt="@booking.RequestedVehicleType" />
+                <div>
+                    <h2>@booking.CustomerName</h2>
+                    <span class="rr-badge">@booking.Status</span>
                     @if (booking.PickupAlert != null)
                     {
-                        <span class="rr-flag" role="status">@booking.PickupAlert</span>
+                        <span class="rr-flag rr-flag-inline" role="status">@booking.PickupAlert</span>
                     }
+                    <p class="rr-ref">@booking.BookingReference &middot; @booking.CustomerPhone</p>
                 </div>
-                <p class="text-muted small mb-0">@booking.BookingReference &middot; @booking.CustomerPhone</p>
             </div>
-            <div class="text-end">
-                <p class="fw-bold mb-0">@booking.PickupDate.ToString("yyyy-MM-dd") &middot; @booking.PickupTime.ToString("HH:mm")</p>
-                <p class="text-muted small mb-0">Booked @booking.BookedAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</p>
+            <div class="rr-when">
+                <strong>@booking.PickupDate.ToString("yyyy-MM-dd") &middot; @booking.PickupTime.ToString("HH:mm")</strong>
+                <span>Booked @booking.BookedAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</span>
                 @{
                     // The fare can be set or changed until the trip starts (New, Driver_Assigned,
                     // Confirmed). From Picked_Up onward it is locked — changing it mid/after the trip
@@ -80,39 +93,39 @@
                 {
                     @if (fareIsEditable)
                     {
-                        <div class="d-flex align-items-center gap-2 justify-content-end" id="fare-display-@booking.BookingId">
-                            <p class="text-muted small mb-0">Est. fare: RM @fare.ToString("0.00")</p>
-                            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" onclick="document.getElementById('fare-display-@booking.BookingId').classList.add('d-none'); document.getElementById('fare-form-@booking.BookingId').classList.remove('d-none');">Edit</button>
+                        <div class="rr-price" id="fare-display-@booking.BookingId">
+                            <span>Est. fare: RM @fare.ToString("0.00")</span>
+                            <button type="button" class="rr-btn rr-btn-sec rr-btn-sm" onclick="document.getElementById('fare-display-@booking.BookingId').classList.add('d-none'); document.getElementById('fare-form-@booking.BookingId').classList.remove('d-none');">Edit</button>
                         </div>
-                        <form id="fare-form-@booking.BookingId" asp-controller="Admin" asp-action="SetFare" method="post" class="d-flex gap-1 justify-content-end d-none">
+                        <form id="fare-form-@booking.BookingId" asp-controller="Admin" asp-action="SetFare" method="post" class="rr-price d-none">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="BookingId" value="@booking.BookingId" />
-                            <input type="number" step="0.01" min="0.01" name="Fare" value="@fare.ToString("0.00")" class="form-control form-control-sm ride-input" placeholder="RM" style="max-width: 100px" required />
-                            <button type="submit" class="btn btn-sm ride-btn-primary text-nowrap">Save</button>
+                            <input type="number" step="0.01" min="0.01" name="Fare" value="@fare.ToString("0.00")" class="rr-input" placeholder="RM" aria-label="Price in RM" required />
+                            <button type="submit" class="rr-btn">Save</button>
                         </form>
                     }
                     else
                     {
-                        <p class="text-muted small mb-1">Est. fare: RM @fare.ToString("0.00")</p>
+                        <span>Est. fare: RM @fare.ToString("0.00")</span>
                     }
                 }
                 else
                 {
-                    <p class="text-muted small mb-1">Price not set (automatic estimate unavailable)</p>
+                    <span>Price not set (automatic estimate unavailable)</span>
                     @if (fareIsEditable)
                     {
-                        <form asp-controller="Admin" asp-action="SetFare" method="post" class="d-flex gap-1 justify-content-end">
+                        <form asp-controller="Admin" asp-action="SetFare" method="post" class="rr-price">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="BookingId" value="@booking.BookingId" />
-                            <input type="number" step="0.01" min="0.01" name="Fare" class="form-control form-control-sm ride-input" placeholder="RM" style="max-width: 100px" required />
-                            <button type="submit" class="btn btn-sm ride-btn-primary text-nowrap">Save price</button>
+                            <input type="number" step="0.01" min="0.01" name="Fare" class="rr-input" placeholder="RM" aria-label="Price in RM" required />
+                            <button type="submit" class="rr-btn">Save price</button>
                         </form>
                     }
                 }
             </div>
         </div>
 
-        <div class="ride-section-label">Trip</div>
+        <div class="rr-sec-label">Trip</div>
         @await Html.PartialAsync("_TripDetails", RideReady.ViewModels.TripDetailsViewModel.ForAdmin(booking))
 
         @{
@@ -122,12 +135,12 @@
             var matchingDrivers = drivers.Where(d => d.VehicleType == booking.RequestedVehicleType).ToList();
             var dropdownDrivers = matchingDrivers.Any() ? matchingDrivers : drivers;
         }
-        <div class="row g-2 mt-2">
-            <div class="col-md-6">
-                <form asp-controller="Admin" asp-action="AssignDriver" method="post" class="d-flex gap-2">
+        <div class="rr-actions">
+            <div>
+                <form asp-controller="Admin" asp-action="AssignDriver" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="BookingId" value="@booking.BookingId" />
-                    <select name="DriverId" class="form-select ride-input">
+                    <select name="DriverId" class="rr-input" aria-label="Driver">
                         @foreach (var driver in dropdownDrivers)
                         {
                             var label = $"{driver.Name} ({driver.VehicleType})";
@@ -147,18 +160,18 @@
                             }
                         }
                     </select>
-                    <button type="submit" class="btn ride-btn-primary text-nowrap">Assign</button>
+                    <button type="submit" class="rr-btn">Assign</button>
                 </form>
                 @if (!matchingDrivers.Any())
                 {
-                    <p class="text-warning small mt-1 mb-0">No @booking.RequestedVehicleType drivers available — showing all drivers</p>
+                    <p class="rr-warn">No @booking.RequestedVehicleType drivers available — showing all drivers</p>
                 }
             </div>
-            <div class="col-md-6">
-                <form asp-controller="Admin" asp-action="UpdateStatus" method="post" class="d-flex gap-2">
+            <div>
+                <form asp-controller="Admin" asp-action="UpdateStatus" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="BookingId" value="@booking.BookingId" />
-                    <select name="NewStatus" class="form-select ride-input">
+                    <select name="NewStatus" class="rr-input" aria-label="Status">
                         @foreach (var status in statuses)
                         {
                             @if (status == booking.Status)
@@ -171,36 +184,50 @@
                             }
                         }
                     </select>
-                    <button type="submit" class="btn btn-outline-secondary text-nowrap">Update status</button>
+                    <button type="submit" class="rr-btn rr-btn-sec">Update status</button>
                 </form>
             </div>
         </div>
 
         @if (booking.AssignedDriverName != null)
         {
-            <p class="text-muted small mt-2 mb-0">Assigned: @booking.AssignedDriverName (@booking.AssignedDriverPhone) &middot; @booking.AssignmentStatus</p>
+            <p class="rr-note">Assigned: @booking.AssignedDriverName (@booking.AssignedDriverPhone) &middot; @booking.AssignmentStatus</p>
         }
 
         @if (booking.AssignmentStatus == "Accepted")
         {
-            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 p-2 rounded" style="background: #e8f5e9; border: 1px solid #b7dfb9">
-                <span class="fw-bold small">Driver accepted</span>
-                <span class="small text-muted">
-                    @if (booking.DriverDetailsSentAt is DateTime detailsSentAt)
-                    {
-                        <text>Sent to customer @detailsSentAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</text>
-                    }
-                    else
-                    {
-                        <text>Not sent to the customer yet</text>
-                    }
-                </span>
-                <form asp-controller="Admin" asp-action="SendDriverDetails" method="post" class="ms-auto">
+            <div class="rr-ok">
+                <div>
+                    <b>Driver accepted</b>
+                    <span>
+                        @if (booking.DriverDetailsSentAt is DateTime detailsSentAt)
+                        {
+                            <text>Sent to customer @detailsSentAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</text>
+                        }
+                        else
+                        {
+                            <text>Not sent to the customer yet</text>
+                        }
+                    </span>
+                </div>
+                <form asp-controller="Admin" asp-action="SendDriverDetails" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="bookingId" value="@booking.BookingId" />
-                    <button type="submit" class="btn btn-sm ride-btn-primary text-nowrap">@(booking.DriverDetailsSentAt == null ? "Send driver details to customer" : "Resend to customer")</button>
+                    <button type="submit" class="rr-btn rr-btn-sm">@(booking.DriverDetailsSentAt == null ? "Send driver details to customer" : "Resend to customer")</button>
                 </form>
             </div>
         }
-    </div>
+    </article>
+}
+
+@section Scripts {
+    <script>
+        // On a phone the seven steps scroll sideways; bring each booking's current step into view.
+        document.querySelectorAll(".rr-trip-steps").forEach(function (steps) {
+            var now = steps.querySelector(".rr-ts-now");
+            if (now) {
+                steps.scrollLeft = now.offsetLeft - (steps.clientWidth - now.clientWidth) / 2;
+            }
+        });
+    </script>
 }

@@ -4,6 +4,8 @@
     // Restyled pages set ViewData["Bare"] = true: they bring their own full-width layout, so the layout only
     // supplies the RideReady header, the page background and a small footer.
     var bare = ViewData["Bare"] as bool? ?? false;
+    // Back-office pages draw their own banner (logo, title, navigation) and sit inside a wide wrapper.
+    var backOffice = ViewData["HidePublicHeader"] as bool? ?? false;
 }
 <head>
     <meta charset="utf-8" />
@@ -21,9 +23,19 @@
 <body class="@(bare ? "rr-body" : null)">
     @if (bare)
     {
-        <partial name="_PublicHeader" />
+        @if (!backOffice)
+        {
+            <partial name="_PublicHeader" />
+        }
         <main role="main">
-            @RenderBody()
+            @if (backOffice)
+            {
+                <div class="rr-wrap">@RenderBody()</div>
+            }
+            else
+            {
+                @RenderBody()
+            }
         </main>
         <footer class="rr-foot">
             &copy; 2026 RideReady &middot; <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>

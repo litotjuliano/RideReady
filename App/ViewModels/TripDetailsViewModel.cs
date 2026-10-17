@@ -74,7 +74,7 @@ namespace RideReady.ViewModels
             if (!string.IsNullOrWhiteSpace(CustomerEmail)) customer += $" · {CustomerEmail}";
             rows.Add(("Customer", customer));
 
-            rows.Add(("Route", TripText.Route(FromName, PickupLocation, ToName, Destination)));
+            rows.Add(("Route", TripText.Route(FromName, PickupLocation, ToName, Destination, arrow: "→")));
 
             var pickup = $"{PickupDate:yyyy-MM-dd} {PickupTime:HH:mm}";
             if (!string.IsNullOrWhiteSpace(PickupLocation)) pickup += $" · {PickupLocation.Trim()}";

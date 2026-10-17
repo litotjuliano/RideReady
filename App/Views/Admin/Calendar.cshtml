@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = "Driver Calendar";
     ViewData["PageHeading"] = "Driver calendar";
+    ViewData["Bare"] = true;
+    ViewData["HidePublicHeader"] = true;
     var selectedDate = (DateOnly)ViewBag.SelectedDate;
     var calendarView = (string)ViewBag.CalendarView;
     var isMonthView = calendarView == "month";
