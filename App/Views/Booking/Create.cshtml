@@ -5,6 +5,10 @@
     var today = DateTime.Today.ToString("yyyy-MM-dd");
     var maxDate = DateTime.Today.AddDays(30).ToString("yyyy-MM-dd");
     var maxDropOffDate = DateTime.Today.AddDays(31).ToString("yyyy-MM-dd");
+    // Passenger limits per vehicle come from one place (VehicleCapacity), shared with the server-side checks.
+    var carMax = RideReady.ViewModels.VehicleCapacity.MaxFor("Car");
+    var vanMax = RideReady.ViewModels.VehicleCapacity.MaxFor("Van");
+    var busMax = RideReady.ViewModels.VehicleCapacity.MaxFor("Bus");
 }
 
 <div class="rr-hero">
@@ -112,6 +116,8 @@
                     <div class="rr-field">
                         <label asp-for="Passengers" class="rr-label"></label>
                         <input asp-for="Passengers" type="number" min="1" max="8" />
+                        <span class="rr-hint" id="PassengersHint">Up to 8 passengers.</span>
+                        <span class="rr-error" id="PassengersCapacity" role="alert" hidden></span>
                         <span asp-validation-for="Passengers" class="rr-error"></span>
                     </div>
                     <div class="rr-field">
@@ -125,16 +131,16 @@
                         <span class="rr-label" id="VehicleTypeLabel">@Html.DisplayNameFor(m => m.VehicleType)</span>
                         <div class="rr-veh-wrap" role="radiogroup" aria-labelledby="VehicleTypeLabel">
                             <label class="rr-veh" for="VehicleType">
-                                <input asp-for="VehicleType" type="radio" value="Car" id="VehicleType" />
-                                <span><img src="~/images/vehicle-sedan.svg" alt="" />Car</span>
+                                <input asp-for="VehicleType" type="radio" value="Car" id="VehicleType" data-capacity="@carMax" />
+                                <span><img src="~/images/vehicle-sedan.svg" alt="" />Car<small>Up to @carMax passengers</small></span>
                             </label>
                             <label class="rr-veh" for="VehicleType_Van">
-                                <input asp-for="VehicleType" type="radio" value="Van" id="VehicleType_Van" />
-                                <span><img src="~/images/vehicle-van.svg" alt="" />Van</span>
+                                <input asp-for="VehicleType" type="radio" value="Van" id="VehicleType_Van" data-capacity="@vanMax" />
+                                <span><img src="~/images/vehicle-van.svg" alt="" />Van<small>Up to @vanMax passengers</small></span>
                             </label>
                             <label class="rr-veh" for="VehicleType_Bus">
-                                <input asp-for="VehicleType" type="radio" value="Bus" id="VehicleType_Bus" />
-                                <span><img src="~/images/vehicle-bus.svg" alt="" />Bus</span>
+                                <input asp-for="VehicleType" type="radio" value="Bus" id="VehicleType_Bus" data-capacity="@busMax" />
+                                <span><img src="~/images/vehicle-bus.svg" alt="" />Bus<small>Up to @busMax passengers</small></span>
                             </label>
                         </div>
                         <span asp-validation-for="VehicleType" class="rr-error"></span>
@@ -216,6 +222,71 @@
             };
             pickupDate.addEventListener("change", sync);
             sync();
+        })();
+    </script>
+
+    <script>
+        // Passenger limit per vehicle. The numbers come from the server (data-capacity on each vehicle card), which
+        // reads them from VehicleCapacity, and the server checks the same rule again on submit.
+        (function () {
+            var passengers = document.getElementById("Passengers");
+            var hint = document.getElementById("PassengersHint");
+            var message = document.getElementById("PassengersCapacity");
+            var radios = Array.prototype.slice.call(document.querySelectorAll('input[name="VehicleType"]'));
+            if (!passengers || !hint || !message || radios.length === 0) { return; }
+
+            var largest = Number(passengers.getAttribute("max")) || 8;
+
+            function selected() {
+                return radios.filter(function (r) { return r.checked; })[0] || null;
+            }
+
+            function capacityOf(radio) {
+                return Number(radio.getAttribute("data-capacity")) || largest;
+            }
+
+            // Vehicle types big enough for the number of passengers.
+            function biggerThan(count) {
+                return radios.filter(function (r) { return capacityOf(r) >= count; }).map(function (r) { return r.value; });
+            }
+
+            function check() {
+                var radio = selected();
+                var count = Number(passengers.value);
+                var tooMany = !!radio && count > capacityOf(radio);
+
+                hint.hidden = tooMany;
+                hint.textContent = radio
+                    ? "A " + radio.value + " carries up to " + capacityOf(radio) + " passengers."
+                    : "Up to " + largest + " passengers.";
+
+                if (tooMany) {
+                    var options = biggerThan(count);
+                    message.textContent = "A " + radio.value + " carries up to " + capacityOf(radio) + " passengers. " +
+                        (options.length ? "Choose a " + options.join(" or ") + "." : "Please contact us for a larger group.");
+                    message.hidden = false;
+                    passengers.setAttribute("aria-invalid", "true");
+                    passengers.classList.add("rr-invalid");
+                } else {
+                    message.textContent = "";
+                    message.hidden = true;
+                    passengers.removeAttribute("aria-invalid");
+                    passengers.classList.remove("rr-invalid");
+                }
+                return !tooMany;
+            }
+
+            passengers.addEventListener("input", check);
+            radios.forEach(function (r) { r.addEventListener("change", check); });
+            if (passengers.form) {
+                passengers.form.addEventListener("submit", function (event) {
+                    if (!check()) {
+                        event.preventDefault();
+                        passengers.focus();
+                    }
+                });
+            }
+            check();
         })();
     </script>
 }

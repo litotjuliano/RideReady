@@ -39,6 +39,9 @@ namespace RideReady.Services
             if (dropOffDate.ToDateTime(dropOffTime) <= requestedDateTime)
                 throw new InvalidOperationException("Drop-off must be after the pickup time");
 
+            if (VehicleCapacity.ExceededMessage(request.VehicleType, request.Passengers) is string tooManyPassengers)
+                throw new InvalidOperationException(tooManyPassengers);
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
