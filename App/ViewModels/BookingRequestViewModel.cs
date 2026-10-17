@@ -21,16 +21,19 @@ namespace RideReady.ViewModels
         public string CustomerEmail { get; set; } = string.Empty;
 
         [Display(Name = "From")]
-        [StringLength(255)]
+        [Required(ErrorMessage = "From is required")]
+        [StringLength(255, MinimumLength = 2)]
         public string? FromName { get; set; }
 
         [Display(Name = "To")]
-        [StringLength(255)]
+        [Required(ErrorMessage = "To is required")]
+        [StringLength(255, MinimumLength = 2)]
         public string? ToName { get; set; }
 
-        // Stored in Booking.PickupLocation. Optional: a short "From" name is enough for some trips.
+        // Stored in Booking.PickupLocation.
         [Display(Name = "Pick up address")]
-        [StringLength(255)]
+        [Required(ErrorMessage = "Pick up address is required")]
+        [StringLength(255, MinimumLength = 5)]
         public string? PickupLocation { get; set; }
 
         // Stored in Booking.Destination.

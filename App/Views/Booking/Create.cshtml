@@ -55,19 +55,16 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label asp-for="FromName" class="form-label fw-semibold"></label>
-                            <span class="text-muted small">(optional)</span>
                             <input asp-for="FromName" maxlength="255" class="form-control ride-input" placeholder="e.g. KLIA Terminal 1" />
                             <span asp-validation-for="FromName" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="ToName" class="form-label fw-semibold"></label>
-                            <span class="text-muted small">(optional)</span>
                             <input asp-for="ToName" maxlength="255" class="form-control ride-input" placeholder="e.g. Mid Valley" />
                             <span asp-validation-for="ToName" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="PickupLocation" class="form-label fw-semibold"></label>
-                            <span class="text-muted small">(optional)</span>
                             <textarea asp-for="PickupLocation" rows="2" maxlength="255" data-count="PickupLocation" class="form-control ride-input" placeholder="Full pick up address"></textarea>
                             <div class="form-text text-end" style="font-size: 0.75rem;"><span data-count-for="PickupLocation">0</span>/255</div>
                             <span asp-validation-for="PickupLocation" class="text-danger small"></span>

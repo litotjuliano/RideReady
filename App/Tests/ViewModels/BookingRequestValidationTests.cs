@@ -43,15 +43,28 @@ namespace RideReady.Tests.ViewModels
         }
 
         [Fact]
-        public void OptionalFields_CanBeLeftBlank()
+        public void Remarks_AreTheOnlyOptionalField()
         {
             var model = ValidRequest();
-            model.FromName = null;
-            model.ToName = null;
-            model.PickupLocation = null;
             model.Notes = null;
 
             Assert.Empty(Validate(model));
+        }
+
+        [Theory]
+        [InlineData("FromName")]
+        [InlineData("ToName")]
+        [InlineData("PickupLocation")]
+        [InlineData("Destination")]
+        public void TripFields_AreAllRequired(string member)
+        {
+            foreach (var blank in new string?[] { null, "", "   " })
+            {
+                var model = ValidRequest();
+                typeof(BookingRequestViewModel).GetProperty(member)!.SetValue(model, blank);
+
+                Assert.True(HasErrorFor(Validate(model), member), $"{member} = '{blank}' should be rejected");
+            }
         }
 
         [Fact]
