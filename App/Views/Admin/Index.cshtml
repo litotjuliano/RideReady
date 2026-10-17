@@ -48,10 +48,10 @@
                 <p class="fw-bold mb-0">@booking.PickupDate.ToString("yyyy-MM-dd") &middot; @booking.PickupTime.ToString("HH:mm")</p>
                 <p class="text-muted small mb-0">Booked @booking.BookedAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</p>
                 @{
-                    // Once a booking has moved past "New" (confirmed, driver assigned, or
-                    // further along the trip lifecycle), the fare is locked — editing it
-                    // after the customer has been quoted/confirmed would be misleading.
-                    var fareIsEditable = booking.Status == "New";
+                    // The fare can be set or changed until the trip starts (New, Driver_Assigned,
+                    // Confirmed). From Picked_Up onward it is locked — changing it mid/after the trip
+                    // would be misleading.
+                    var fareIsEditable = RideReady.Services.BookingService.FareEditableStatuses.Contains(booking.Status);
                 }
                 @if (booking.EstimatedFare is decimal fare && fare > 0)
                 {

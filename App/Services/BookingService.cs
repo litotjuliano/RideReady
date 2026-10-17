@@ -168,6 +168,9 @@ namespace RideReady.Services
             };
         }
 
+        /// <summary>Statuses in which the admin may still set or change the fare — any time before the trip starts.</summary>
+        public static readonly string[] FareEditableStatuses = { "New", "Driver_Assigned", "Confirmed" };
+
         public async Task SetManualFareAsync(int bookingId, decimal fare)
         {
             if (fare <= 0)
@@ -180,9 +183,9 @@ namespace RideReady.Services
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
-            if (booking.Status != "New")
+            if (!FareEditableStatuses.Contains(booking.Status))
             {
-                throw new InvalidOperationException($"Cannot edit the fare — booking is already '{booking.Status}'");
+                throw new InvalidOperationException($"Cannot edit the fare — the trip is already '{booking.Status}' (the fare can only be changed before pickup)");
             }
 
             if (booking.Quote == null)

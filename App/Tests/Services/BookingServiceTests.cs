@@ -202,8 +202,37 @@ namespace RideReady.Tests.Services
                 () => service.SetManualFareAsync(9999, 50m));
         }
 
-        [Fact]
-        public async Task SetManualFareAsync_WhenBookingNoLongerNew_ThrowsAndDoesNotChangeFare()
+        [Theory]
+        [InlineData("New")]
+        [InlineData("Driver_Assigned")]
+        [InlineData("Confirmed")]
+        public async Task SetManualFareAsync_BeforePickup_AllowsSettingAndChangingTheFare(string status)
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var service = new BookingService(context, new ThrowingLocationService());
+            var booking = await service.CreateBookingAsync(ValidRequest());
+            var trackedBooking = await context.Bookings.FindAsync(booking.Id);
+            trackedBooking!.Status = status;
+            await context.SaveChangesAsync();
+
+            // Act
+            await service.SetManualFareAsync(booking.Id, 100m);
+            await service.SetManualFareAsync(booking.Id, 150m);
+
+            // Assert
+            var quote = await context.BookingQuotes.FirstAsync(q => q.BookingId == booking.Id);
+            Assert.Equal(150m, quote.TotalEstimatedFare);
+            Assert.Equal(150m, quote.ActualFare);
+        }
+
+        [Theory]
+        [InlineData("Picked_Up")]
+        [InlineData("In_Transit")]
+        [InlineData("Dropped_Off")]
+        [InlineData("Completed")]
+        [InlineData("Cancelled")]
+        public async Task SetManualFareAsync_OnceTheTripHasStarted_ThrowsAndDoesNotChangeFare(string status)
         {
             // Arrange
             var context = GetInMemoryDbContext();
@@ -212,13 +241,13 @@ namespace RideReady.Tests.Services
             await service.SetManualFareAsync(booking.Id, 100m);
 
             var trackedBooking = await context.Bookings.FindAsync(booking.Id);
-            trackedBooking!.Status = "Confirmed";
+            trackedBooking!.Status = status;
             await context.SaveChangesAsync();
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => service.SetManualFareAsync(booking.Id, 200m));
-            Assert.Contains("Confirmed", ex.Message);
+            Assert.Contains(status, ex.Message);
 
             var quote = await context.BookingQuotes.FirstAsync(q => q.BookingId == booking.Id);
             Assert.Equal(100m, quote.TotalEstimatedFare);

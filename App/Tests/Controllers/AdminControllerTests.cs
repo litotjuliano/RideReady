@@ -371,6 +371,37 @@ namespace RideReady.Tests.Controllers
         }
 
         [Fact]
+        public async Task SetFare_WhenDriverAlreadyAcceptedAndBookingConfirmed_SavesFareAndSendsPriceToCustomer()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            context.BookingQuotes.Add(new Models.BookingQuote
+            {
+                BookingId = booking.Id,
+                TotalEstimatedFare = 0,
+                PaymentMethod = "Pay_at_Pickup"
+            });
+            await context.SaveChangesAsync();
+            await new DriverAssignmentService(context).AssignDriverAsync(booking.Id, driver.Id);
+            var tracked = await context.Bookings.FindAsync(booking.Id);
+            tracked!.Status = "Confirmed";
+            await context.SaveChangesAsync();
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = BuildController(context, whatsAppSender: whatsAppSender);
+
+            // Act
+            await controller.SetFare(new SetFareViewModel { BookingId = booking.Id, Fare = 88.00m });
+
+            // Assert
+            var quote = await context.BookingQuotes.FirstAsync(q => q.BookingId == booking.Id);
+            Assert.Equal(88.00m, quote.TotalEstimatedFare);
+            Assert.Equal("Fare saved.", controller.TempData["SuccessMessage"]);
+            var sent = Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0125183838", sent.To);
+            Assert.Contains("RM88.00", sent.Message);
+        }
+
+        [Fact]
         public async Task SetFare_WithNonexistentBooking_RedirectsWithErrorMessageInsteadOfThrowing()
         {
             // Arrange
