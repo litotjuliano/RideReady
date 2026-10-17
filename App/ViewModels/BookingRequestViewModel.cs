@@ -4,85 +4,94 @@ namespace RideReady.ViewModels
 {
     public class BookingRequestViewModel : IValidatableObject
     {
+        /// <summary>The starting values of an empty booking form: today's date, a Car and one passenger.</summary>
+        public static BookingRequestViewModel NewForm(DateOnly today) => new()
+        {
+            PickupDate = today,
+            DropOffDate = today,
+            VehicleType = "Car",
+            Passengers = 1
+        };
+
         [Display(Name = "Full name")]
-        [Required(ErrorMessage = "Name is required")]
-        [StringLength(100, MinimumLength = 3)]
+        [Required(ErrorMessage = "Please enter your full name.")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Please enter your full name, between 3 and 100 characters.")]
         public string CustomerName { get; set; } = string.Empty;
 
         [Display(Name = "Phone")]
-        [Required(ErrorMessage = "Phone is required")]
+        [Required(ErrorMessage = "Please enter your phone number.")]
         [RegularExpression(@"^(\+60[0-9]{9,10}|0[0-9]{1,2}-?[0-9]{7,8})$",
-            ErrorMessage = "Invalid Malaysian phone number. Use +60XXXXXXXXX or 01X-XXXXXXXX format")]
+            ErrorMessage = "Enter a Malaysian phone number, like 012-3456789.")]
         public string CustomerPhone { get; set; } = string.Empty;
 
         [Display(Name = "Email")]
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress]
+        [Required(ErrorMessage = "Please enter your email address.")]
+        [EmailAddress(ErrorMessage = "Enter a full email address, like you@example.com.")]
         public string CustomerEmail { get; set; } = string.Empty;
 
         [Display(Name = "From")]
-        [Required(ErrorMessage = "From is required")]
-        [StringLength(255, MinimumLength = 2)]
+        [Required(ErrorMessage = "Please enter where you are starting from.")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "Please use between 2 and 255 characters.")]
         public string? FromName { get; set; }
 
         [Display(Name = "To")]
-        [Required(ErrorMessage = "To is required")]
-        [StringLength(255, MinimumLength = 2)]
+        [Required(ErrorMessage = "Please enter where you are going to.")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "Please use between 2 and 255 characters.")]
         public string? ToName { get; set; }
 
         // Stored in Booking.PickupLocation.
         [Display(Name = "Pick up address")]
-        [Required(ErrorMessage = "Pick up address is required")]
-        [StringLength(255, MinimumLength = 5)]
+        [Required(ErrorMessage = "Please enter the pick up address.")]
+        [StringLength(255, MinimumLength = 5, ErrorMessage = "Please use between 5 and 255 characters.")]
         public string? PickupLocation { get; set; }
 
         // Stored in Booking.Destination.
         [Display(Name = "Drop-off address")]
-        [Required(ErrorMessage = "Drop-off address is required")]
-        [StringLength(255, MinimumLength = 5)]
+        [Required(ErrorMessage = "Please enter the drop-off address.")]
+        [StringLength(255, MinimumLength = 5, ErrorMessage = "Please use between 5 and 255 characters.")]
         public string Destination { get; set; } = string.Empty;
 
         [Display(Name = "Pickup date")]
-        [Required(ErrorMessage = "Pickup date is required")]
+        [Required(ErrorMessage = "Please choose a pickup date.")]
         public DateOnly PickupDate { get; set; }
 
         [Display(Name = "Pickup time")]
-        [Required(ErrorMessage = "Pickup time is required")]
+        [Required(ErrorMessage = "Please choose a pickup time.")]
         public TimeOnly PickupTime { get; set; }
 
         [Display(Name = "Drop-off date")]
-        [Required(ErrorMessage = "Drop-off date is required")]
+        [Required(ErrorMessage = "Please choose a drop-off date.")]
         public DateOnly? DropOffDate { get; set; }
 
         [Display(Name = "Drop-off time (approximate)")]
-        [Required(ErrorMessage = "Drop-off time is required")]
+        [Required(ErrorMessage = "Please choose an approximate drop-off time.")]
         public TimeOnly? DropOffTime { get; set; }
 
         [Display(Name = "Passengers")]
-        [Required(ErrorMessage = "Passengers count is required")]
-        [Range(1, 8)]
+        [Required(ErrorMessage = "Please enter how many passengers.")]
+        [Range(1, VehicleCapacity.HardLimit, ErrorMessage = "Please enter between 1 and 100 passengers.")]
         public int Passengers { get; set; }
 
         [Display(Name = "Bags")]
-        [Required(ErrorMessage = "Bags count is required")]
-        [Range(0, 10)]
+        [Required(ErrorMessage = "Please enter how many bags (0 if none).")]
+        [Range(0, 10, ErrorMessage = "Please enter between 0 and 10 bags.")]
         public int Bags { get; set; }
 
         [Display(Name = "Vehicle type")]
-        [Required(ErrorMessage = "Vehicle type is required")]
-        [RegularExpression("^(Car|Van|Bus)$")]
+        [Required(ErrorMessage = "Please choose a vehicle type.")]
+        [RegularExpression("^(Car|Van|Bus)$", ErrorMessage = "Please choose Car, Van or Bus.")]
         public string VehicleType { get; set; } = string.Empty;
 
         [Display(Name = "Remarks")]
-        [StringLength(500)]
+        [StringLength(500, ErrorMessage = "Please keep remarks under 500 characters.")]
         public string? Notes { get; set; }
 
         [Display(Name = "Payment method")]
-        [Required(ErrorMessage = "Payment method is required")]
-        [RegularExpression("^(Pay_at_Pickup|Bank_Transfer)$")]
+        [Required(ErrorMessage = "Please choose a payment method.")]
+        [RegularExpression("^(Pay_at_Pickup|Bank_Transfer)$", ErrorMessage = "Please choose Pay at Pickup or Bank Transfer.")]
         public string PaymentMethod { get; set; } = "Pay_at_Pickup";
 
-        [MustBeTrue(ErrorMessage = "You must accept the terms and conditions")]
+        [MustBeTrue(ErrorMessage = "Please accept the terms and conditions to continue.")]
         public bool AcceptedTerms { get; set; }
 
         /// <summary>The approximate drop-off must come after the pickup.</summary>
@@ -92,7 +101,7 @@ namespace RideReady.ViewModels
                 && dropOffDate.ToDateTime(dropOffTime) <= PickupDate.ToDateTime(PickupTime))
             {
                 yield return new ValidationResult(
-                    "Drop-off must be after the pickup time",
+                    "The drop-off time must be after the pickup time.",
                     new[] { nameof(DropOffTime) });
             }
         }

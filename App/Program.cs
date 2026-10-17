@@ -9,7 +9,18 @@ using Microsoft.AspNetCore.HttpOverrides;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    // Plain-words messages for values that can't even be read (for example text typed into a number box),
+    // in the same voice as the validation messages on the forms.
+    var messages = options.ModelBindingMessageProvider;
+    messages.SetValueIsInvalidAccessor(_ => "That doesn't look right. Please check it and try again.");
+    messages.SetAttemptedValueIsInvalidAccessor((_, field) => $"Please check the {field.ToLowerInvariant()}.");
+    messages.SetValueMustBeANumberAccessor(field => $"Please enter the {field.ToLowerInvariant()} as a number.");
+    messages.SetValueMustNotBeNullAccessor(_ => "Please fill in this field.");
+    messages.SetMissingBindRequiredValueAccessor(field => $"Please fill in the {field.ToLowerInvariant()}.");
+    messages.SetMissingKeyOrValueAccessor(() => "Please fill in this field.");
+});
 
 // Persist data-protection keys (antiforgery tokens, auth cookies) across container restarts/deploys.
 var keysPath = builder.Configuration["DataProtection:KeysPath"];

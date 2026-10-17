@@ -21,6 +21,11 @@ namespace RideReady.ViewModels
         [StringLength(50)]
         public string VehicleNumber { get; set; } = string.Empty;
 
+        [Display(Name = "Passenger capacity")]
+        [Required(ErrorMessage = "Enter how many passengers the vehicle carries")]
+        [Range(1, VehicleCapacity.HardLimit, ErrorMessage = "Passenger capacity must be between 1 and 100")]
+        public int? PassengerCapacity { get; set; }
+
         [Required(ErrorMessage = "A 4-6 digit PIN is required for driver portal login")]
         [RegularExpression(@"^\d{4,6}$", ErrorMessage = "PIN must be 4-6 digits")]
         public string Pin { get; set; } = string.Empty;

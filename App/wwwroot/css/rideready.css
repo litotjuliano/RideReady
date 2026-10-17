@@ -1,0 +1,1539 @@
+/*
+ * RideReady design system — page styles.
+ * Every colour, space, radius, shadow and font comes from rideready-tokens.css.
+ * Scoped under body.rr-body so pages that haven't been restyled yet are not affected.
+ */
+
+:root {
+    /* The client logo always sits on a white plate, in every theme. */
+    --logo-plate: #ffffff;
+    /* White outline and soft shadow around the "Let's go" sticker. */
+    --sticker-outline: #ffffff;
+    --sticker-shadow: rgba(5, 20, 12, 0.35);
+}
+
+/* ---------- Base ---------- */
+body.rr-body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--ink);
+    background-color: var(--surface-100);
+}
+
+.rr-body *,
+.rr-body *::before,
+.rr-body *::after {
+    box-sizing: border-box;
+}
+
+.rr-body h1,
+.rr-body h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.rr-body a {
+    color: var(--brand);
+}
+
+/* ---------- Public header ---------- */
+.rr-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 20px 32px 16px;
+}
+
+.rr-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.rr-brand b {
+    color: var(--brand);
+    font-weight: 700;
+}
+
+.rr-plate {
+    display: block;
+    background: var(--logo-plate);
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    box-shadow: var(--shadow-soft);
+}
+
+.rr-plate img {
+    display: block;
+    height: 44px;
+    width: auto;
+}
+
+/* ---------- Pills ---------- */
+.rr-pill {
+    display: inline-block;
+    white-space: nowrap;
+    background: var(--surface-mint);
+    color: var(--ink);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+}
+
+.rr-pill-quiet {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.rr-pill-sun {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+/* ---------- Hero ---------- */
+.rr-hero {
+    position: relative;
+    max-width: 1240px;
+    margin: 0 auto var(--space-6);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--deep) 0%, var(--deep-raised) 100%);
+}
+
+.rr-hero::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: min(640px, 60%);
+    background: url("../images/hero-city-ride.svg") left bottom / auto 100% no-repeat;
+}
+
+.rr-hero-in {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 540px;
+    gap: var(--space-7);
+    padding: var(--space-7);
+}
+
+.rr-copy {
+    padding-top: var(--space-4);
+}
+
+.rr-copy h1 {
+    font-size: 56px;
+    line-height: 58px;
+    margin: 20px 0 var(--space-4);
+    color: var(--on-deep);
+}
+
+.rr-copy > p {
+    font-size: 18px;
+    line-height: 28px;
+    color: var(--on-deep-muted);
+    margin: 0 0 var(--space-6);
+    max-width: 440px;
+}
+
+.rr-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+    max-width: 440px;
+}
+
+.rr-steps li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    background: var(--deep-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 14px var(--space-4);
+    box-shadow: var(--shadow-soft);
+}
+
+.rr-steps .rr-n {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.rr-steps strong {
+    display: block;
+    color: var(--on-deep);
+    font-size: 16px;
+    line-height: 20px;
+}
+
+.rr-steps span {
+    display: block;
+    color: var(--on-deep-muted);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+/* The friendly sticker, used once on the booking page, unchanged apart from the white sticker outline. */
+.rr-letsgo {
+    display: block;
+    width: 340px;
+    max-width: 100%;
+    height: auto;
+    margin: var(--space-7) 0 0 var(--space-6);
+    transform: rotate(-4deg);
+    filter: drop-shadow(3px 0 0 var(--sticker-outline)) drop-shadow(-3px 0 0 var(--sticker-outline))
+        drop-shadow(0 3px 0 var(--sticker-outline)) drop-shadow(0 -3px 0 var(--sticker-outline))
+        drop-shadow(0 10px 14px var(--sticker-shadow));
+}
+
+/* ---------- Booking card ---------- */
+.rr-card {
+    background: var(--surface-200);
+    color: var(--ink);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-6);
+}
+
+.rr-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.rr-card h2 {
+    font-size: 28px;
+    line-height: 32px;
+    letter-spacing: -0.01em;
+    margin: var(--space-3) 0 4px;
+}
+
+.rr-sec {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin: var(--space-5) 0 var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rr-sec::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+}
+
+.rr-row {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.rr-r2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.rr-r3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* ---------- Fields ---------- */
+.rr-field {
+    min-width: 0;
+    line-height: 20px; /* inputs inherit this, giving the 44px field height from the design */
+}
+
+.rr-label {
+    display: block;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--ink);
+}
+
+.rr-label small {
+    font-weight: 400;
+    color: var(--ink-muted);
+}
+
+.rr-body .rr-field input[type="text"],
+.rr-body .rr-field input[type="email"],
+.rr-body .rr-field input[type="tel"],
+.rr-body .rr-field input[type="date"],
+.rr-body .rr-field input[type="time"],
+.rr-body .rr-field input[type="number"],
+.rr-body .rr-field input[type="password"],
+.rr-body .rr-field input:not([type]),
+.rr-body .rr-field select,
+.rr-body .rr-field textarea {
+    display: block;
+    width: 100%;
+    margin-top: var(--space-2);
+    font: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    background-color: var(--surface-200);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-sm);
+    padding: 11px var(--space-3);
+    min-height: 44px;
+    box-shadow: none;
+}
+
+.rr-body .rr-field textarea {
+    resize: vertical;
+    min-height: 72px;
+}
+
+.rr-body .rr-field input::placeholder,
+.rr-body .rr-field textarea::placeholder {
+    color: var(--ink-muted);
+    opacity: 1;
+}
+
+.rr-body input:focus-visible,
+.rr-body select:focus-visible,
+.rr-body textarea:focus-visible,
+.rr-body button:focus-visible,
+.rr-body a:focus-visible,
+.rr-veh input:focus-visible + span {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+/* jquery-validate marks bad inputs with .input-validation-error */
+.rr-body .rr-field input.rr-invalid,
+.rr-body .rr-field input.input-validation-error,
+.rr-body .rr-field select.input-validation-error,
+.rr-body .rr-field textarea.input-validation-error {
+    border: 2px solid var(--danger);
+    padding: 10px 11px;
+}
+
+.rr-hint {
+    display: block;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+}
+
+.rr-count {
+    text-align: right;
+}
+
+.rr-error,
+.rr-body .field-validation-error {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--danger);
+    font-weight: 500;
+}
+
+.rr-summary {
+    color: var(--danger);
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: var(--space-3);
+}
+
+.rr-summary ul {
+    margin: 0;
+    padding-left: var(--space-4);
+}
+
+/* ---------- Vehicle picture cards ---------- */
+.rr-veh-wrap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+}
+
+.rr-veh {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    margin: 0;
+}
+
+.rr-veh input {
+    position: absolute;
+    opacity: 0;
+    margin: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.rr-veh span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: var(--space-3) var(--space-2) 10px;
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-md);
+    background: var(--surface-200);
+    box-shadow: var(--shadow-soft);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.rr-veh img {
+    width: 84px;
+    height: auto;
+    display: block;
+}
+
+.rr-veh input:checked + span {
+    background: var(--surface-mint);
+    border: 2px solid var(--brand);
+    padding: 11px 7px 9px;
+}
+
+/* ---------- Terms + primary button ---------- */
+.rr-check {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: var(--space-2) 0 0;
+    font-size: 14px;
+}
+
+.rr-check input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--brand);
+}
+
+.rr-check label {
+    margin: 0;
+}
+
+.rr-check-error {
+    margin: 4px 0 var(--space-5);
+}
+
+.rr-go {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--brand);
+    color: var(--on-brand);
+    border: 0;
+    border-radius: var(--radius-md);
+    padding: 15px var(--space-5);
+    font: inherit;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+    text-decoration: none;
+}
+
+.rr-body a.rr-go {
+    color: var(--on-brand);
+}
+
+/* small amber circle with an arrow */
+.rr-go i {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: relative;
+}
+
+.rr-go i::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 7px;
+    width: 7px;
+    height: 7px;
+    border-top: 2px solid var(--on-accent);
+    border-right: 2px solid var(--on-accent);
+    transform: rotate(45deg);
+}
+
+.rr-fine {
+    text-align: center;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--ink-muted);
+    margin: var(--space-3) 0 0;
+}
+
+/* ---------- Confirmation ---------- */
+.rr-narrow {
+    max-width: 560px;
+    margin: var(--space-5) auto var(--space-7);
+    padding: 0 var(--space-4);
+}
+
+.rr-narrow .rr-card h1 {
+    font-size: 32px;
+    line-height: 36px;
+    margin: var(--space-4) 0 var(--space-3);
+}
+
+.rr-narrow p {
+    color: var(--ink-muted);
+    margin: 0 0 var(--space-5);
+}
+
+/* ---------- Footer ---------- */
+.rr-foot {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-muted);
+    padding: var(--space-4) var(--space-4) var(--space-6);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+    .rr-hero-in {
+        grid-template-columns: 1fr;
+        padding: var(--space-6);
+    }
+
+    .rr-copy h1 {
+        font-size: 40px;
+        line-height: 44px;
+    }
+
+    .rr-hero::before {
+        height: 360px;
+    }
+
+    .rr-letsgo {
+        width: 240px;
+        margin-top: var(--space-6);
+    }
+}
+
+@media (max-width: 560px) {
+    .rr-r2,
+    .rr-r3 {
+        grid-template-columns: 1fr;
+    }
+
+    .rr-veh-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .rr-top {
+        padding: var(--space-4);
+    }
+
+    .rr-brand {
+        font-size: 20px;
+        gap: var(--space-2);
+    }
+
+    .rr-plate img {
+        height: 36px;
+    }
+
+    .rr-hero-in {
+        padding: var(--space-5) var(--space-4);
+    }
+
+    .rr-card {
+        padding: var(--space-5) var(--space-4);
+    }
+}
+
+.rr-label-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.rr-label-row small {
+    color: var(--ink-muted);
+    font-size: 13px;
+}
+
+/* ---------- Dispatcher attention flags (work on restyled and not-yet-restyled admin pages) ---------- */
+.rr-flag {
+    display: inline-block;
+    white-space: nowrap;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+}
+
+.rr-flag-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    background: var(--surface-mint);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-4);
+    font-size: 14px;
+}
+
+/* Capacity line under each vehicle name, and the live passenger check. */
+.rr-veh small {
+    display: block;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    color: var(--ink-muted);
+}
+
+/* When the live check shows the capacity message, hide the matching server-side one so it is not shown twice. */
+#PassengersCapacity:not([hidden]) ~ [data-valmsg-for="Passengers"] {
+    display: none;
+}
+
+/* ================= Back office (admin) ================= */
+.rr-wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 20px 24px 40px;
+}
+
+/* ---------- Banner + navigation ---------- */
+.rr-banner {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(180deg, var(--deep) 0%, var(--deep-raised) 100%);
+    padding: var(--space-6) var(--space-7);
+    min-height: 236px;
+    margin-bottom: var(--space-4);
+}
+
+.rr-banner::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 720px;
+    height: 100%;
+    background: url("../images/hero-city-ride.svg") right bottom / auto 384px no-repeat;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%);
+    mask-image: linear-gradient(90deg, transparent, #000 30%);
+    pointer-events: none;
+}
+
+.rr-banner > * {
+    position: relative;
+}
+
+.rr-brandrow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.rr-banner h1 {
+    font-size: 40px;
+    line-height: 44px;
+    margin: var(--space-4) 0 20px;
+    color: var(--on-deep);
+}
+
+.rr-nav {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.rr-nav form {
+    margin: 0;
+}
+
+.rr-nav a,
+.rr-nav button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--on-deep);
+    border: 1px solid var(--on-deep-muted);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    text-decoration: none;
+    background: var(--deep-raised);
+    cursor: pointer;
+}
+
+.rr-nav a.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+}
+
+.rr-nav .rr-out {
+    border-radius: var(--radius-pill);
+    margin-left: var(--space-2);
+}
+
+/* ---------- Messages ---------- */
+.rr-ok,
+.rr-err {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    background: var(--surface-mint);
+    color: var(--ink);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+}
+
+.rr-ok b,
+.rr-err b {
+    margin-right: var(--space-2);
+}
+
+.rr-ok span,
+.rr-err span {
+    color: var(--ink-muted);
+    font-size: 14px;
+}
+
+.rr-ok form,
+.rr-err form {
+    margin: 0;
+}
+
+.rr-err {
+    background: var(--surface-200);
+    border: 2px solid var(--danger);
+}
+
+.rr-err b,
+.rr-err span {
+    color: var(--danger);
+}
+
+.rr-msg {
+    margin-bottom: var(--space-4);
+}
+
+.rr-warn {
+    color: var(--danger);
+    font-size: 13px;
+    margin: 6px 0 0;
+}
+
+/* ---------- Sort row, fields, buttons ---------- */
+.rr-sort {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 20px 0 var(--space-4);
+    font-size: 14px;
+    color: var(--ink-muted);
+}
+
+.rr-sort label {
+    margin: 0;
+}
+
+.rr-input {
+    font: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    background-color: var(--surface-200);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-sm);
+    padding: 10px var(--space-3);
+    min-height: 44px;
+}
+
+.rr-btn {
+    font: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    border-radius: var(--radius-md);
+    padding: 10px 18px;
+    min-height: 44px;
+    border: 2px solid var(--brand);
+    background: var(--brand);
+    color: var(--on-brand);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.rr-btn:hover {
+    background: var(--deep);
+    border-color: var(--deep);
+}
+
+.rr-btn-sec {
+    background: var(--surface-200);
+    color: var(--brand);
+}
+
+.rr-btn-sec:hover {
+    background: var(--surface-mint);
+    color: var(--brand);
+    border-color: var(--brand);
+}
+
+.rr-btn-sm {
+    padding: 6px 14px;
+    min-height: 36px;
+    font-size: 14px;
+}
+
+/* ---------- Booking card ---------- */
+.rr-acard {
+    background: var(--surface-200);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-6);
+    margin-bottom: var(--space-5);
+}
+
+/* Seven numbered steps: finished = brand, current = accent with a mint ring, upcoming = outlined. */
+.rr-trip-steps {
+    list-style: none;
+    display: flex;
+    margin: 0 0 28px;
+    padding: 0;
+}
+
+.rr-ts {
+    flex: 1;
+    min-width: 76px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    position: relative;
+    font-size: 13px;
+    line-height: 16px;
+    color: var(--ink-muted);
+    text-align: center;
+}
+
+.rr-ts::before {
+    content: "";
+    position: absolute;
+    top: 19px;
+    left: calc(50% + 24px);
+    right: calc(-50% + 24px);
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+}
+
+.rr-ts:last-child::before {
+    display: none;
+}
+
+.rr-ts-done::before {
+    background: var(--brand);
+}
+
+.rr-ts-c {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 15px;
+    border: 2px solid var(--field-border);
+    background: var(--surface-200);
+    color: var(--ink-muted);
+}
+
+.rr-ts-done .rr-ts-c {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--on-brand);
+}
+
+.rr-ts-now .rr-ts-c {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 0 0 5px var(--surface-mint);
+}
+
+.rr-ts-now {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.rr-ts-off {
+    margin-bottom: var(--space-4);
+}
+
+.rr-flag-danger {
+    background: var(--danger);
+    color: var(--on-brand);
+}
+
+.rr-flag-inline {
+    margin-left: var(--space-2);
+    vertical-align: middle;
+}
+
+.rr-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-5);
+    align-items: flex-start;
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-5);
+}
+
+.rr-who {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+}
+
+.rr-who img {
+    width: 96px;
+    display: block;
+}
+
+.rr-who h2 {
+    font-size: 28px;
+    line-height: 32px;
+    letter-spacing: -0.01em;
+    margin: 0;
+    display: inline;
+}
+
+.rr-badge {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+    background: var(--surface-mint);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px var(--space-3);
+    border-radius: var(--radius-pill);
+}
+
+.rr-ref {
+    color: var(--ink-muted);
+    font-size: 14px;
+    margin: 4px 0 0;
+}
+
+.rr-when {
+    text-align: right;
+}
+
+.rr-when strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 24px;
+    line-height: 28px;
+}
+
+.rr-when span {
+    display: block;
+    color: var(--ink-muted);
+    font-size: 14px;
+}
+
+.rr-price {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.rr-price input {
+    width: 110px;
+}
+
+.rr-sec-label {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin: var(--space-5) 0 var(--space-2);
+}
+
+.rr-dl {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    margin: 0;
+}
+
+.rr-dl dt,
+.rr-dl dd {
+    margin: 0;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.rr-dl dt {
+    color: var(--ink-muted);
+    font-weight: 500;
+}
+
+.rr-dl dd {
+    word-break: break-word;
+}
+
+.rr-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-3) var(--space-5);
+    margin-top: var(--space-5);
+}
+
+.rr-actions form {
+    display: flex;
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.rr-actions select {
+    flex: 1;
+    min-width: 0;
+}
+
+.rr-note {
+    color: var(--ink-muted);
+    font-size: 14px;
+    margin: 10px 0 var(--space-3);
+}
+
+/* ---------- The other admin pages: old classes mapped onto the design tokens ---------- */
+.rr-body .ride-card {
+    background: var(--surface-200);
+    border: 0;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+}
+
+.rr-body .ride-btn-primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--on-brand);
+    font-weight: 700;
+    border-radius: var(--radius-md);
+}
+
+.rr-body .ride-btn-primary:hover {
+    background: var(--deep);
+    border-color: var(--deep);
+    color: var(--on-brand);
+}
+
+.rr-body .ride-input {
+    border-color: var(--field-border);
+    border-radius: var(--radius-sm);
+}
+
+.rr-body .ride-pill {
+    background: var(--surface-mint);
+    color: var(--ink);
+}
+
+.rr-body .ride-section-label {
+    color: var(--brand);
+}
+
+.rr-body .btn-outline-secondary {
+    color: var(--brand);
+    border-color: var(--brand);
+}
+
+.rr-body .btn-outline-secondary:hover {
+    background: var(--surface-mint);
+    color: var(--brand);
+    border-color: var(--brand);
+}
+
+.rr-body .alert-success {
+    background: var(--surface-mint);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+.rr-body .alert-danger {
+    background: var(--surface-200);
+    border: 2px solid var(--danger);
+    color: var(--danger);
+}
+
+@media (max-width: 900px) {
+    .rr-trip-steps {
+        overflow-x: auto;
+    }
+
+    .rr-head {
+        flex-direction: column;
+    }
+
+    .rr-when {
+        text-align: left;
+    }
+
+    .rr-price {
+        justify-content: flex-start;
+    }
+
+    .rr-actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rr-dl {
+        grid-template-columns: 130px 1fr;
+    }
+
+    .rr-banner {
+        padding: var(--space-5);
+    }
+
+    .rr-banner::before {
+        opacity: 0.5;
+    }
+
+    .rr-who img {
+        width: 72px;
+    }
+}
+
+@media (max-width: 560px) {
+    .rr-wrap {
+        padding: var(--space-4) var(--space-3) var(--space-6);
+    }
+
+    .rr-acard {
+        padding: var(--space-5) var(--space-4);
+    }
+
+    .rr-banner h1 {
+        font-size: 32px;
+        line-height: 36px;
+    }
+
+    .rr-dl {
+        grid-template-columns: 1fr;
+    }
+
+    .rr-dl dt {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+}
+
+/* Sign-in cards are a little narrower than the confirmation card. */
+.rr-login {
+    max-width: 440px;
+}
+
+.rr-login form {
+    margin-top: var(--space-4);
+}
+
+/* ---------- Dashboard search, filter chips and attention chips ---------- */
+.rr-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 20px 0 var(--space-3);
+}
+
+.rr-tools > .rr-input[type="search"] {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.rr-tools .rr-sort {
+    margin: 0;
+    margin-left: auto;
+}
+
+.rr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.rr-chip {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--surface-200);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-pill);
+    padding: 6px 14px;
+    min-height: 36px;
+    cursor: pointer;
+}
+
+.rr-chip:hover {
+    background: var(--surface-mint);
+}
+
+.rr-chip.on {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--on-brand);
+    font-weight: 700;
+}
+
+.rr-chip-n {
+    display: inline-block;
+    min-width: 20px;
+    margin-left: 4px;
+    padding: 0 6px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-mint);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: center;
+}
+
+.rr-chip.on .rr-chip-n {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+.rr-chip-flag.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+}
+
+.rr-count-line {
+    margin: 0 0 var(--space-3);
+    font-size: 14px;
+    color: var(--ink-muted);
+}
+
+.rr-count-line[hidden],
+.rr-acard[hidden] {
+    display: none;
+}
+
+/* Phone and WhatsApp links on a booking card. */
+.rr-ref a,
+.rr-note a {
+    color: var(--brand);
+    font-weight: 500;
+}
+
+/* ================= Driver pages ================= */
+.rr-driver {
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.rr-driver .rr-banner {
+    padding: var(--space-5);
+    min-height: 210px;
+}
+
+.rr-driver .rr-banner::before {
+    width: 100%;
+    background-size: 100% auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+    opacity: .9;
+    top: auto;
+    height: 150px;
+}
+
+.rr-driver .rr-banner h1 {
+    font-size: 34px;
+    line-height: 38px;
+    margin: 14px 0 var(--space-4);
+}
+
+.rr-driver .rr-acard {
+    margin-top: 16px;
+}
+
+.rr-loc {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+}
+
+.rr-loc .rr-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+.rr-loc-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface-mint);
+    display: grid;
+    place-items: center;
+}
+
+.rr-loc-icon i {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: var(--brand);
+}
+
+.rr-loc-text strong {
+    display: block;
+    font-size: 16px;
+}
+
+.rr-loc-text span {
+    display: block;
+    color: var(--ink-muted);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.rr-empty h2 {
+    font-size: 20px;
+    margin: 0 0 var(--space-2);
+}
+
+.rr-empty p {
+    margin: 0;
+    color: var(--ink-muted);
+}
+
+.rr-trip-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+}
+
+.rr-trip-head h2 {
+    font-size: 24px;
+    line-height: 28px;
+    margin: 0;
+}
+
+.rr-ref {
+    color: var(--ink-muted);
+    font-size: 14px;
+    margin: 2px 0 0;
+}
+
+.rr-when {
+    text-align: right;
+}
+
+.rr-when strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 20px;
+    line-height: 24px;
+}
+
+.rr-badge {
+    display: inline-block;
+    margin-top: 6px;
+    background: var(--surface-mint);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+}
+
+.rr-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.rr-actions form {
+    margin: 0;
+}
+
+.rr-actions-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rr-actions .rr-btn {
+    width: 100%;
+    min-height: 48px;
+}
+
+.rr-actions select {
+    font: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--surface-200);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    min-height: 48px;
+    width: 100%;
+}
+
+@media (min-width: 520px) {
+    .rr-actions:not(.rr-actions-pair) {
+        grid-template-columns: 1fr auto;
+    }
+
+    .rr-actions:not(.rr-actions-pair) .rr-btn {
+        width: auto;
+        min-width: 160px;
+    }
+}
+
+@media (max-width: 600px) {
+    .rr-driver {
+        padding: 0;
+    }
+}
+
+.rr-signout {
+    margin: 0 0 0 auto;
+}
+
+.rr-driver .rr-out {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--on-deep);
+    border: 1px solid var(--on-deep-muted);
+    border-radius: var(--radius-pill);
+    padding: 6px 14px;
+    background: var(--deep-raised);
+    cursor: pointer;
+}
+
+.rr-driver .rr-banner {
+    min-height: 230px;
+}
+
+.rr-driver .rr-banner h1 {
+    margin-bottom: 70px;
+}
+
+.rr-driver .rr-out {
+    white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+    .rr-driver .rr-when {
+        text-align: left;
+    }
+}
+
+/* Driver: quick links, the big next-step button and the tucked-away dropdown */
+.rr-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.rr-quick .rr-btn {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.rr-actions .rr-next {
+    min-height: 60px;
+    font-size: 18px;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+}
+
+.rr-actions .rr-next:hover {
+    background: var(--accent);
+    border-color: var(--deep);
+    color: var(--on-accent);
+}
+
+.rr-more {
+    margin-top: var(--space-3);
+}
+
+.rr-more summary {
+    cursor: pointer;
+    color: var(--ink-muted);
+    font-size: 14px;
+    padding: 6px 0;
+}
+
+.rr-more .rr-actions {
+    margin-top: var(--space-2);
+}

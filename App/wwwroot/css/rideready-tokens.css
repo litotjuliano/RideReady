@@ -1,0 +1,58 @@
+/* RideReady design tokens. Light theme is the default; add data-theme="dark" on <html> for dark. */
+:root, [data-theme="light"] {
+  --surface-100: #f3f7f2;
+  --surface-200: #ffffff;
+  --surface-mint: #d8efdf;
+  --deep: #0f2e20;
+  --deep-raised: #17402b;
+  --on-deep: #ffffff;
+  --on-deep-muted: #bcd6c6;
+  --ink: #0f2419;
+  --ink-muted: #4a5e53;
+  --brand: #17402b;
+  --on-brand: #ffffff;
+  --accent: #ffb627;
+  --on-accent: #1c1400;
+  --line: #cfdcd2;
+  --field-border: #6f8979;
+  --focus: #0b6b3f;
+  --danger: #b3261e;
+}
+[data-theme="dark"] {
+  --surface-100: #0b1912;
+  --surface-200: #12261b;
+  --surface-mint: #1c3a2b;
+  --deep: #050f09;
+  --deep-raised: #0d2418;
+  --on-deep: #eaf4ed;
+  --on-deep-muted: #a7bcae;
+  --ink: #eaf4ed;
+  --ink-muted: #a7bcae;
+  --brand: #7fe0ad;
+  --on-brand: #06170e;
+  --accent: #ffc247;
+  --on-accent: #1c1400;
+  --line: #2f4a3b;
+  --field-border: #6f9a82;
+  --focus: #ffc247;
+  --danger: #ff9a92;
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+  --shadow-card: 0 24px 60px rgba(5, 20, 12, 0.32), 0 2px 6px rgba(5, 20, 12, 0.14);
+  --shadow-soft: 0 1px 2px rgba(5, 20, 12, 0.10);
+  --font-display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+}

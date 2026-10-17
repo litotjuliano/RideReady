@@ -56,7 +56,7 @@ namespace RideReady.Tests.ViewModels
             var details = TripDetailsViewModel.ForAdmin(AdminBooking());
 
             Assert.Equal("Uncle Sim · 0125183838 · sim@email.com", Value(details, "Customer"));
-            Assert.Equal("KLIA T1 -> Mid Valley", Value(details, "Route"));
+            Assert.Equal("KLIA T1 → Mid Valley", Value(details, "Route"));
             Assert.Equal("2026-10-20 12:00 · Level 3, KLIA Terminal 1, Sepang", Value(details, "Pick up"));
             Assert.Equal("2026-10-20 15:00 · Mid Valley Megamall, Kuala Lumpur", Value(details, "Drop-off (approx.)"));
             Assert.Equal("3 pax · 2 bags · Car", Value(details, "Passengers & vehicle"));
@@ -71,7 +71,7 @@ namespace RideReady.Tests.ViewModels
             var everything = string.Join(" | ", details.Rows().Select(r => $"{r.Label}: {r.Value}"));
 
             Assert.Equal("Uncle Sim · 0125183838", Value(details, "Customer"));
-            Assert.Equal("KLIA T1 -> Mid Valley", Value(details, "Route"));
+            Assert.Equal("KLIA T1 → Mid Valley", Value(details, "Route"));
             Assert.Equal("2026-10-20 12:00 · Level 3, KLIA Terminal 1, Sepang", Value(details, "Pick up"));
             Assert.Equal("2026-10-20 15:00 · Mid Valley Megamall, Kuala Lumpur", Value(details, "Drop-off (approx.)"));
             Assert.Equal("3 pax · 2 bags · Car", Value(details, "Passengers & vehicle"));
@@ -123,7 +123,7 @@ namespace RideReady.Tests.ViewModels
             Assert.Equal("Uncle Sim · 0125183838", Value(details, "Customer"));
             Assert.Equal("2026-10-20 12:00", Value(details, "Pick up"));
             Assert.Equal("Mid Valley Megamall, Kuala Lumpur", Value(details, "Drop-off (approx.)"));
-            Assert.Equal("- -> Mid Valley", Value(details, "Route"));
+            Assert.Equal("- → Mid Valley", Value(details, "Route"));
         }
     }
 }
