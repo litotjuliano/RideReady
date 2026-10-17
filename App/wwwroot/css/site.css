@@ -367,3 +367,33 @@ body {
     background: #fde8e8;
     color: #b42318;
 }
+
+/* Labelled booking details on the admin and driver cards. */
+.ride-details {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    gap: 0.3rem 1rem;
+    margin: 0 0 1rem;
+    font-size: 0.88rem;
+}
+
+.ride-details dt {
+    color: var(--ride-text-muted);
+    font-weight: 600;
+}
+
+.ride-details dd {
+    margin: 0;
+    word-break: break-word;
+}
+
+@media (max-width: 575px) {
+    .ride-details {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .ride-details dd {
+        margin-bottom: 0.45rem;
+    }
+}

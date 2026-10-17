@@ -155,8 +155,7 @@ namespace RideReady.Services
                 $"Drop-off: {booking.Destination.Trim()}{dropOffTime}.";
         }
 
-        private static string PaymentMethodText(string? paymentMethod) =>
-            paymentMethod == "Bank_Transfer" ? "Bank Transfer" : "Pay at Pickup";
+        private static string PaymentMethodText(string? paymentMethod) => TripText.PaymentMethod(paymentMethod);
 
         public async Task<bool> SendDriverDetailsToCustomerAsync(int bookingId)
         {

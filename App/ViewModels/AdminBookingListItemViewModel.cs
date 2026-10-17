@@ -6,6 +6,9 @@ namespace RideReady.ViewModels
         public string BookingReference { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
         public string CustomerPhone { get; set; } = string.Empty;
+        public string? CustomerEmail { get; set; }
+        public string? Notes { get; set; }
+        public string? PaymentMethod { get; set; }
         public string PickupLocation { get; set; } = string.Empty;
         public string Destination { get; set; } = string.Empty;
         public string? FromName { get; set; }

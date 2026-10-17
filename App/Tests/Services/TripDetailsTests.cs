@@ -197,6 +197,33 @@ namespace RideReady.Tests.Services
         // ---- dashboard / driver portal data ----
 
         [Fact]
+        public async Task Dashboard_CarriesEmailRemarksAndPayment_ButDriverPortalDoesNotExposeThem()
+        {
+            var context = NewContext();
+            var booking = await SeedBookingAsync(context, b => b.Notes = "Child seat please");
+            context.BookingQuotes.Add(new BookingQuote { BookingId = booking.Id, TotalEstimatedFare = 150m, PaymentMethod = "Bank_Transfer" });
+            await context.SaveChangesAsync();
+            var assignments = new DriverAssignmentService(context);
+            var driver = await assignments.CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Richard", Phone = "0167237377", VehicleType = "Car", VehicleNumber = "TEST 1234", Pin = "7737"
+            });
+            await assignments.AssignDriverAsync(booking.Id, driver.Id);
+
+            var adminItem = Assert.Single(await assignments.GetDashboardBookingsAsync());
+            Assert.Equal("sim@email.com", adminItem.CustomerEmail);
+            Assert.Equal("Child seat please", adminItem.Notes);
+            Assert.Equal("Bank_Transfer", adminItem.PaymentMethod);
+            Assert.Equal(150m, adminItem.EstimatedFare);
+
+            var driverTrip = Assert.Single(await new DriverPortalService(context).GetAssignmentsAsync(driver.Id));
+            Assert.Equal("Child seat please", driverTrip.Notes);
+            Assert.Equal("Car", driverTrip.RequestedVehicleType);
+            var driverRows = TripDetailsViewModel.ForDriver(driverTrip).Rows();
+            Assert.DoesNotContain(driverRows, r => r.Value.Contains("sim@email.com") || r.Value.Contains("150") || r.Value.Contains("Transfer"));
+        }
+
+        [Fact]
         public async Task DashboardAndDriverPortal_CarryTheNewFields()
         {
             var context = NewContext();
