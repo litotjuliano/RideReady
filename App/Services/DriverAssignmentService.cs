@@ -27,8 +27,8 @@ namespace RideReady.Services
                 .Include(b => b.Quote)
                 .Where(b => b.Status != "Completed" && b.Status != "Cancelled");
 
-            // "booked" = newest booking first; anything else (default) = earliest pickup first.
-            var ordered = sort == DashboardSort.Booked
+            // Default (null/unknown) = newest booking first; "pickup" = earliest pickup first.
+            var ordered = DashboardSort.Normalize(sort) == DashboardSort.Booked
                 ? query.OrderByDescending(b => b.CreatedAt).ThenByDescending(b => b.Id)
                 : query.OrderBy(b => b.PickupDate).ThenBy(b => b.PickupTime);
 

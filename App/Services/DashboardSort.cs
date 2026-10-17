@@ -6,6 +6,7 @@ namespace RideReady.Services
         public const string Pickup = "pickup";
         public const string Booked = "booked";
 
-        public static string Normalize(string? sort) => sort == Booked ? Booked : Pickup;
+        /// <summary>Anything other than an explicit "pickup" falls back to the default: newest booking first.</summary>
+        public static string Normalize(string? sort) => sort == Pickup ? Pickup : Booked;
     }
 }

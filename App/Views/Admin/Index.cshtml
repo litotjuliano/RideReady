@@ -23,13 +23,13 @@
 
 
 @{
-    var currentSort = ViewBag.Sort as string ?? "pickup";
+    var currentSort = ViewBag.Sort as string ?? "booked";
 }
 <form method="get" class="d-flex align-items-center justify-content-end gap-2 mb-3">
     <label for="sort" class="small text-muted mb-0">Sort by</label>
     <select id="sort" name="sort" class="form-select form-select-sm ride-input" style="max-width: 240px" onchange="this.form.submit()">
-        <option value="pickup" selected="@(currentSort == "pickup")">Scheduled date (earliest first)</option>
         <option value="booked" selected="@(currentSort == "booked")">Date booked (newest first)</option>
+        <option value="pickup" selected="@(currentSort == "pickup")">Scheduled date (earliest first)</option>
     </select>
     <noscript><button type="submit" class="btn btn-sm btn-outline-secondary">Apply</button></noscript>
 </form>
