@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RideReady.Data;
 using RideReady.Models;
+using RideReady.ViewModels;
 
 namespace RideReady.Services
 {
@@ -48,7 +49,7 @@ namespace RideReady.Services
                 null, customerMessage,
                 () => _whatsAppSender.SendAsync(booking.Customer.Phone, customerMessage));
 
-            var operatorMessage = $"New booking {booking.BookingReference}: {booking.PickupLocation} -> {booking.Destination} on {booking.PickupDate:yyyy-MM-dd} {booking.PickupTime:HH:mm}.";
+            var operatorMessage = $"New booking {booking.BookingReference}: {TripDetails(booking)}";
             await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", "BookingCreated",
                 "New booking received", operatorMessage,
                 () => _emailSender.SendAsync(_emailSettings.OperatorEmail, "New booking received", operatorMessage));
@@ -69,7 +70,7 @@ namespace RideReady.Services
             var driver = await _context.Drivers.FindAsync(driverId)
                 ?? throw new InvalidOperationException($"Driver {driverId} not found");
 
-            var driverMessage = $"New job {booking.BookingReference}: pickup {booking.PickupLocation} -> {booking.Destination} on {booking.PickupDate:yyyy-MM-dd} {booking.PickupTime:HH:mm}. Log in to the Driver Portal to accept or reject.";
+            var driverMessage = $"New job {booking.BookingReference}: {TripDetails(booking)} Log in to the Driver Portal to accept or reject.";
             await SendAndLogAsync(bookingId, "Driver", driverId, driver.Phone, "WhatsApp", "DriverAssigned",
                 null, driverMessage,
                 () => _whatsAppSender.SendAsync(driver.Phone, driverMessage));
@@ -138,6 +139,22 @@ namespace RideReady.Services
                 () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
         }
 
+        /// <summary>
+        /// One-line trip summary used in the operator and driver messages: the route (short From/To names when
+        /// given, otherwise the addresses), the pick up address and time, and the drop-off address with the
+        /// customer's approximate drop-off time.
+        /// </summary>
+        private static string TripDetails(Booking booking)
+        {
+            var pickup = string.IsNullOrWhiteSpace(booking.PickupLocation) ? "Pick up" : $"Pick up: {booking.PickupLocation.Trim()}";
+            var dropOffAt = TripText.DropOffAt(booking.DropOffDate, booking.DropOffTime);
+            var dropOffTime = dropOffAt.Length > 0 ? $", approx. {dropOffAt}" : string.Empty;
+
+            return $"{TripText.Route(booking.FromName, booking.PickupLocation, booking.ToName, booking.Destination)}. " +
+                $"{pickup} on {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}. " +
+                $"Drop-off: {booking.Destination.Trim()}{dropOffTime}.";
+        }
+
         private static string PaymentMethodText(string? paymentMethod) =>
             paymentMethod == "Bank_Transfer" ? "Bank Transfer" : "Pay at Pickup";
 
@@ -167,7 +184,10 @@ namespace RideReady.Services
                 : string.Empty;
             var message = $"Your RideReady booking {booking.BookingReference} is confirmed. " +
                 $"Your driver is {driver.Name} ({driver.Phone}), {driver.VehicleType} {driver.VehicleNumber}. " +
-                $"Pickup: {booking.PickupLocation} on {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}.{fareText}";
+                (string.IsNullOrWhiteSpace(booking.PickupLocation) && string.IsNullOrWhiteSpace(booking.FromName)
+                    ? $"Pickup: {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}."
+                    : $"Pickup: {TripText.Place(booking.FromName, booking.PickupLocation)} on {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}.") +
+                fareText;
 
             await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", DriverDetailsEvent,
                 "Your RideReady driver", message,

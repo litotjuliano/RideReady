@@ -91,7 +91,21 @@
         </div>
 
         <div class="ride-section-label">Trip</div>
-        <p class="mb-1">@booking.PickupLocation &rarr; @booking.Destination</p>
+        <p class="mb-1 fw-semibold">@RideReady.ViewModels.TripText.Place(booking.FromName, booking.PickupLocation) &rarr; @RideReady.ViewModels.TripText.Place(booking.ToName, booking.Destination)</p>
+        @if (!string.IsNullOrWhiteSpace(booking.FromName) || !string.IsNullOrWhiteSpace(booking.ToName))
+        {
+            <p class="text-muted small mb-1">
+                Pick up: @(string.IsNullOrWhiteSpace(booking.PickupLocation) ? "-" : booking.PickupLocation)
+                &middot; Drop-off: @booking.Destination
+            </p>
+        }
+        <p class="text-muted small mb-1">
+            Pickup @booking.PickupTime.ToString("HH:mm")
+            @if (booking.DropOffDate != null && booking.DropOffTime != null)
+            {
+                <text>&middot; Drop-off (approx.) @RideReady.ViewModels.TripText.DropOffAt(booking.DropOffDate, booking.DropOffTime)</text>
+            }
+        </p>
         <p class="text-muted small">@booking.Passengers pax &middot; @booking.Bags bags &middot; @booking.RequestedVehicleType</p>
 
         @{

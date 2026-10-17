@@ -53,7 +53,18 @@
                 <span class="ride-pill">@trip.AssignmentStatus / @trip.BookingStatus</span>
             </div>
         </div>
-        <p class="mt-2 mb-1">@trip.PickupLocation &rarr; @trip.Destination</p>
+        <p class="mt-2 mb-1 fw-semibold">@RideReady.ViewModels.TripText.Place(trip.FromName, trip.PickupLocation) &rarr; @RideReady.ViewModels.TripText.Place(trip.ToName, trip.Destination)</p>
+        <p class="text-muted small mb-1">
+            Pick up: @(string.IsNullOrWhiteSpace(trip.PickupLocation) ? "-" : trip.PickupLocation)
+            &middot; Drop-off: @trip.Destination
+        </p>
+        <p class="text-muted small mb-1">
+            Pickup @trip.PickupTime.ToString("HH:mm")
+            @if (trip.DropOffDate != null && trip.DropOffTime != null)
+            {
+                <text>&middot; Drop-off (approx.) @RideReady.ViewModels.TripText.DropOffAt(trip.DropOffDate, trip.DropOffTime)</text>
+            }
+        </p>
         <p class="text-muted small">@trip.Passengers pax &middot; @trip.Bags bags</p>
         @if (!string.IsNullOrEmpty(trip.Notes))
         {

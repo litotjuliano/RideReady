@@ -73,6 +73,8 @@ namespace RideReady.Tests.Controllers
             Destination = "Hyt Ipoh Office",
             PickupDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             PickupTime = new TimeOnly(13, 8),
+            DropOffDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
+            DropOffTime = new TimeOnly(16, 0),
             Passengers = 2,
             Bags = 2,
             VehicleType = "Car",

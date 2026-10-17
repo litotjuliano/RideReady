@@ -9,6 +9,10 @@ namespace RideReady.ViewModels
         public string CustomerPhone { get; set; } = string.Empty;
         public string PickupLocation { get; set; } = string.Empty;
         public string Destination { get; set; } = string.Empty;
+        public string? FromName { get; set; }
+        public string? ToName { get; set; }
+        public DateOnly? DropOffDate { get; set; }
+        public TimeOnly? DropOffTime { get; set; }
         public DateOnly PickupDate { get; set; }
         public TimeOnly PickupTime { get; set; }
         public int Passengers { get; set; }

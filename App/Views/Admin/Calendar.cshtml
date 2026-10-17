@@ -91,7 +91,7 @@ else
                             var width = Math.Max(right - left, 1);
                             <a asp-controller="Admin" asp-action="Index" class="ride-timeline-block ride-timeline-block--booked"
                                style="left: @(left.ToString("0.##"))%; width: @(width.ToString("0.##"))%;"
-                               title="@block.BookingReference: @block.PickupLocation &rarr; @block.Destination">
+                               title="@block.BookingReference: @RideReady.ViewModels.TripText.Place(null, block.PickupLocation) &rarr; @block.Destination">
                                 @block.Start.ToString("HH:mm")-@block.End.ToString("HH:mm") @block.BookingReference
                             </a>
                         }

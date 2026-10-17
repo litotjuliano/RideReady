@@ -20,7 +20,8 @@ namespace RideReady.Controllers
         {
             var model = new BookingRequestViewModel
             {
-                PickupDate = DateOnly.FromDateTime(DateTime.Today)
+                PickupDate = DateOnly.FromDateTime(DateTime.Today),
+                DropOffDate = DateOnly.FromDateTime(DateTime.Today)
             };
             return View(model);
         }

@@ -8,6 +8,16 @@ namespace RideReady.Models
         public Customer? Customer { get; set; }
         public string PickupLocation { get; set; } = string.Empty;
         public string Destination { get; set; } = string.Empty;
+
+        /// <summary>Optional short place name for the pickup (e.g. "KLIA T1"); PickupLocation holds the full pick up address.</summary>
+        public string? FromName { get; set; }
+
+        /// <summary>Optional short place name for the drop-off; Destination holds the full drop-off address.</summary>
+        public string? ToName { get; set; }
+
+        /// <summary>Approximate drop-off date and time, entered by the customer. Required on the form; nullable here so older rows stay valid.</summary>
+        public DateOnly? DropOffDate { get; set; }
+        public TimeOnly? DropOffTime { get; set; }
         public DateOnly PickupDate { get; set; }
         public TimeOnly PickupTime { get; set; }
         public int Passengers { get; set; }

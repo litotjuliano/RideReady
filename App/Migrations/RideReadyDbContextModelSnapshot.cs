@@ -47,6 +47,15 @@ namespace RideReady.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateOnly?>("DropOffDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("DropOffTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("FromName")
+                        .HasColumnType("text");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -69,6 +78,9 @@ namespace RideReady.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ToName")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
