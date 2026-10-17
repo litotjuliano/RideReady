@@ -37,7 +37,7 @@ docker compose ps
 
 echo "Waiting for health check..."
 for i in $(seq 1 10); do
-  if curl -sf http://localhost:5000/health > /dev/null; then
+  if curl -sf http://localhost:5100/health > /dev/null; then
     echo "Healthy."
     exit 0
   fi

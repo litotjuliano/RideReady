@@ -33,6 +33,12 @@ namespace RideReady.Services
             if (request.PickupTime.Hour < 6 || request.PickupTime.Hour >= 24)
                 throw new InvalidOperationException("Bookings only available between 6AM and 12AM (midnight)");
 
+            if (request.DropOffDate is not DateOnly dropOffDate || request.DropOffTime is not TimeOnly dropOffTime)
+                throw new InvalidOperationException("Drop-off date and time are required");
+
+            if (dropOffDate.ToDateTime(dropOffTime) <= requestedDateTime)
+                throw new InvalidOperationException("Drop-off must be after the pickup time");
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -55,7 +61,11 @@ namespace RideReady.Services
                 {
                     BookingReference = GenerateBookingReference(),
                     CustomerId = customer.Id,
-                    PickupLocation = request.PickupLocation,
+                    PickupLocation = request.PickupLocation?.Trim() ?? string.Empty,
+                    FromName = string.IsNullOrWhiteSpace(request.FromName) ? null : request.FromName.Trim(),
+                    ToName = string.IsNullOrWhiteSpace(request.ToName) ? null : request.ToName.Trim(),
+                    DropOffDate = request.DropOffDate,
+                    DropOffTime = request.DropOffTime,
                     Destination = request.Destination,
                     PickupDate = request.PickupDate,
                     PickupTime = request.PickupTime,
@@ -139,8 +149,14 @@ namespace RideReady.Services
             if (pricing == null)
                 throw new InvalidOperationException($"Pricing not configured for {request.VehicleType}");
 
-            var distance = await _locationService.GetDistanceAsync(request.PickupLocation, request.Destination);
-            var duration = await _locationService.GetDurationAsync(request.PickupLocation, request.Destination);
+            // The pick up address is optional; fall back to the short "From" name, and fail (-> zeroed quote)
+            // when the customer gave neither.
+            var origin = !string.IsNullOrWhiteSpace(request.PickupLocation) ? request.PickupLocation : request.FromName;
+            if (string.IsNullOrWhiteSpace(origin))
+                throw new InvalidOperationException("No pick up address or From place to estimate the distance from");
+
+            var distance = await _locationService.GetDistanceAsync(origin, request.Destination);
+            var duration = await _locationService.GetDurationAsync(origin, request.Destination);
 
             var baseFare = pricing.BaseFare;
             var distanceCharge = CalculateDistanceCharge(distance, pricing);
@@ -168,6 +184,9 @@ namespace RideReady.Services
             };
         }
 
+        /// <summary>Statuses in which the admin may still set or change the fare — any time before the trip starts.</summary>
+        public static readonly string[] FareEditableStatuses = { "New", "Driver_Assigned", "Confirmed" };
+
         public async Task SetManualFareAsync(int bookingId, decimal fare)
         {
             if (fare <= 0)
@@ -180,9 +199,9 @@ namespace RideReady.Services
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
-            if (booking.Status != "New")
+            if (!FareEditableStatuses.Contains(booking.Status))
             {
-                throw new InvalidOperationException($"Cannot edit the fare — booking is already '{booking.Status}'");
+                throw new InvalidOperationException($"Cannot edit the fare — the trip is already '{booking.Status}' (the fare can only be changed before pickup)");
             }
 
             if (booking.Quote == null)

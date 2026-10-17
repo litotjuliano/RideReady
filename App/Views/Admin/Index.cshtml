@@ -21,9 +21,22 @@
     <div class="alert alert-danger">@errorMessage</div>
 }
 
+
+@{
+    var currentSort = ViewBag.Sort as string ?? "booked";
+}
+<form method="get" class="d-flex align-items-center justify-content-end gap-2 mb-3">
+    <label for="sort" class="small text-muted mb-0">Sort by</label>
+    <select id="sort" name="sort" class="form-select form-select-sm ride-input" style="max-width: 240px" onchange="this.form.submit()">
+        <option value="booked" selected="@(currentSort == "booked")">Date booked (newest first)</option>
+        <option value="pickup" selected="@(currentSort == "pickup")">Scheduled date (earliest first)</option>
+    </select>
+    <noscript><button type="submit" class="btn btn-sm btn-outline-secondary">Apply</button></noscript>
+</form>
 @foreach (var booking in Model)
 {
     <div class="ride-card mb-3">
+        @await Html.PartialAsync("_StatusStepper", booking.Status)
         <div class="d-flex justify-content-between flex-wrap gap-2">
             <div>
                 <div class="d-flex align-items-center gap-2">
@@ -34,11 +47,12 @@
             </div>
             <div class="text-end">
                 <p class="fw-bold mb-0">@booking.PickupDate.ToString("yyyy-MM-dd") &middot; @booking.PickupTime.ToString("HH:mm")</p>
+                <p class="text-muted small mb-0">Booked @booking.BookedAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</p>
                 @{
-                    // Once a booking has moved past "New" (confirmed, driver assigned, or
-                    // further along the trip lifecycle), the fare is locked — editing it
-                    // after the customer has been quoted/confirmed would be misleading.
-                    var fareIsEditable = booking.Status == "New";
+                    // The fare can be set or changed until the trip starts (New, Driver_Assigned,
+                    // Confirmed). From Picked_Up onward it is locked — changing it mid/after the trip
+                    // would be misleading.
+                    var fareIsEditable = RideReady.Services.BookingService.FareEditableStatuses.Contains(booking.Status);
                 }
                 @if (booking.EstimatedFare is decimal fare && fare > 0)
                 {
@@ -77,8 +91,7 @@
         </div>
 
         <div class="ride-section-label">Trip</div>
-        <p class="mb-1">@booking.PickupLocation &rarr; @booking.Destination</p>
-        <p class="text-muted small">@booking.Passengers pax &middot; @booking.Bags bags &middot; @booking.RequestedVehicleType</p>
+        @await Html.PartialAsync("_TripDetails", RideReady.ViewModels.TripDetailsViewModel.ForAdmin(booking))
 
         @{
             // Default to only drivers whose registered vehicle type matches the request,
@@ -95,13 +108,20 @@
                     <select name="DriverId" class="form-select ride-input">
                         @foreach (var driver in dropdownDrivers)
                         {
+                            var label = $"{driver.Name} ({driver.VehicleType})";
+                            var hasConflict = booking.DriverConflicts.TryGetValue(driver.Id, out var conflictReason);
+                            if (hasConflict)
+                            {
+                                label += $" - {conflictReason}";
+                            }
+                            var optionClass = hasConflict ? "text-muted" : "";
                             @if (driver.Id == booking.AssignedDriverId)
                             {
-                                <option value="@driver.Id" selected>@driver.Name (@driver.VehicleType)</option>
+                                <option value="@driver.Id" selected class="@optionClass">@label</option>
                             }
                             else
                             {
-                                <option value="@driver.Id">@driver.Name (@driver.VehicleType)</option>
+                                <option value="@driver.Id" class="@optionClass">@label</option>
                             }
                         }
                     </select>
@@ -137,6 +157,28 @@
         @if (booking.AssignedDriverName != null)
         {
             <p class="text-muted small mt-2 mb-0">Assigned: @booking.AssignedDriverName (@booking.AssignedDriverPhone) &middot; @booking.AssignmentStatus</p>
+        }
+
+        @if (booking.AssignmentStatus == "Accepted")
+        {
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 p-2 rounded" style="background: #e8f5e9; border: 1px solid #b7dfb9">
+                <span class="fw-bold small">Driver accepted</span>
+                <span class="small text-muted">
+                    @if (booking.DriverDetailsSentAt is DateTime detailsSentAt)
+                    {
+                        <text>Sent to customer @detailsSentAt.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)</text>
+                    }
+                    else
+                    {
+                        <text>Not sent to the customer yet</text>
+                    }
+                </span>
+                <form asp-controller="Admin" asp-action="SendDriverDetails" method="post" class="ms-auto">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="bookingId" value="@booking.BookingId" />
+                    <button type="submit" class="btn btn-sm ride-btn-primary text-nowrap">@(booking.DriverDetailsSentAt == null ? "Send driver details to customer" : "Resend to customer")</button>
+                </form>
+            </div>
         }
     </div>
 }

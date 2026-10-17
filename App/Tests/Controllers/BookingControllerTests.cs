@@ -37,6 +37,13 @@ namespace RideReady.Tests.Controllers
                     SenderEmail = "noreply@rideready.my",
                     SenderName = "RideReady",
                     OperatorEmail = "operator@rideready.my"
+                }),
+                Microsoft.Extensions.Options.Options.Create(new WhatsAppSettings
+                {
+                    ApiUrl = "https://graph.facebook.com/v18.0",
+                    AccessToken = "test-token",
+                    PhoneNumberId = "1234567890",
+                    OperatorPhone = "0192462592"
                 }));
 
         private async Task<RideReadyDbContext> GetSeededDbContextAsync()
@@ -64,8 +71,10 @@ namespace RideReady.Tests.Controllers
             CustomerEmail = "sim@email.com",
             PickupLocation = "KL Visa Center",
             Destination = "Hyt Ipoh Office",
-            PickupDate = new DateOnly(2026, 9, 5),
+            PickupDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             PickupTime = new TimeOnly(13, 8),
+            DropOffDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
+            DropOffTime = new TimeOnly(16, 0),
             Passengers = 2,
             Bags = 2,
             VehicleType = "Car",

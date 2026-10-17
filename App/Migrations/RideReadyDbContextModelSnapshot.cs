@@ -47,6 +47,15 @@ namespace RideReady.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateOnly?>("DropOffDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("DropOffTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("FromName")
+                        .HasColumnType("text");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -69,6 +78,9 @@ namespace RideReady.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ToName")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -337,6 +349,36 @@ namespace RideReady.Migrations
                     b.ToTable("DriverLocations");
                 });
 
+            modelBuilder.Entity("RideReady.Models.DriverTimeOff", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DriverId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DriverId");
+
+                    b.ToTable("DriverTimeOffs");
+                });
+
             modelBuilder.Entity("RideReady.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -538,6 +580,17 @@ namespace RideReady.Migrations
                     b.Navigation("Driver");
                 });
 
+            modelBuilder.Entity("RideReady.Models.DriverTimeOff", b =>
+                {
+                    b.HasOne("RideReady.Models.Driver", "Driver")
+                        .WithMany("TimeOffs")
+                        .HasForeignKey("DriverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Driver");
+                });
+
             modelBuilder.Entity("RideReady.Models.Notification", b =>
                 {
                     b.HasOne("RideReady.Models.Booking", "Booking")
@@ -581,6 +634,8 @@ namespace RideReady.Migrations
                     b.Navigation("Assignments");
 
                     b.Navigation("Locations");
+
+                    b.Navigation("TimeOffs");
                 });
 #pragma warning restore 612, 618
         }

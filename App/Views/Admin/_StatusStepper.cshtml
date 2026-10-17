@@ -1,0 +1,25 @@
+@model string
+@using RideReady.ViewModels
+@{
+    var offTrackLabel = BookingProgress.OffTrackLabel(Model);
+    var steps = BookingProgress.GetSteps(Model);
+    var current = steps.FirstOrDefault(s => s.State == StepState.Current);
+}
+@if (offTrackLabel != null)
+{
+    <div class="ride-stepper-offtrack" role="status">
+        <span class="ride-pill ride-pill-danger">@offTrackLabel</span>
+    </div>
+}
+else
+{
+    <ol class="ride-stepper" aria-label="@(current != null ? $"Status: {current.Label}, step {current.Number} of {BookingProgress.TotalSteps}" : "Booking progress")">
+        @foreach (var step in steps)
+        {
+            <li class="ride-step ride-step-@step.State.ToString().ToLowerInvariant()" aria-current="@(step.State == StepState.Current ? "step" : null)">
+                <span class="ride-step-circle">@step.Number</span>
+                <span class="ride-step-label">@step.Label</span>
+            </li>
+        }
+    </ol>
+}

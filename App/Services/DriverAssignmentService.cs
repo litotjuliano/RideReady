@@ -20,15 +20,19 @@ namespace RideReady.Services
             _context = context;
         }
 
-        public async Task<List<AdminBookingListItemViewModel>> GetDashboardBookingsAsync()
+        public async Task<List<AdminBookingListItemViewModel>> GetDashboardBookingsAsync(string? sort = null)
         {
-            var bookings = await _context.Bookings
+            var query = _context.Bookings
                 .Include(b => b.Customer)
                 .Include(b => b.Quote)
-                .Where(b => b.Status != "Completed" && b.Status != "Cancelled")
-                .OrderBy(b => b.PickupDate)
-                .ThenBy(b => b.PickupTime)
-                .ToListAsync();
+                .Where(b => b.Status != "Completed" && b.Status != "Cancelled");
+
+            // Default (null/unknown) = newest booking first; "pickup" = earliest pickup first.
+            var ordered = DashboardSort.Normalize(sort) == DashboardSort.Booked
+                ? query.OrderByDescending(b => b.CreatedAt).ThenByDescending(b => b.Id)
+                : query.OrderBy(b => b.PickupDate).ThenBy(b => b.PickupTime);
+
+            var bookings = await ordered.ToListAsync();
 
             var bookingIds = bookings.Select(b => b.Id).ToList();
 
@@ -41,19 +45,37 @@ namespace RideReady.Services
                 .GroupBy(a => a.BookingId)
                 .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.AssignedAt).First());
 
+            var sentAtByBooking = (await _context.Notifications
+                .Where(n => bookingIds.Contains(n.BookingId) && n.EventType == NotificationService.DriverDetailsEvent
+                    && n.Channel == "WhatsApp" && n.DeliveryStatus == "Sent" && n.SentAt != null)
+                .Select(n => new { n.BookingId, SentAt = n.SentAt!.Value })
+                .ToListAsync())
+                .GroupBy(n => n.BookingId)
+                .ToDictionary(g => g.Key, g => g.Max(n => n.SentAt));
+
             return bookings.Select(b =>
             {
                 latestByBooking.TryGetValue(b.Id, out var assignment);
+                DateTime? detailsSentAt = sentAtByBooking.TryGetValue(b.Id, out var sentAt) ? sentAt.AddHours(8) : null;
                 return new AdminBookingListItemViewModel
                 {
                     BookingId = b.Id,
                     BookingReference = b.BookingReference,
                     CustomerName = b.Customer?.Name ?? string.Empty,
                     CustomerPhone = b.Customer?.Phone ?? string.Empty,
+                    CustomerEmail = b.Customer?.Email,
+                    Notes = b.Notes,
+                    PaymentMethod = b.Quote?.PaymentMethod,
                     PickupLocation = b.PickupLocation,
                     Destination = b.Destination,
+                    FromName = b.FromName,
+                    ToName = b.ToName,
+                    DropOffDate = b.DropOffDate,
+                    DropOffTime = b.DropOffTime,
                     PickupDate = b.PickupDate,
                     PickupTime = b.PickupTime,
+                    BookedAt = b.CreatedAt.AddHours(8),
+                    DriverDetailsSentAt = detailsSentAt,
                     Passengers = b.Passengers,
                     Bags = b.Bags,
                     RequestedVehicleType = b.RequestedVehicleType,

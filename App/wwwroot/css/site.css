@@ -127,3 +127,273 @@ body {
     background-color: var(--ride-mid-green);
     color: #fff;
 }
+
+.ride-timeline-scale {
+    position: relative;
+    height: 20px;
+    margin-left: 152px;
+    font-size: 0.75rem;
+    color: var(--ride-text-muted);
+}
+
+.ride-timeline-scale span {
+    position: absolute;
+    transform: translateX(-50%);
+}
+
+.ride-timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--ride-border);
+}
+
+.ride-timeline-row:first-of-type {
+    border-top: none;
+}
+
+.ride-timeline-label {
+    width: 140px;
+    flex-shrink: 0;
+}
+
+.ride-timeline-track {
+    position: relative;
+    flex: 1;
+    height: 36px;
+    background: var(--ride-bg-2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ride-timeline-block {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.ride-timeline-block--booked {
+    background: var(--ride-bg-4);
+    color: var(--ride-mid-green);
+    border: 1px solid var(--ride-bright-green);
+}
+
+.ride-timeline-block--booked:hover {
+    background: var(--ride-bright-green);
+    color: #fff;
+}
+
+.ride-timeline-block--timeoff {
+    left: 0;
+    width: 100%;
+    justify-content: center;
+    background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 6px, #d4d4d4 6px, #d4d4d4 12px);
+    color: var(--ride-text-muted);
+}
+
+.ride-timeline-actions {
+    flex-shrink: 0;
+    width: 200px;
+}
+
+.ride-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.ride-month-dow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ride-text-muted);
+    text-align: center;
+    padding-bottom: 4px;
+}
+
+.ride-month-day {
+    background: var(--ride-bg-2);
+    border: 1px solid var(--ride-border);
+    border-radius: 10px;
+    min-height: 84px;
+    padding: 6px;
+}
+
+.ride-month-day--blank {
+    background: transparent;
+    border: none;
+}
+
+.ride-month-day.today {
+    border-color: var(--ride-vivid-green);
+    border-width: 2px;
+}
+
+.ride-month-daynum {
+    font-weight: 700;
+    color: var(--ride-text);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.ride-month-daynum:hover {
+    color: var(--ride-mid-green);
+}
+
+.ride-month-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 6px;
+}
+
+.ride-month-chip {
+    background: var(--ride-bg-4);
+    color: var(--ride-mid-green);
+    border: 1px solid var(--ride-bright-green);
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 1px 6px;
+}
+
+.ride-month-chip--timeoff {
+    background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 3px, #d4d4d4 3px, #d4d4d4 6px);
+    color: var(--ride-text-muted);
+    border-color: #d4d4d4;
+}
+/* Booking progress strip (admin dashboard): numbered circles joined by arrows. */
+.ride-stepper {
+    list-style: none;
+    display: flex;
+    margin: 0 0 1.25rem;
+    padding: 0 0 0.25rem;
+    overflow-x: auto;
+}
+
+.ride-step {
+    position: relative;
+    flex: 1 0 76px;
+    text-align: center;
+}
+
+.ride-step-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--ride-border);
+    background: #fff;
+    color: var(--ride-text-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.ride-step-label {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--ride-text-muted);
+}
+
+/* connector line + arrowhead to the next step */
+.ride-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: calc(50% + 22px);
+    right: calc(-50% + 26px);
+    height: 2px;
+    background: var(--ride-border);
+}
+
+.ride-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 11px;
+    right: calc(-50% + 22px);
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--ride-border);
+    border-right: 2px solid var(--ride-border);
+    transform: rotate(45deg);
+}
+
+.ride-step-done .ride-step-circle {
+    background: var(--ride-mid-green);
+    border-color: var(--ride-mid-green);
+    color: #fff;
+}
+
+.ride-step-done:not(:last-child)::after {
+    background: var(--ride-vivid-green);
+}
+
+.ride-step-done:not(:last-child)::before {
+    border-color: var(--ride-vivid-green);
+}
+
+.ride-step-current .ride-step-circle {
+    background: var(--ride-vivid-green);
+    border-color: var(--ride-vivid-green);
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--ride-bg-4);
+}
+
+.ride-step-current .ride-step-label {
+    color: var(--ride-text);
+    font-weight: 700;
+}
+
+.ride-stepper-offtrack {
+    margin-bottom: 1.25rem;
+}
+
+.ride-pill-danger {
+    background: #fde8e8;
+    color: #b42318;
+}
+
+/* Labelled booking details on the admin and driver cards. */
+.ride-details {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    gap: 0.3rem 1rem;
+    margin: 0 0 1rem;
+    font-size: 0.88rem;
+}
+
+.ride-details dt {
+    color: var(--ride-text-muted);
+    font-weight: 600;
+}
+
+.ride-details dd {
+    margin: 0;
+    word-break: break-word;
+}
+
+@media (max-width: 575px) {
+    .ride-details {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .ride-details dd {
+        margin-bottom: 0.45rem;
+    }
+}

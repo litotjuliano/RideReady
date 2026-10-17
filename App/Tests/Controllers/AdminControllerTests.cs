@@ -18,26 +18,50 @@ namespace RideReady.Tests.Controllers
             return new RideReadyDbContext(options);
         }
 
-        private static INotificationService BuildNotificationService(RideReadyDbContext context) =>
+        private static INotificationService BuildNotificationService(RideReadyDbContext context, RideReady.Tests.Services.FakeWhatsAppSender? whatsAppSender = null) =>
             new NotificationService(
                 context,
                 new RideReady.Tests.Services.FakeEmailSender(),
-                new RideReady.Tests.Services.FakeWhatsAppSender(),
+                whatsAppSender ?? new RideReady.Tests.Services.FakeWhatsAppSender(),
                 new RideReady.Tests.Services.FakeCalendarSyncService(),
                 Microsoft.Extensions.Options.Options.Create(new EmailSettings
                 {
                     SenderEmail = "noreply@rideready.my",
                     SenderName = "RideReady",
                     OperatorEmail = "operator@rideready.my"
+                }),
+                Microsoft.Extensions.Options.Options.Create(new WhatsAppSettings
+                {
+                    ApiUrl = "https://graph.facebook.com/v18.0",
+                    AccessToken = "test-token",
+                    PhoneNumberId = "1234567890",
+                    OperatorPhone = "0192462592"
                 }));
+
+        private static AdminController BuildController(RideReadyDbContext context, bool withTempData = true, RideReady.Tests.Services.FakeWhatsAppSender? whatsAppSender = null)
+        {
+            var controller = new AdminController(
+                new DriverAssignmentService(context),
+                BuildNotificationService(context, whatsAppSender),
+                new BookingService(context),
+                new DriverAvailabilityService(context));
+
+            if (withTempData)
+            {
+                controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
+                    new NullTempDataProvider());
+            }
+
+            return controller;
+        }
 
         [Fact]
         public async Task Index_ReturnsViewWithBookingList()
         {
             // Arrange
             var context = GetInMemoryDbContext();
-            var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context));
+            var controller = BuildController(context, withTempData: false);
 
             // Act
             var result = await controller.Index();
@@ -48,17 +72,55 @@ namespace RideReady.Tests.Controllers
         }
 
         [Fact]
+        public async Task Index_AnnotatesDriverConflictsForBusyDrivers()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            var assignmentService = new DriverAssignmentService(context);
+            await assignmentService.AssignDriverAsync(booking.Id, driver.Id);
+
+            // A second booking at the same pickup time as `booking`, for the same driver
+            var customer = new Models.Customer { Name = "Second Customer", Phone = "0129998888", Email = "second@email.com" };
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+            var secondBooking = new Models.Booking
+            {
+                BookingReference = "RR-SECOND01",
+                CustomerId = customer.Id,
+                PickupLocation = "Mid Valley",
+                Destination = "KLIA Terminal 1",
+                PickupDate = booking.PickupDate,
+                PickupTime = booking.PickupTime,
+                Passengers = 1,
+                Bags = 0,
+                RequestedVehicleType = "Car",
+                Status = "New"
+            };
+            context.Bookings.Add(secondBooking);
+            await context.SaveChangesAsync();
+
+            var controller = BuildController(context, withTempData: false);
+
+            // Act
+            var result = await controller.Index();
+
+            // Assert
+            var view = Assert.IsType<ViewResult>(result);
+            var bookings = Assert.IsType<List<AdminBookingListItemViewModel>>(view.Model);
+            var secondBookingItem = bookings.Single(b => b.BookingReference == "RR-SECOND01");
+            Assert.True(secondBookingItem.DriverConflicts.ContainsKey(driver.Id));
+            Assert.Contains(booking.BookingReference, secondBookingItem.DriverConflicts[driver.Id]);
+
+            var firstBookingItem = bookings.Single(b => b.BookingId == booking.Id);
+            Assert.False(firstBookingItem.DriverConflicts.ContainsKey(driver.Id));
+        }
+
+        [Fact]
         public async Task CreateDriver_WithValidModel_RedirectsToDrivers()
         {
             // Arrange
             var context = GetInMemoryDbContext();
-            var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
             var model = new CreateDriverViewModel
             {
                 Name = "Ah Seng",
@@ -83,7 +145,7 @@ namespace RideReady.Tests.Controllers
             // Arrange
             var context = GetInMemoryDbContext();
             var service = new DriverAssignmentService(context);
-            var controller = new AdminController(service, BuildNotificationService(context), new BookingService(context));
+            var controller = BuildController(context, withTempData: false);
 
             await service.CreateDriverAsync(new CreateDriverViewModel
             {
@@ -156,12 +218,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, booking, driver) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.AssignDriver(new AssignDriverViewModel { BookingId = booking.Id, DriverId = driver.Id });
@@ -178,12 +235,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, _, driver) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.AssignDriver(new AssignDriverViewModel { BookingId = 9999, DriverId = driver.Id });
@@ -198,12 +250,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, booking, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.UpdateStatus(new UpdateStatusViewModel { BookingId = booking.Id, NewStatus = "Confirmed" });
@@ -220,12 +267,7 @@ namespace RideReady.Tests.Controllers
         {
             // Arrange
             var (context, booking, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.UpdateStatus(new UpdateStatusViewModel { BookingId = booking.Id, NewStatus = "NotARealStatus" });
@@ -235,6 +277,49 @@ namespace RideReady.Tests.Controllers
             Assert.NotNull(controller.TempData["ErrorMessage"]);
         }
 
+
+        [Fact]
+        public async Task SendDriverDetails_WhenDriverAccepted_SendsDriverDetailsToCustomerOnly()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            await new DriverAssignmentService(context).AssignDriverAsync(booking.Id, driver.Id);
+            var assignment = await context.DriverAssignments.FirstAsync(a => a.BookingId == booking.Id);
+            assignment.AssignmentStatus = "Accepted";
+            await context.SaveChangesAsync();
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = BuildController(context, whatsAppSender: whatsAppSender);
+
+            // Act
+            var result = await controller.SendDriverDetails(booking.Id);
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            var sent = Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0125183838", sent.To);
+            Assert.Contains(driver.Name, sent.Message);
+            Assert.Contains(driver.Phone, sent.Message);
+            Assert.Contains(driver.VehicleNumber, sent.Message);
+            Assert.Equal("Driver details sent to the customer.", controller.TempData["SuccessMessage"]);
+        }
+
+        [Fact]
+        public async Task SendDriverDetails_WhenDriverHasNotAccepted_RedirectsWithErrorAndSendsNothing()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            await new DriverAssignmentService(context).AssignDriverAsync(booking.Id, driver.Id); // still Pending
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = BuildController(context, whatsAppSender: whatsAppSender);
+
+            // Act
+            var result = await controller.SendDriverDetails(booking.Id);
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Empty(whatsAppSender.Sent);
+            Assert.Contains("accepted", (string)controller.TempData["ErrorMessage"]!);
+        }
         [Fact]
         public async Task SetFare_WithValidFare_RedirectsAndUpdatesQuote()
         {
@@ -248,12 +333,7 @@ namespace RideReady.Tests.Controllers
             });
             await context.SaveChangesAsync();
 
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.SetFare(new SetFareViewModel { BookingId = booking.Id, Fare = 123.45m });
@@ -267,16 +347,66 @@ namespace RideReady.Tests.Controllers
         }
 
         [Fact]
+        public async Task SetFare_WithValidFare_SendsPriceNotificationToCustomer()
+        {
+            // Arrange
+            var (context, booking, _) = await SeedBookingAndDriverAsync();
+            context.BookingQuotes.Add(new Models.BookingQuote
+            {
+                BookingId = booking.Id,
+                TotalEstimatedFare = 0,
+                PaymentMethod = "Pay_at_Pickup"
+            });
+            await context.SaveChangesAsync();
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = BuildController(context, whatsAppSender: whatsAppSender);
+
+            // Act
+            await controller.SetFare(new SetFareViewModel { BookingId = booking.Id, Fare = 123.45m });
+
+            // Assert
+            Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0125183838", whatsAppSender.Sent[0].To);
+            Assert.Contains("RM123.45", whatsAppSender.Sent[0].Message);
+        }
+
+        [Fact]
+        public async Task SetFare_WhenDriverAlreadyAcceptedAndBookingConfirmed_SavesFareAndSendsPriceToCustomer()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            context.BookingQuotes.Add(new Models.BookingQuote
+            {
+                BookingId = booking.Id,
+                TotalEstimatedFare = 0,
+                PaymentMethod = "Pay_at_Pickup"
+            });
+            await context.SaveChangesAsync();
+            await new DriverAssignmentService(context).AssignDriverAsync(booking.Id, driver.Id);
+            var tracked = await context.Bookings.FindAsync(booking.Id);
+            tracked!.Status = "Confirmed";
+            await context.SaveChangesAsync();
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = BuildController(context, whatsAppSender: whatsAppSender);
+
+            // Act
+            await controller.SetFare(new SetFareViewModel { BookingId = booking.Id, Fare = 88.00m });
+
+            // Assert
+            var quote = await context.BookingQuotes.FirstAsync(q => q.BookingId == booking.Id);
+            Assert.Equal(88.00m, quote.TotalEstimatedFare);
+            Assert.Equal("Fare saved.", controller.TempData["SuccessMessage"]);
+            var sent = Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0125183838", sent.To);
+            Assert.Contains("RM88.00", sent.Message);
+        }
+
+        [Fact]
         public async Task SetFare_WithNonexistentBooking_RedirectsWithErrorMessageInsteadOfThrowing()
         {
             // Arrange
             var (context, _, _) = await SeedBookingAndDriverAsync();
-            var controller = new AdminController(new DriverAssignmentService(context), BuildNotificationService(context), new BookingService(context))
-            {
-                TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-                    new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-                    new NullTempDataProvider())
-            };
+            var controller = BuildController(context);
 
             // Act
             var result = await controller.SetFare(new SetFareViewModel { BookingId = 9999, Fare = 50m });
@@ -284,6 +414,141 @@ namespace RideReady.Tests.Controllers
             // Assert
             Assert.IsType<RedirectToActionResult>(result);
             Assert.NotNull(controller.TempData["ErrorMessage"]);
+        }
+
+        [Fact]
+        public async Task Calendar_WithNoDateParam_DefaultsToTodayAndReturnsSchedule()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context, withTempData: false);
+            await new DriverAssignmentService(context).CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+
+            // Act
+            var result = await controller.Calendar(null);
+
+            // Assert
+            var view = Assert.IsType<ViewResult>(result);
+            var schedule = Assert.IsType<List<DriverDayScheduleViewModel>>(view.Model);
+            Assert.Single(schedule);
+            Assert.Equal(DateOnly.FromDateTime(DateTime.Today), controller.ViewBag.SelectedDate);
+        }
+
+        [Fact]
+        public async Task Calendar_WithDateParam_UsesThatDate()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context, withTempData: false);
+            var requestedDate = new DateOnly(2026, 12, 25);
+
+            // Act
+            await controller.Calendar(requestedDate);
+
+            // Assert
+            Assert.Equal(requestedDate, controller.ViewBag.SelectedDate);
+        }
+
+        [Fact]
+        public async Task Calendar_WithMonthView_ReturnsMonthScheduleInViewBag()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context, withTempData: false);
+            await new DriverAssignmentService(context).CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+
+            // Act
+            var result = await controller.Calendar(new DateOnly(2026, 9, 15), "month");
+
+            // Assert
+            Assert.IsType<ViewResult>(result);
+            var monthSchedule = Assert.IsType<Dictionary<DateOnly, List<DriverDayScheduleViewModel>>>(controller.ViewBag.MonthSchedule);
+            Assert.Equal(30, monthSchedule.Count);
+            Assert.Equal("month", controller.ViewBag.CalendarView);
+        }
+
+        [Fact]
+        public async Task Calendar_WithoutViewParam_DefaultsToDayModeUnchanged()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context, withTempData: false);
+
+            // Act
+            var result = await controller.Calendar(new DateOnly(2026, 9, 15));
+
+            // Assert
+            var view = Assert.IsType<ViewResult>(result);
+            Assert.IsType<List<DriverDayScheduleViewModel>>(view.Model);
+            Assert.Equal("day", controller.ViewBag.CalendarView);
+        }
+
+        [Fact]
+        public async Task AddTimeOff_WithValidModel_RedirectsToCalendarAndCreatesTimeOff()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var controller = BuildController(context);
+            var driver = await new DriverAssignmentService(context).CreateDriverAsync(new CreateDriverViewModel
+            {
+                Name = "Ah Seng",
+                Phone = "0123456789",
+                VehicleType = "Car",
+                VehicleNumber = "ABC 1234",
+                Pin = "1234"
+            });
+
+            // Act
+            var result = await controller.AddTimeOff(new AddTimeOffViewModel
+            {
+                DriverId = driver.Id,
+                StartDate = new DateOnly(2026, 9, 20),
+                EndDate = new DateOnly(2026, 9, 22),
+                Reason = "Annual leave"
+            });
+
+            // Assert
+            var redirect = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Calendar", redirect.ActionName);
+            Assert.Equal(1, await context.DriverTimeOffs.CountAsync());
+            Assert.Equal("Time off added.", controller.TempData["SuccessMessage"]);
+        }
+
+        [Fact]
+        public async Task AddTimeOff_WithConflictingAssignment_RedirectsWithErrorMessageInsteadOfThrowing()
+        {
+            // Arrange
+            var (context, booking, driver) = await SeedBookingAndDriverAsync();
+            var controller = BuildController(context);
+            await new DriverAssignmentService(context).AssignDriverAsync(booking.Id, driver.Id);
+
+            // Act
+            var result = await controller.AddTimeOff(new AddTimeOffViewModel
+            {
+                DriverId = driver.Id,
+                StartDate = booking.PickupDate,
+                EndDate = booking.PickupDate,
+                Reason = null
+            });
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.NotNull(controller.TempData["ErrorMessage"]);
+            Assert.Equal(0, await context.DriverTimeOffs.CountAsync());
         }
 
         internal class NullTempDataProvider : Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider

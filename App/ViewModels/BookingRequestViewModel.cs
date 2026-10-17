@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RideReady.ViewModels
 {
-    public class BookingRequestViewModel
+    public class BookingRequestViewModel : IValidatableObject
     {
         [Display(Name = "Full name")]
         [Required(ErrorMessage = "Name is required")]
@@ -20,13 +20,25 @@ namespace RideReady.ViewModels
         [EmailAddress]
         public string CustomerEmail { get; set; } = string.Empty;
 
-        [Display(Name = "Pickup location")]
-        [Required(ErrorMessage = "Pickup location is required")]
-        [StringLength(255, MinimumLength = 5)]
-        public string PickupLocation { get; set; } = string.Empty;
+        [Display(Name = "From")]
+        [Required(ErrorMessage = "From is required")]
+        [StringLength(255, MinimumLength = 2)]
+        public string? FromName { get; set; }
 
-        [Display(Name = "Destination")]
-        [Required(ErrorMessage = "Destination is required")]
+        [Display(Name = "To")]
+        [Required(ErrorMessage = "To is required")]
+        [StringLength(255, MinimumLength = 2)]
+        public string? ToName { get; set; }
+
+        // Stored in Booking.PickupLocation.
+        [Display(Name = "Pick up address")]
+        [Required(ErrorMessage = "Pick up address is required")]
+        [StringLength(255, MinimumLength = 5)]
+        public string? PickupLocation { get; set; }
+
+        // Stored in Booking.Destination.
+        [Display(Name = "Drop-off address")]
+        [Required(ErrorMessage = "Drop-off address is required")]
         [StringLength(255, MinimumLength = 5)]
         public string Destination { get; set; } = string.Empty;
 
@@ -37,6 +49,14 @@ namespace RideReady.ViewModels
         [Display(Name = "Pickup time")]
         [Required(ErrorMessage = "Pickup time is required")]
         public TimeOnly PickupTime { get; set; }
+
+        [Display(Name = "Drop-off date")]
+        [Required(ErrorMessage = "Drop-off date is required")]
+        public DateOnly? DropOffDate { get; set; }
+
+        [Display(Name = "Drop-off time (approximate)")]
+        [Required(ErrorMessage = "Drop-off time is required")]
+        public TimeOnly? DropOffTime { get; set; }
 
         [Display(Name = "Passengers")]
         [Required(ErrorMessage = "Passengers count is required")]
@@ -53,7 +73,7 @@ namespace RideReady.ViewModels
         [RegularExpression("^(Car|Van|Bus)$")]
         public string VehicleType { get; set; } = string.Empty;
 
-        [Display(Name = "Notes")]
+        [Display(Name = "Remarks")]
         [StringLength(500)]
         public string? Notes { get; set; }
 
@@ -62,7 +82,19 @@ namespace RideReady.ViewModels
         [RegularExpression("^(Pay_at_Pickup|Bank_Transfer)$")]
         public string PaymentMethod { get; set; } = "Pay_at_Pickup";
 
-        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the terms and conditions")]
+        [MustBeTrue(ErrorMessage = "You must accept the terms and conditions")]
         public bool AcceptedTerms { get; set; }
+
+        /// <summary>The approximate drop-off must come after the pickup.</summary>
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (DropOffDate is DateOnly dropOffDate && DropOffTime is TimeOnly dropOffTime
+                && dropOffDate.ToDateTime(dropOffTime) <= PickupDate.ToDateTime(PickupTime))
+            {
+                yield return new ValidationResult(
+                    "Drop-off must be after the pickup time",
+                    new[] { nameof(DropOffTime) });
+            }
+        }
     }
 }

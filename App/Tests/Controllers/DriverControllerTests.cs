@@ -21,22 +21,29 @@ namespace RideReady.Tests.Controllers
             return new RideReadyDbContext(options);
         }
 
-        private static INotificationService BuildNotificationService(RideReadyDbContext context) =>
+        private static INotificationService BuildNotificationService(RideReadyDbContext context, RideReady.Tests.Services.FakeWhatsAppSender? whatsAppSender = null) =>
             new NotificationService(
                 context,
                 new RideReady.Tests.Services.FakeEmailSender(),
-                new RideReady.Tests.Services.FakeWhatsAppSender(),
+                whatsAppSender ?? new RideReady.Tests.Services.FakeWhatsAppSender(),
                 new RideReady.Tests.Services.FakeCalendarSyncService(),
                 Microsoft.Extensions.Options.Options.Create(new EmailSettings
                 {
                     SenderEmail = "noreply@rideready.my",
                     SenderName = "RideReady",
                     OperatorEmail = "operator@rideready.my"
+                }),
+                Microsoft.Extensions.Options.Options.Create(new WhatsAppSettings
+                {
+                    ApiUrl = "https://graph.facebook.com/v18.0",
+                    AccessToken = "test-token",
+                    PhoneNumberId = "1234567890",
+                    OperatorPhone = "0192462592"
                 }));
 
-        private static DriverController WithAuthenticatedDriver(RideReadyDbContext context, IDriverPortalService service, int driverId)
+        private static DriverController WithAuthenticatedDriver(RideReadyDbContext context, IDriverPortalService service, int driverId, RideReady.Tests.Services.FakeWhatsAppSender? whatsAppSender = null)
         {
-            var controller = new DriverController(service, BuildNotificationService(context))
+            var controller = new DriverController(service, BuildNotificationService(context, whatsAppSender))
             {
                 ControllerContext = new ControllerContext
                 {
@@ -177,6 +184,68 @@ namespace RideReady.Tests.Controllers
             // Assert
             Assert.IsType<RedirectToActionResult>(result);
             Assert.NotNull(controller.TempData["ErrorMessage"]);
+        }
+
+        [Theory]
+        [InlineData("Picked_Up")]
+        [InlineData("In_Transit")]
+        [InlineData("Dropped_Off")]
+        public async Task UpdateStatus_WithInterimStatus_SendsTripStatusWhatsAppToCustomerAndOperator(string newStatus)
+        {
+            // Arrange
+            var (context, driver, booking, assignment) = await SeedAssignedBookingAsync();
+            assignment.AssignmentStatus = "Accepted";
+            await context.SaveChangesAsync();
+            var service = new DriverPortalService(context);
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = WithAuthenticatedDriver(context, service, driver.Id, whatsAppSender);
+
+            // Act
+            await controller.UpdateStatus(booking.Id, newStatus);
+
+            // Assert
+            Assert.Equal(2, whatsAppSender.Sent.Count);
+            Assert.Contains(whatsAppSender.Sent, s => s.To == "0125183838");
+            Assert.Contains(whatsAppSender.Sent, s => s.To == "0192462592");
+        }
+
+        [Fact]
+        public async Task UpdateStatus_WithCompletedStatus_SendsCompletedNotifications()
+        {
+            // Arrange
+            var (context, driver, booking, assignment) = await SeedAssignedBookingAsync();
+            assignment.AssignmentStatus = "Accepted";
+            await context.SaveChangesAsync();
+            var service = new DriverPortalService(context);
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = WithAuthenticatedDriver(context, service, driver.Id, whatsAppSender);
+
+            // Act
+            await controller.UpdateStatus(booking.Id, "Completed");
+
+            // Assert
+            Assert.Equal(2, whatsAppSender.Sent.Count);
+            Assert.Contains(whatsAppSender.Sent, s => s.To == "0125183838");
+            Assert.Contains(whatsAppSender.Sent, s => s.To == "0192462592");
+        }
+
+        [Fact]
+        public async Task Accept_WithValidAssignment_NotifiesOnlyTheOperator_NotTheCustomer()
+        {
+            // Arrange
+            var (context, driver, booking, assignment) = await SeedAssignedBookingAsync();
+            var service = new DriverPortalService(context);
+            var whatsAppSender = new RideReady.Tests.Services.FakeWhatsAppSender();
+            var controller = WithAuthenticatedDriver(context, service, driver.Id, whatsAppSender);
+
+            // Act
+            await controller.Accept(assignment.Id);
+
+            // Assert
+            // The customer is told about the driver later, when the admin presses the manual button.
+            var sent = Assert.Single(whatsAppSender.Sent);
+            Assert.Equal("0192462592", sent.To);
+            Assert.DoesNotContain(whatsAppSender.Sent, s => s.To == "0125183838");
         }
 
         internal class NullTempDataProvider : Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider

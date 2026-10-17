@@ -1,0 +1,66 @@
+@model Dictionary<DateOnly, List<RideReady.ViewModels.DriverDayScheduleViewModel>>
+@{
+    var days = Model.Keys.OrderBy(d => d).ToList();
+    var firstDay = days.First();
+    var leadingBlanks = (int)firstDay.DayOfWeek;
+    var dayNames = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+@functions {
+    string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return "?";
+        }
+        if (parts.Length == 1)
+        {
+            return parts[0].Substring(0, 1).ToUpperInvariant();
+        }
+        return (parts[0].Substring(0, 1) + parts[1].Substring(0, 1)).ToUpperInvariant();
+    }
+
+    string ChipTitle(RideReady.ViewModels.DriverDayScheduleViewModel driver)
+    {
+        if (driver.IsOnTimeOff)
+        {
+            return string.IsNullOrEmpty(driver.TimeOffReason)
+                ? $"{driver.DriverName} - on time off"
+                : $"{driver.DriverName} - on time off: {driver.TimeOffReason}";
+        }
+
+        var trips = driver.Blocks.Select(b => $"{b.Start:HH:mm}-{b.End:HH:mm} {b.BookingReference}");
+        return $"{driver.DriverName} - " + string.Join("\n", trips);
+    }
+}
+
+<div class="ride-card">
+    <div class="ride-month-grid">
+        @foreach (var name in dayNames)
+        {
+            <div class="ride-month-dow">@name</div>
+        }
+
+        @for (var i = 0; i < leadingBlanks; i++)
+        {
+            <div class="ride-month-day ride-month-day--blank"></div>
+        }
+
+        @foreach (var date in days)
+        {
+            var driversForDay = Model[date].Where(d => d.IsOnTimeOff || d.Blocks.Any()).ToList();
+            var isToday = date == today;
+            <div class="ride-month-day @(isToday ? "today" : "")">
+                <a class="ride-month-daynum" asp-controller="Admin" asp-action="Calendar" asp-route-date="@date.ToString("yyyy-MM-dd")" asp-route-view="day">@date.Day</a>
+                <div class="ride-month-chips">
+                    @foreach (var driver in driversForDay)
+                    {
+                        <span class="ride-month-chip @(driver.IsOnTimeOff ? "ride-month-chip--timeoff" : "")" title="@ChipTitle(driver)">@Initials(driver.DriverName)</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

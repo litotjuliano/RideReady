@@ -53,12 +53,7 @@
                 <span class="ride-pill">@trip.AssignmentStatus / @trip.BookingStatus</span>
             </div>
         </div>
-        <p class="mt-2 mb-1">@trip.PickupLocation &rarr; @trip.Destination</p>
-        <p class="text-muted small">@trip.Passengers pax &middot; @trip.Bags bags</p>
-        @if (!string.IsNullOrEmpty(trip.Notes))
-        {
-            <p class="text-muted small">Notes: @trip.Notes</p>
-        }
+        @await Html.PartialAsync("_TripDetails", RideReady.ViewModels.TripDetailsViewModel.ForDriver(trip))
 
         @if (trip.AssignmentStatus == "Pending")
         {

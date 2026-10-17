@@ -9,6 +9,7 @@
     <div class="d-flex align-items-center gap-2">
         <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-outline-secondary">Dashboard</a>
         <a asp-controller="Admin" asp-action="Drivers" class="btn btn-sm btn-outline-secondary">Drivers</a>
+        <a asp-controller="Admin" asp-action="Calendar" class="btn btn-sm btn-outline-secondary">Calendar</a>
         <form asp-controller="AdminAuth" asp-action="Logout" method="post" class="mb-0">
             @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-outline-secondary rounded-pill">Sign out</button>

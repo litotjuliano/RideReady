@@ -34,7 +34,7 @@ namespace RideReady.Services
             var pickupAt = booking.PickupDate.ToDateTime(booking.PickupTime);
             var calendarEvent = new Event
             {
-                Summary = $"{booking.BookingReference}: {booking.PickupLocation} -> {booking.Destination}",
+                Summary = $"{booking.BookingReference}: {RideReady.ViewModels.TripText.Route(booking.FromName, booking.PickupLocation, booking.ToName, booking.Destination)}",
                 Description = $"Passengers: {booking.Passengers}, Bags: {booking.Bags}, Vehicle: {booking.RequestedVehicleType}",
                 Start = new EventDateTime { DateTimeDateTimeOffset = pickupAt },
                 End = new EventDateTime { DateTimeDateTimeOffset = pickupAt.AddHours(2) }

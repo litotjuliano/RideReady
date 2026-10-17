@@ -3,6 +3,7 @@
     ViewData["Title"] = "Book a Ride";
     var today = DateTime.Today.ToString("yyyy-MM-dd");
     var maxDate = DateTime.Today.AddDays(30).ToString("yyyy-MM-dd");
+    var maxDropOffDate = DateTime.Today.AddDays(31).ToString("yyyy-MM-dd");
 }
 
 <div class="ride-hero">
@@ -53,13 +54,25 @@
                     <p class="ride-section-label">Trip</p>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
+                            <label asp-for="FromName" class="form-label fw-semibold"></label>
+                            <input asp-for="FromName" maxlength="255" class="form-control ride-input" placeholder="e.g. KLIA Terminal 1" />
+                            <span asp-validation-for="FromName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ToName" class="form-label fw-semibold"></label>
+                            <input asp-for="ToName" maxlength="255" class="form-control ride-input" placeholder="e.g. Mid Valley" />
+                            <span asp-validation-for="ToName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
                             <label asp-for="PickupLocation" class="form-label fw-semibold"></label>
-                            <input asp-for="PickupLocation" class="form-control ride-input" placeholder="e.g. KL Sentral" />
+                            <textarea asp-for="PickupLocation" rows="2" maxlength="255" data-count="PickupLocation" class="form-control ride-input" placeholder="Full pick up address"></textarea>
+                            <div class="form-text text-end" style="font-size: 0.75rem;"><span data-count-for="PickupLocation">0</span>/255</div>
                             <span asp-validation-for="PickupLocation" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="Destination" class="form-label fw-semibold"></label>
-                            <input asp-for="Destination" class="form-control ride-input" placeholder="e.g. KLIA Terminal 1" />
+                            <textarea asp-for="Destination" rows="2" maxlength="255" data-count="Destination" class="form-control ride-input" placeholder="Full drop-off address"></textarea>
+                            <div class="form-text text-end" style="font-size: 0.75rem;"><span data-count-for="Destination">0</span>/255</div>
                             <span asp-validation-for="Destination" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
@@ -72,6 +85,17 @@
                             <input asp-for="PickupTime" type="time" min="06:00" max="23:45" step="900" class="form-control ride-input" />
                             <span asp-validation-for="PickupTime" class="text-danger small"></span>
                             <div class="form-text" style="font-size: 0.75rem;">Bookings available 6:00 AM - midnight, 15-minute slots.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DropOffDate" class="form-label fw-semibold"></label>
+                            <input asp-for="DropOffDate" type="date" min="@today" max="@maxDropOffDate" class="form-control ride-input" />
+                            <span asp-validation-for="DropOffDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DropOffTime" class="form-label fw-semibold"></label>
+                            <input asp-for="DropOffTime" type="time" step="900" class="form-control ride-input" />
+                            <span asp-validation-for="DropOffTime" class="text-danger small"></span>
+                            <div class="form-text" style="font-size: 0.75rem;">Approximate arrival time, e.g. should be there by 3pm.</div>
                         </div>
                     </div>
 
@@ -101,7 +125,8 @@
 
                     <div class="mb-3">
                         <label asp-for="Notes" class="form-label fw-semibold"></label>
-                        <textarea asp-for="Notes" rows="3" class="form-control ride-input" placeholder="Flight number, luggage, child seat, or other requests"></textarea>
+                        <span class="text-muted small">(optional)</span>
+                        <textarea asp-for="Notes" rows="3" class="form-control ride-input" placeholder="Flight number, luggage, child seat, or any other requests"></textarea>
                         <span asp-validation-for="Notes" class="text-danger small"></span>
                     </div>
 
@@ -131,4 +156,47 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Client rule for [MustBeTrue]: the checkbox must be ticked.
+        if (window.jQuery && jQuery.validator && jQuery.validator.unobtrusive) {
+            jQuery.validator.addMethod("mustbetrue", function (value, element) { return element.checked; });
+            jQuery.validator.unobtrusive.adapters.addBool("mustbetrue");
+        }
+
+        // jquery-validate's "step" rule throws on <input type="time"> (step is in seconds there,
+        // and the browser's own picker already enforces it). Skip the rule for time inputs.
+        if (window.jQuery && jQuery.validator) {
+            var originalStep = jQuery.validator.methods.step;
+            jQuery.validator.methods.step = function (value, element, param) {
+                if (element.type === "time") { return true; }
+                return originalStep.call(this, value, element, param);
+            };
+        }
+    </script>
+
+    <script>
+        // Live character counters for the address boxes (limit 255).
+        document.querySelectorAll("textarea[data-count]").forEach(function (box) {
+            var counter = document.querySelector('[data-count-for="' + box.getAttribute("data-count") + '"]');
+            var update = function () { if (counter) { counter.textContent = box.value.length; } };
+            box.addEventListener("input", update);
+            update();
+        });
+
+        // The drop-off can't be before the pickup date: use it as the minimum and as the default.
+        (function () {
+            var pickupDate = document.getElementById("PickupDate");
+            var dropOffDate = document.getElementById("DropOffDate");
+            if (!pickupDate || !dropOffDate) { return; }
+            var sync = function () {
+                if (!pickupDate.value) { return; }
+                dropOffDate.min = pickupDate.value;
+                if (!dropOffDate.value || dropOffDate.value < pickupDate.value) {
+                    dropOffDate.value = pickupDate.value;
+                }
+            };
+            pickupDate.addEventListener("change", sync);
+            sync();
+        })();
+    </script>
 }

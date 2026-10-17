@@ -1,0 +1,8 @@
+@model RideReady.ViewModels.TripDetailsViewModel
+<dl class="ride-details">
+    @foreach (var (label, value) in Model.Rows())
+    {
+        <dt>@label</dt>
+        <dd>@value</dd>
+    }
+</dl>

@@ -2,12 +2,21 @@ using RideReady.Data;
 using RideReady.Jobs;
 using RideReady.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 using Quartz;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Persist data-protection keys (antiforgery tokens, auth cookies) across container restarts/deploys.
+var keysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrEmpty(keysPath))
+{
+    builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+}
 
 // Configure DbContext with PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -29,6 +38,7 @@ builder.Services.AddHttpClient<GoogleMapsLocationService>(client =>
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ILocationService>(sp => sp.GetRequiredService<GoogleMapsLocationService>());
 builder.Services.AddScoped<IDriverAssignmentService, DriverAssignmentService>();
+builder.Services.AddScoped<IDriverAvailabilityService, DriverAvailabilityService>();
 builder.Services.AddScoped<IDriverPortalService, DriverPortalService>();
 
 // Register notification services (Email, WhatsApp, Google Calendar)
@@ -96,6 +106,15 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<RideReadyDbContext>();
     await db.Database.MigrateAsync();
 }
+
+// Behind the droplet's nginx TLS proxy: trust X-Forwarded-Proto/For so the app sees https.
+var forwardedHeaders = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedHeaders.KnownNetworks.Clear();
+forwardedHeaders.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeaders);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

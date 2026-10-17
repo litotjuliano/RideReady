@@ -66,6 +66,16 @@ namespace RideReady.Controllers
             try
             {
                 await _driverPortalService.UpdateTripStatusAsync(bookingId, GetCurrentDriverId(), newStatus);
+
+                if (newStatus == "Completed")
+                {
+                    await _notificationService.SendBookingCompletedNotificationAsync(bookingId);
+                }
+                else
+                {
+                    await _notificationService.SendTripStatusUpdateNotificationAsync(bookingId, newStatus);
+                }
+
                 TempData["SuccessMessage"] = "Status updated.";
             }
             catch (InvalidOperationException ex)

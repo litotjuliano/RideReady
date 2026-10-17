@@ -45,7 +45,8 @@ namespace RideReady.Tests.Jobs
         private INotificationService BuildNotificationService(RideReadyDbContext context) =>
             new NotificationService(context, new RideReady.Tests.Services.FakeEmailSender(), new RideReady.Tests.Services.FakeWhatsAppSender(),
                 new RideReady.Tests.Services.FakeCalendarSyncService(),
-                Options.Create(new EmailSettings { SenderEmail = "noreply@rideready.my", SenderName = "RideReady", OperatorEmail = "operator@rideready.my" }));
+                Options.Create(new EmailSettings { SenderEmail = "noreply@rideready.my", SenderName = "RideReady", OperatorEmail = "operator@rideready.my" }),
+                Options.Create(new WhatsAppSettings { ApiUrl = "https://graph.facebook.com/v18.0", AccessToken = "test-token", PhoneNumberId = "1234567890", OperatorPhone = "0192462592" }));
 
         // Decorates a real INotificationService but throws for one specific booking, simulating
         // a downstream failure (e.g. a malformed record) that the job's per-item try/catch must
@@ -64,8 +65,11 @@ namespace RideReady.Tests.Jobs
             public Task SendBookingCreatedNotificationAsync(int bookingId) => _inner.SendBookingCreatedNotificationAsync(bookingId);
             public Task SendDriverAssignedNotificationAsync(int bookingId, int driverId) => _inner.SendDriverAssignedNotificationAsync(bookingId, driverId);
             public Task SendDriverAcceptedNotificationAsync(int bookingId) => _inner.SendDriverAcceptedNotificationAsync(bookingId);
+            public Task<bool> SendDriverDetailsToCustomerAsync(int bookingId) => _inner.SendDriverDetailsToCustomerAsync(bookingId);
             public Task SendBookingCompletedNotificationAsync(int bookingId) => _inner.SendBookingCompletedNotificationAsync(bookingId);
             public Task SendBookingCancelledNotificationAsync(int bookingId) => _inner.SendBookingCancelledNotificationAsync(bookingId);
+            public Task SendPriceSetNotificationAsync(int bookingId) => _inner.SendPriceSetNotificationAsync(bookingId);
+            public Task SendTripStatusUpdateNotificationAsync(int bookingId, string newStatus) => _inner.SendTripStatusUpdateNotificationAsync(bookingId, newStatus);
             public Task SendNoShowNotificationAsync(int bookingId) => _inner.SendNoShowNotificationAsync(bookingId);
 
             public Task SendUnassignedReminderAsync(int bookingId, bool urgent)

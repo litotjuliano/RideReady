@@ -49,11 +49,16 @@ namespace RideReady.Services
                     CustomerPhone = a.Booking.Customer?.Phone ?? string.Empty,
                     PickupLocation = a.Booking.PickupLocation,
                     Destination = a.Booking.Destination,
+                    FromName = a.Booking.FromName,
+                    ToName = a.Booking.ToName,
+                    DropOffDate = a.Booking.DropOffDate,
+                    DropOffTime = a.Booking.DropOffTime,
                     PickupDate = a.Booking.PickupDate,
                     PickupTime = a.Booking.PickupTime,
                     Passengers = a.Booking.Passengers,
                     Bags = a.Booking.Bags,
                     Notes = a.Booking.Notes,
+                    RequestedVehicleType = a.Booking.RequestedVehicleType,
                     AssignmentStatus = a.AssignmentStatus,
                     BookingStatus = a.Booking.Status
                 })
