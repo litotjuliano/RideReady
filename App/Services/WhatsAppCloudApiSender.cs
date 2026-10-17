@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
+using RideReady.ViewModels;
 
 namespace RideReady.Services
 {
@@ -74,8 +75,7 @@ namespace RideReady.Services
 
         internal static string NormalizePhone(string phone)
         {
-            var digits = new string(phone.Where(char.IsDigit).ToArray());
-            return digits.StartsWith('0') ? "60" + digits[1..] : digits;
+            return PhoneLinks.ToInternational(phone);
         }
     }
 }

@@ -28,16 +28,20 @@ namespace RideReady.Services
             var requestedDateTime = request.PickupDate.ToDateTime(request.PickupTime);
 
             if (requestedDateTime < now)
-                throw new InvalidOperationException("Pickup date and time must be in the future");
+                throw new InvalidOperationException("Please choose a pickup time in the future.");
 
             if (request.PickupTime.Hour < 6 || request.PickupTime.Hour >= 24)
-                throw new InvalidOperationException("Bookings only available between 6AM and 12AM (midnight)");
+                throw new InvalidOperationException("Bookings are available from 6:00 AM to midnight.");
 
             if (request.DropOffDate is not DateOnly dropOffDate || request.DropOffTime is not TimeOnly dropOffTime)
-                throw new InvalidOperationException("Drop-off date and time are required");
+                throw new InvalidOperationException("Please choose the drop-off date and time.");
 
             if (dropOffDate.ToDateTime(dropOffTime) <= requestedDateTime)
-                throw new InvalidOperationException("Drop-off must be after the pickup time");
+                throw new InvalidOperationException("The drop-off time must be after the pickup time.");
+
+            var capacities = await GetVehicleCapacitiesAsync();
+            if (VehicleCapacity.ExceededMessage(capacities, request.VehicleType, request.Passengers) is string tooManyPassengers)
+                throw new InvalidOperationException(tooManyPassengers);
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -139,6 +143,19 @@ namespace RideReady.Services
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// The passenger limit per vehicle type: the largest capacity among the active drivers of that type
+        /// (falling back to the defaults for a type with no recorded capacity).
+        /// </summary>
+        public async Task<IReadOnlyDictionary<string, int>> GetVehicleCapacitiesAsync()
+        {
+            var drivers = await _context.Drivers
+                .Select(d => new { d.VehicleType, d.PassengerCapacity, d.IsActive })
+                .ToListAsync();
+
+            return VehicleCapacity.FromDrivers(drivers.Select(d => (d.VehicleType, d.PassengerCapacity, d.IsActive)));
         }
 
         public async Task<BookingQuoteViewModel> GetQuoteAsync(BookingRequestViewModel request)
