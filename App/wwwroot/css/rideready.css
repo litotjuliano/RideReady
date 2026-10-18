@@ -2443,3 +2443,11 @@ body.rr-body {
         padding: 6px 10px;
     }
 }
+
+/* Dark theme: the vehicle pictures are a mid green drawn for light cards, so lift them a little on dark ones. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .rr-veh img,
+    :root:not([data-theme="light"]) .rr-who img {
+        filter: brightness(1.45) saturate(1.1);
+    }
+}

@@ -1,4 +1,4 @@
-/* RideReady design tokens. Light theme is the default; add data-theme="dark" on <html> for dark. */
+/* RideReady design tokens. Light is the default; dark follows the device (prefers-color-scheme). data-theme="light" or "dark" on <html> forces one. */
 :root, [data-theme="light"] {
   --surface-100: #f3f7f2;
   --surface-200: #ffffff;
@@ -37,6 +37,30 @@
   --focus: #ffc247;
   --danger: #ff9a92;
 }
+
+/* Dark theme: follows the device setting. data-theme="light" or "dark" on <html> still forces one or the other. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-100: #0b1912;
+    --surface-200: #12261b;
+    --surface-mint: #1c3a2b;
+    --deep: #050f09;
+    --deep-raised: #0d2418;
+    --on-deep: #eaf4ed;
+    --on-deep-muted: #a7bcae;
+    --ink: #eaf4ed;
+    --ink-muted: #a7bcae;
+    --brand: #7fe0ad;
+    --on-brand: #06170e;
+    --accent: #ffc247;
+    --on-accent: #1c1400;
+    --line: #2f4a3b;
+    --field-border: #6f9a82;
+    --focus: #ffc247;
+    --danger: #ff9a92;
+  }
+}
+
 :root {
   --space-1: 4px;
   --space-2: 8px;
