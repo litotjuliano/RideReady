@@ -13,6 +13,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       DataProtection__KeysPath: /keys
+      App__PublicBaseUrl: ${PUBLIC_BASE_URL:-https://rideready.litxus.com}
       WhatsAppSettings__PhoneNumberId: ${WHATSAPP_PHONE_NUMBER_ID:-}
       WhatsAppSettings__OperatorPhone: ${WHATSAPP_OPERATOR_PHONE:-}
       WhatsAppSettings__AccessToken: ${WHATSAPP_ACCESS_TOKEN:-}
