@@ -87,11 +87,13 @@
                 <img src="~/images/@vehicleImage" alt="@booking.RequestedVehicleType" />
                 <div>
                     <h2>@booking.CustomerName</h2>
-                    <span class="rr-badge">@booking.Status</span>
-                    @foreach (var flag in booking.AttentionFlags)
-                    {
-                        <span class="rr-flag rr-flag-inline">@flag.Label</span>
-                    }
+                    <div class="rr-tags">
+                        <span class="rr-badge">@booking.Status</span>
+                        @foreach (var flag in booking.AttentionFlags)
+                        {
+                            <span class="rr-flag rr-flag-inline">@flag.Label</span>
+                        }
+                    </div>
                     <p class="rr-ref">
                         @booking.BookingReference &middot;
                         <a href="@RideReady.ViewModels.PhoneLinks.Tel(booking.CustomerPhone)" aria-label="Call @booking.CustomerName">@booking.CustomerPhone</a>

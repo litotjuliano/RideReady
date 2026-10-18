@@ -1,0 +1,19 @@
+# docker-compose.local.yml
+#
+# LOCAL TESTING ONLY. Used by run.bat on the developer PC; never copied to the droplet
+# (deploy.yml ships docker-compose.yml and scripts/deploy.sh only).
+#
+# Publishes the app on every network interface so an iPad or phone on the same Wi-Fi can open
+# http://<this PC's IP>:5000, uses throw-away admin credentials, and leaves WhatsApp unconfigured
+# so no real message can be sent from a test copy.
+services:
+  app:
+    ports: !override
+      - "5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      AdminCredentials__Username: admin
+      AdminCredentials__Password: ChangeMe123!
+      WhatsAppSettings__AccessToken: ""
+      WhatsAppSettings__PhoneNumberId: ""
+      WhatsAppSettings__OperatorPhone: ""
