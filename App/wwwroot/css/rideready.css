@@ -1621,3 +1621,15 @@ body.rr-body {
         margin-bottom: var(--space-4);
     }
 }
+
+/* On phones only the current step shows its name; the numbers tell the rest. */
+@media (max-width: 560px) {
+    .rr-ts:not(.rr-ts-now) .rr-ts-l {
+        display: none;
+    }
+
+    .rr-ts-now .rr-ts-l {
+        white-space: nowrap;
+        font-size: 12px;
+    }
+}
