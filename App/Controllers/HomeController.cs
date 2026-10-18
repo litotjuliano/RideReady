@@ -26,6 +26,11 @@ public class HomeController : Controller
         return View("~/Views/Booking/Create.cshtml", model);
     }
 
+    public IActionResult Terms()
+    {
+        return View();
+    }
+
     public IActionResult Privacy()
     {
         return View();

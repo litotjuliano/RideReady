@@ -1,6 +1,47 @@
-﻿@{
+@{
     ViewData["Title"] = "Privacy Policy";
+    ViewData["Bare"] = true;
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="rr-narrow rr-legal">
+    <div class="rr-card">
+        <span class="rr-pill">RideReady</span>
+        <h1>Privacy policy</h1>
+        <p class="rr-muted">Last updated 18 October 2026. RideReady is run by h4t Travel Services Sdn Bhd.</p>
+
+        <h2>1. What we collect</h2>
+        <p>When you ask for a ride we collect the details you type into the form:</p>
+        <ul>
+            <li>your name, phone number and email address;</li>
+            <li>the trip: pick-up and drop-off places and addresses, dates and times, number of passengers and bags, the vehicle you chose and any remarks;</li>
+            <li>how you would like to pay (pay at pickup or bank transfer).</li>
+        </ul>
+
+        <h2>2. Why we use it</h2>
+        <p>We use your details only to arrange and run your trip: to review your request, assign a vehicle and driver, contact you to confirm, and keep a record of the trip. We may send you messages about your trip by phone, WhatsApp or email.</p>
+
+        <h2>3. Who sees it</h2>
+        <ul>
+            <li><strong>Our dispatch team</strong> sees everything you gave us.</li>
+            <li><strong>Your driver</strong> sees only what is needed for the trip: your name, phone number, the pick-up and drop-off, the date and time, the number of passengers and bags, and your remarks. Your driver does not see your email address, the price or how you pay.</li>
+            <li>We use trusted services to send messages (for example WhatsApp and email). We do not sell your details and we do not use them for advertising.</li>
+        </ul>
+
+        <h2>4. Saved on your device</h2>
+        <p>After you book, your browser can remember your name, phone number and email <strong>on your own device only</strong>, so you can fill the form faster next time. It never fills the form by itself: you choose "Use". Choose "Forget me" on the booking page to delete it.</p>
+
+        <h2>5. Drivers' location</h2>
+        <p>Our drivers may share their live location with our dispatch team while a trip is under way. We do not track customers.</p>
+
+        <h2>6. How long we keep it and how we protect it</h2>
+        <p>We keep trip records for as long as we need them to run the service and to meet our legal and accounting duties. Your details are stored on our own server, and only our team can sign in to see them.</p>
+
+        <h2>7. Your choices</h2>
+        <p>You can ask us to show you the details we hold about you, correct them, or delete them, as far as the law allows. Contact our dispatch team using the phone number or email they reached you on.</p>
+
+        <h2>8. Changes to this policy</h2>
+        <p>We may update this policy. The date at the top shows when it was last changed. Our <a asp-controller="Home" asp-action="Terms">terms and conditions</a> explain the rest of how the service works.</p>
+
+        <a asp-controller="Booking" asp-action="Create" class="rr-go">Back to booking <i aria-hidden="true"></i></a>
+    </div>
+</div>
