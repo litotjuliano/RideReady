@@ -2620,3 +2620,9 @@ body.rr-body {
         display: none;
     }
 }
+
+/* A booking opened from a message link is outlined for a few seconds. */
+.rr-acard.rr-focus {
+    outline: 4px solid var(--accent);
+    outline-offset: 4px;
+}

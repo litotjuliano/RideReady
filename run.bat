@@ -45,6 +45,17 @@ if not exist .env (
     ) > .env
 )
 
+REM --- 3b. Find this PC's Wi-Fi address and give it to the app, so sign-in links in messages open on a phone (local testing only) ---
+set "LANIP="
+for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /C:"IPv4"') do (
+    for /f "tokens=* delims= " %%b in ("%%a") do (
+        if not defined LANIP echo %%b| findstr /B "192.168. 10." >nul && set "LANIP=%%b"
+    )
+)
+findstr /v /b "LAN_IP=" .env > .env.tmp
+move /y .env.tmp .env >nul
+if defined LANIP echo LAN_IP=!LANIP!>> .env
+
 REM --- 4. Build the app image locally (context = App/, per the Task 10 Dockerfile fix) ---
 echo Building app image...
 docker build -t rideready:local -f App\Dockerfile App
@@ -80,12 +91,6 @@ goto waithealth
 echo App is healthy.
 
 REM --- 7. Let other devices on the same Wi-Fi reach it (local testing only) ---
-set "LANIP="
-for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /C:"IPv4"') do (
-    for /f "tokens=* delims= " %%b in ("%%a") do (
-        if not defined LANIP echo %%b| findstr /B "192.168. 10." >nul && set "LANIP=%%b"
-    )
-)
 
 netsh advfirewall firewall show rule name="RideReady dev 5000" >nul 2>&1
 if errorlevel 1 (

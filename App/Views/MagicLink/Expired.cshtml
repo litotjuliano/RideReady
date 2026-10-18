@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "Link no longer works";
+    ViewData["Bare"] = true;
+    var expired = ViewBag.Expired as bool? ?? false;
+}
+
+<div class="rr-narrow">
+    <div class="rr-card">
+        <span class="rr-pill rr-pill-sun">Sign-in link</span>
+        <h1>@(expired ? "This link has expired." : "This link does not work.")</h1>
+        <p>For your security, sign-in links stop working after the trip date. Please sign in the usual way.</p>
+        <a asp-controller="AdminAuth" asp-action="Login" class="rr-go">Admin sign in <i aria-hidden="true"></i></a>
+        <p class="rr-flush" style="margin-top: var(--space-3)"><a asp-controller="DriverAuth" asp-action="Login">Driver sign in</a></p>
+    </div>
+</div>
