@@ -1926,3 +1926,473 @@ body.rr-body {
 #rr-reference {
     white-space: nowrap;
 }
+
+/* ================= Drivers and Calendar pages ================= */
+.rr-panel {
+    margin-bottom: var(--space-4);
+}
+
+.rr-panel > h2 {
+    font-size: 22px;
+    line-height: 28px;
+    margin: 0 0 var(--space-4);
+}
+
+.rr-panel-narrow {
+    max-width: 640px;
+}
+
+.rr-muted {
+    color: var(--ink-muted);
+}
+
+.rr-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.rr-badge-plain {
+    margin-left: 0;
+}
+
+/* Add-a-driver form: labelled fields in a wrapping grid. */
+.rr-dform {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--space-3) var(--space-4);
+    align-items: end;
+}
+
+.rr-dform-go .rr-btn {
+    width: 100%;
+    min-height: 44px;
+}
+
+.rr-check-block {
+    margin: var(--space-2) 0 var(--space-5);
+}
+
+.rr-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.rr-btn-row .rr-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+/* Drivers table: a clean table on wide screens, one card per driver on phones. */
+.rr-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rr-table th {
+    text-align: left;
+    color: var(--ink-muted);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px var(--space-3);
+    border-bottom: 2px solid var(--line);
+}
+
+.rr-table td {
+    padding: 12px var(--space-3);
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+}
+
+.rr-table tbody tr:hover {
+    background: var(--surface-100);
+}
+
+.rr-table-act {
+    text-align: right;
+}
+
+.rr-table-act .rr-btn {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+@media (max-width: 700px) {
+    .rr-table thead {
+        display: none;
+    }
+
+    .rr-table,
+    .rr-table tbody,
+    .rr-table tr,
+    .rr-table td {
+        display: block;
+    }
+
+    .rr-table tr {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        padding: var(--space-2) var(--space-3);
+        margin-bottom: var(--space-3);
+    }
+
+    .rr-table td {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: 6px 0;
+        border-bottom: 0;
+        text-align: right;
+    }
+
+    .rr-table td::before {
+        content: attr(data-label);
+        color: var(--ink-muted);
+        font-size: 13px;
+        text-align: left;
+    }
+
+    .rr-table td.rr-table-act {
+        justify-content: flex-end;
+        padding-top: var(--space-2);
+    }
+
+    .rr-table td.rr-table-act::before {
+        content: none;
+    }
+}
+
+/* Calendar toolbar */
+.rr-cal-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    margin-bottom: var(--space-4);
+}
+
+.rr-cal-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.rr-cal-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 26px;
+}
+
+.rr-cal-go {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+}
+
+.rr-cal-go .rr-input {
+    min-height: 36px;
+    padding: 4px var(--space-2);
+}
+
+.rr-cal-tools .rr-btn {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.rr-seg {
+    display: inline-flex;
+    border: 1px solid var(--brand);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+}
+
+.rr-seg a {
+    padding: 6px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--brand);
+    text-decoration: none;
+    background: var(--surface-200);
+}
+
+.rr-seg a.on {
+    background: var(--brand);
+    color: var(--on-brand);
+}
+
+/* Day timeline */
+.rr-tl-scale {
+    position: relative;
+    height: 22px;
+    margin-left: 152px;
+    margin-right: 212px;
+    font-size: 12px;
+    color: var(--ink-muted);
+}
+
+.rr-tl-scale span {
+    position: absolute;
+    transform: translateX(-50%);
+}
+
+.rr-tl-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+}
+
+.rr-tl-label {
+    width: 140px;
+    flex: none;
+}
+
+.rr-tl-label strong,
+.rr-tl-label span {
+    display: block;
+}
+
+.rr-tl-label span {
+    color: var(--ink-muted);
+    font-size: 13px;
+}
+
+.rr-tl-track {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    background: var(--surface-100);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.rr-tl-block {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.rr-tl-booked {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+.rr-tl-booked:hover {
+    background: var(--brand);
+    color: var(--on-brand);
+}
+
+.rr-tl-timeoff {
+    left: 0;
+    width: 100%;
+    justify-content: center;
+    background: repeating-linear-gradient(45deg, var(--surface-100), var(--surface-100) 6px, var(--line) 6px, var(--line) 12px);
+    color: var(--ink-muted);
+}
+
+.rr-tl-actions {
+    flex: none;
+    width: 200px;
+}
+
+.rr-tl-form {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+}
+
+.rr-tl-form[hidden] {
+    display: none;
+}
+
+.rr-tl-form .rr-input {
+    min-height: 36px;
+    padding: 4px var(--space-2);
+    width: 100%;
+}
+
+/* Month grid */
+.rr-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.rr-month-dow {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    text-align: center;
+    padding-bottom: 4px;
+}
+
+.rr-month-day {
+    background: var(--surface-100);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    min-height: 84px;
+    padding: 6px;
+    min-width: 0;
+}
+
+.rr-month-day--blank {
+    background: transparent;
+    border: 0;
+}
+
+.rr-month-day.today {
+    border: 2px solid var(--accent);
+    background: var(--surface-200);
+}
+
+.rr-month-daynum {
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.rr-month-daynum:hover {
+    color: var(--brand);
+}
+
+.rr-month-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 6px;
+}
+
+.rr-month-chip {
+    background: var(--brand);
+    color: var(--on-brand);
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+}
+
+.rr-month-chip--timeoff {
+    background: repeating-linear-gradient(45deg, var(--surface-100), var(--surface-100) 3px, var(--line) 3px, var(--line) 6px);
+    color: var(--ink-muted);
+    border: 1px solid var(--line);
+}
+
+@media (max-width: 900px) {
+    .rr-tl-scale {
+        margin-right: 0;
+    }
+
+    .rr-tl-row {
+        flex-wrap: wrap;
+    }
+
+    .rr-tl-track {
+        flex: 1 1 100%;
+        order: 2;
+    }
+
+    .rr-tl-label {
+        order: 1;
+        flex: 1;
+        width: auto;
+    }
+
+    .rr-tl-actions {
+        order: 1;
+        width: auto;
+    }
+}
+
+@media (max-width: 560px) {
+    .rr-tl-scale {
+        margin-left: 0;
+    }
+
+    .rr-tl-actions {
+        order: 3;
+        width: 100%;
+    }
+
+    .rr-cal-bar {
+        padding: var(--space-3);
+    }
+
+    .rr-month-grid {
+        gap: 3px;
+    }
+
+    .rr-month-day {
+        min-height: 60px;
+        padding: 4px;
+    }
+
+    .rr-month-chip {
+        font-size: 10px;
+        padding: 0 5px;
+    }
+
+    .rr-month-dow {
+        font-size: 10px;
+        letter-spacing: 0;
+    }
+}
+
+.rr-dform .rr-field select,
+.rr-dform .rr-field input {
+    min-height: 46px;
+}
+
+@media (min-width: 1100px) {
+    .rr-dform {
+        grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
+    }
+
+    .rr-dform-go .rr-btn {
+        width: auto;
+        min-height: 46px;
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+}
+
+/* The first and last hour labels sit inside the card edge instead of being cut off. */
+.rr-tl-scale span:first-child {
+    transform: none;
+}
+
+.rr-tl-scale span:last-child {
+    transform: translateX(-100%);
+}

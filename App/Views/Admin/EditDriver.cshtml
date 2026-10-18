@@ -8,54 +8,58 @@
 
 @await Html.PartialAsync("_AdminHeader")
 
-<div class="ride-card mb-4" style="max-width: 640px;">
+<section class="rr-acard rr-panel rr-panel-narrow">
     <form asp-controller="Admin" asp-action="EditDriver" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <div asp-validation-summary="ModelOnly" class="rr-summary"></div>
 
-        <div class="mb-3">
-            <label asp-for="Name" class="form-label fw-semibold"></label>
-            <input asp-for="Name" class="form-control ride-input" />
-            <span asp-validation-for="Name" class="text-danger small"></span>
+        <div class="rr-row">
+            <div class="rr-field">
+                <label asp-for="Name" class="rr-label"></label>
+                <input asp-for="Name" />
+                <span asp-validation-for="Name" class="rr-error"></span>
+            </div>
         </div>
-        <div class="mb-3">
-            <label asp-for="Phone" class="form-label fw-semibold"></label>
-            <input asp-for="Phone" class="form-control ride-input" />
-            <span asp-validation-for="Phone" class="text-danger small"></span>
+        <div class="rr-row">
+            <div class="rr-field">
+                <label asp-for="Phone" class="rr-label"></label>
+                <input asp-for="Phone" type="tel" />
+                <span asp-validation-for="Phone" class="rr-error"></span>
+            </div>
         </div>
-        <div class="row g-3 mb-3">
-            <div class="col-md-4">
-                <label asp-for="VehicleType" class="form-label fw-semibold"></label>
-                <select asp-for="VehicleType" class="form-select ride-input">
+        <div class="rr-row rr-r3">
+            <div class="rr-field">
+                <label asp-for="VehicleType" class="rr-label"></label>
+                <select asp-for="VehicleType">
                     <option value="Car">Car</option>
                     <option value="Van">Van</option>
                     <option value="Bus">Bus</option>
                 </select>
-                <span asp-validation-for="VehicleType" class="text-danger small"></span>
+                <span asp-validation-for="VehicleType" class="rr-error"></span>
             </div>
-            <div class="col-md-4">
-                <label asp-for="VehicleNumber" class="form-label fw-semibold"></label>
-                <input asp-for="VehicleNumber" class="form-control ride-input" />
-                <span asp-validation-for="VehicleNumber" class="text-danger small"></span>
+            <div class="rr-field">
+                <label asp-for="VehicleNumber" class="rr-label"></label>
+                <input asp-for="VehicleNumber" />
+                <span asp-validation-for="VehicleNumber" class="rr-error"></span>
             </div>
-            <div class="col-md-4">
-                <label asp-for="PassengerCapacity" class="form-label fw-semibold"></label>
-                <input asp-for="PassengerCapacity" type="number" min="1" max="100" class="form-control ride-input" />
-                <span asp-validation-for="PassengerCapacity" class="text-danger small"></span>
+            <div class="rr-field">
+                <label asp-for="PassengerCapacity" class="rr-label"></label>
+                <input asp-for="PassengerCapacity" type="number" min="1" max="100" />
+                <span asp-validation-for="PassengerCapacity" class="rr-error"></span>
             </div>
         </div>
-        <div class="form-check mb-4">
-            <input asp-for="IsActive" class="form-check-input" />
-            <label asp-for="IsActive" class="form-check-label">Active (can be assigned and counts towards booking capacity)</label>
+        <div class="rr-check rr-check-block">
+            <input asp-for="IsActive" />
+            <label asp-for="IsActive">Active (can be assigned and counts towards booking capacity)</label>
         </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn ride-btn-primary">Save changes</button>
-            <a asp-controller="Admin" asp-action="Drivers" class="btn btn-outline-secondary">Cancel</a>
+        <div class="rr-btn-row">
+            <button type="submit" class="rr-btn">Save changes</button>
+            <a asp-controller="Admin" asp-action="Drivers" class="rr-btn rr-btn-sec">Cancel</a>
         </div>
     </form>
-</div>
+</section>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

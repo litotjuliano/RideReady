@@ -31,29 +31,29 @@
 
 @if (TempData["SuccessMessage"] is string successMessage)
 {
-    <div class="alert alert-success">@successMessage</div>
+    <div class="rr-ok rr-msg" role="status"><div><b>Done.</b><span>@successMessage</span></div></div>
 }
 @if (TempData["ErrorMessage"] is string errorMessage)
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="rr-err rr-msg" role="alert"><div><b>Could not do that.</b><span>@errorMessage</span></div></div>
 }
 
-<div class="ride-card mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div class="d-flex align-items-center gap-2">
-        <div class="btn-group" role="group">
-            <a class="btn btn-sm @(isMonthView ? "btn-outline-secondary" : "ride-btn-primary")" asp-action="Calendar" asp-route-date="@selectedDate.ToString("yyyy-MM-dd")" asp-route-view="day">Day</a>
-            <a class="btn btn-sm @(isMonthView ? "ride-btn-primary" : "btn-outline-secondary")" asp-action="Calendar" asp-route-date="@selectedDate.ToString("yyyy-MM-dd")" asp-route-view="month">Month</a>
+<section class="rr-acard rr-cal-bar">
+    <div class="rr-cal-tools">
+        <div class="rr-seg" role="group" aria-label="Calendar view">
+            <a class="@(isMonthView ? null : "on")" asp-action="Calendar" asp-route-date="@selectedDate.ToString("yyyy-MM-dd")" asp-route-view="day" aria-current="@(isMonthView ? null : "page")">Day</a>
+            <a class="@(isMonthView ? "on" : null)" asp-action="Calendar" asp-route-date="@selectedDate.ToString("yyyy-MM-dd")" asp-route-view="month" aria-current="@(isMonthView ? "page" : null)">Month</a>
         </div>
-        <a class="btn btn-sm btn-outline-secondary" asp-action="Calendar" asp-route-date="@prevDate.ToString("yyyy-MM-dd")" asp-route-view="@calendarView">&larr; Prev</a>
-        <form asp-action="Calendar" method="get" class="d-flex align-items-center gap-2 mb-0">
+        <a class="rr-btn rr-btn-sec rr-btn-sm" asp-action="Calendar" asp-route-date="@prevDate.ToString("yyyy-MM-dd")" asp-route-view="@calendarView">&larr; Prev</a>
+        <form asp-action="Calendar" method="get" class="rr-cal-go">
             <input type="hidden" name="view" value="@calendarView" />
-            <input type="date" name="date" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" />
-            <button type="submit" class="btn btn-sm btn-outline-secondary">Go</button>
+            <input type="date" name="date" value="@selectedDate.ToString("yyyy-MM-dd")" class="rr-input" aria-label="Date" />
+            <button type="submit" class="rr-btn rr-btn-sec rr-btn-sm">Go</button>
         </form>
-        <a class="btn btn-sm btn-outline-secondary" asp-action="Calendar" asp-route-date="@nextDate.ToString("yyyy-MM-dd")" asp-route-view="@calendarView">Next &rarr;</a>
+        <a class="rr-btn rr-btn-sec rr-btn-sm" asp-action="Calendar" asp-route-date="@nextDate.ToString("yyyy-MM-dd")" asp-route-view="@calendarView">Next &rarr;</a>
     </div>
-    <p class="fw-bold mb-0">@(isMonthView ? selectedDate.ToString("yyyy-MM") : selectedDate.ToString("yyyy-MM-dd"))</p>
-</div>
+    <p class="rr-cal-title">@(isMonthView ? selectedDate.ToString("yyyy-MM") : selectedDate.ToString("yyyy-MM-dd"))</p>
+</section>
 
 @if (isMonthView)
 {
@@ -61,8 +61,8 @@
 }
 else
 {
-    <div class="ride-card">
-        <div class="ride-timeline-scale">
+    <section class="rr-acard rr-tl">
+        <div class="rr-tl-scale">
             @for (var hour = 6; hour <= 24; hour += 3)
             {
                 var markerTime = hour == 24 ? new TimeOnly(23, 59) : new TimeOnly(hour, 0);
@@ -72,15 +72,15 @@ else
 
         @foreach (var driver in Model)
         {
-            <div class="ride-timeline-row">
-                <div class="ride-timeline-label">
-                    <p class="fw-semibold mb-0">@driver.DriverName</p>
-                    <p class="text-muted small mb-0">@driver.VehicleType</p>
+            <div class="rr-tl-row">
+                <div class="rr-tl-label">
+                    <strong>@driver.DriverName</strong>
+                    <span>@driver.VehicleType</span>
                 </div>
-                <div class="ride-timeline-track">
+                <div class="rr-tl-track">
                     @if (driver.IsOnTimeOff)
                     {
-                        <div class="ride-timeline-block ride-timeline-block--timeoff" title="@(driver.TimeOffReason ?? "Time off")">
+                        <div class="rr-tl-block rr-tl-timeoff" title="@(driver.TimeOffReason ?? "Time off")">
                             Time off@(string.IsNullOrEmpty(driver.TimeOffReason) ? "" : $": {driver.TimeOffReason}")
                         </div>
                     }
@@ -91,7 +91,7 @@ else
                             var left = ToPercent(block.Start);
                             var right = ToPercent(block.End);
                             var width = Math.Max(right - left, 1);
-                            <a asp-controller="Admin" asp-action="Index" class="ride-timeline-block ride-timeline-block--booked"
+                            <a asp-controller="Admin" asp-action="Index" class="rr-tl-block rr-tl-booked"
                                style="left: @(left.ToString("0.##"))%; width: @(width.ToString("0.##"))%;"
                                title="@block.BookingReference: @RideReady.ViewModels.TripText.Place(null, block.PickupLocation) &rarr; @block.Destination">
                                 @block.Start.ToString("HH:mm")-@block.End.ToString("HH:mm") @block.BookingReference
@@ -99,18 +99,18 @@ else
                         }
                     }
                 </div>
-                <div class="ride-timeline-actions">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('timeoff-form-@driver.DriverId').classList.toggle('d-none');">+ Time off</button>
-                    <form id="timeoff-form-@driver.DriverId" asp-controller="Admin" asp-action="AddTimeOff" method="post" class="d-flex gap-1 mt-2 d-none flex-wrap">
+                <div class="rr-tl-actions">
+                    <button type="button" class="rr-btn rr-btn-sec rr-btn-sm" onclick="var f = document.getElementById('timeoff-form-@driver.DriverId'); f.hidden = !f.hidden;">+ Time off</button>
+                    <form id="timeoff-form-@driver.DriverId" asp-controller="Admin" asp-action="AddTimeOff" method="post" class="rr-tl-form" hidden>
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="DriverId" value="@driver.DriverId" />
-                        <input type="date" name="StartDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" required />
-                        <input type="date" name="EndDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm ride-input" required />
-                        <input type="text" name="Reason" placeholder="Reason (optional)" class="form-control form-control-sm ride-input" />
-                        <button type="submit" class="btn btn-sm ride-btn-primary">Save</button>
+                        <input type="date" name="StartDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="rr-input" aria-label="Start date" required />
+                        <input type="date" name="EndDate" value="@selectedDate.ToString("yyyy-MM-dd")" class="rr-input" aria-label="End date" required />
+                        <input type="text" name="Reason" placeholder="Reason (optional)" class="rr-input" aria-label="Reason" />
+                        <button type="submit" class="rr-btn rr-btn-sm">Save</button>
                     </form>
                 </div>
             </div>
         }
-    </div>
+    </section>
 }
