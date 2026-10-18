@@ -1633,3 +1633,38 @@ body.rr-body {
         font-size: 12px;
     }
 }
+
+/* Admin banner on phones: all four navigation buttons stay on one row. */
+@media (max-width: 560px) {
+    .rr-nav {
+        flex-wrap: nowrap;
+        gap: 6px;
+    }
+
+    .rr-nav a,
+    .rr-nav button {
+        font-size: 13px;
+        padding: 7px 10px;
+        white-space: nowrap;
+    }
+
+    .rr-nav .rr-out {
+        margin-left: 0;
+    }
+
+    .rr-nav form {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 360px) {
+    .rr-nav {
+        gap: 4px;
+    }
+
+    .rr-nav a,
+    .rr-nav button {
+        font-size: 12px;
+        padding: 6px 7px;
+    }
+}
