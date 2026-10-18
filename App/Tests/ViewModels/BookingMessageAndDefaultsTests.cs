@@ -92,7 +92,7 @@ namespace RideReady.Tests.ViewModels
         [InlineData(nameof(BookingRequestViewModel.PickupLocation), "", "Please enter the pick up address.")]
         [InlineData(nameof(BookingRequestViewModel.Destination), "abc", "Please use between 5 and 255 characters.")]
         [InlineData(nameof(BookingRequestViewModel.VehicleType), "", "Please choose a vehicle type.")]
-        [InlineData(nameof(BookingRequestViewModel.VehicleType), "Helicopter", "Please choose Car, Van or Bus.")]
+        [InlineData(nameof(BookingRequestViewModel.VehicleType), "Helicopter", "Please choose Car, Van, Bus or Others.")]
         [InlineData(nameof(BookingRequestViewModel.PaymentMethod), "Cash", "Please choose Pay at Pickup or Bank Transfer.")]
         public void TextFieldsGiveAFriendlyMessage(string member, string value, string expected)
         {

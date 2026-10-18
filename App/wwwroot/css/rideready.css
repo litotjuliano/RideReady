@@ -487,7 +487,7 @@ body.rr-body {
 /* ---------- Vehicle picture cards ---------- */
 .rr-veh-wrap {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-3);
     margin-top: var(--space-2);
 }
@@ -2625,4 +2625,19 @@ body.rr-body {
 .rr-acard.rr-focus {
     outline: 4px solid var(--accent);
     outline-offset: 4px;
+}
+
+/* Vehicle cards: four of them now (Car, Van, Bus, Others). Two by two on phones, and a box for "Others". */
+@media (max-width: 560px) {
+    .rr-veh-wrap {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.rr-other {
+    margin-top: var(--space-3);
+}
+
+.rr-other[hidden] {
+    display: none;
 }

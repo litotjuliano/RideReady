@@ -32,6 +32,7 @@ namespace RideReady.ViewModels
         public int Passengers { get; set; }
         public int Bags { get; set; }
         public string RequestedVehicleType { get; set; } = string.Empty;
+        public string? OtherVehicle { get; set; }
         public string Status { get; set; } = string.Empty;
         public decimal? EstimatedFare { get; set; }
         public int? AssignedDriverId { get; set; }

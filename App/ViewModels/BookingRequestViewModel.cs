@@ -79,8 +79,13 @@ namespace RideReady.ViewModels
 
         [Display(Name = "Vehicle type")]
         [Required(ErrorMessage = "Please choose a vehicle type.")]
-        [RegularExpression("^(Car|Van|Bus)$", ErrorMessage = "Please choose Car, Van or Bus.")]
+        [RegularExpression("^(Car|Van|Bus|Others)$", ErrorMessage = "Please choose Car, Van, Bus or Others.")]
         public string VehicleType { get; set; } = string.Empty;
+
+        /// <summary>Only used when the vehicle type is "Others": what vehicle the customer needs, in their own words.</summary>
+        [Display(Name = "Vehicle needed")]
+        [StringLength(100, ErrorMessage = "Please keep the vehicle description under 100 characters.")]
+        public string? OtherVehicle { get; set; }
 
         [Display(Name = "Remarks")]
         [StringLength(500, ErrorMessage = "Please keep remarks under 500 characters.")]
@@ -94,9 +99,16 @@ namespace RideReady.ViewModels
         [MustBeTrue(ErrorMessage = "Please accept the terms and conditions to continue.")]
         public bool AcceptedTerms { get; set; }
 
-        /// <summary>The approximate drop-off must come after the pickup.</summary>
+        /// <summary>The approximate drop-off must come after the pickup, and "Others" needs a description.</summary>
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+            if (VehicleType == VehicleCapacity.Others && string.IsNullOrWhiteSpace(OtherVehicle))
+            {
+                yield return new ValidationResult(
+                    "Please tell us what vehicle you need.",
+                    new[] { nameof(OtherVehicle) });
+            }
+
             if (DropOffDate is DateOnly dropOffDate && DropOffTime is TimeOnly dropOffTime
                 && dropOffDate.ToDateTime(dropOffTime) <= PickupDate.ToDateTime(PickupTime))
             {

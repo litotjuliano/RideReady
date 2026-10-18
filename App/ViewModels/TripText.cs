@@ -18,6 +18,17 @@ namespace RideReady.ViewModels
         public static string Route(string? from, string? pickupAddress, string? to, string? dropOffAddress, string arrow = "->") =>
             $"{Place(from, pickupAddress)} {arrow} {Place(to, dropOffAddress)}";
 
+        /// <summary>The vehicle for display: "Car", or "Others: lorry" when the customer described something else.</summary>
+        public static string Vehicle(string? vehicleType, string? otherDescription)
+        {
+            var type = string.IsNullOrWhiteSpace(vehicleType) ? string.Empty : vehicleType.Trim();
+            if (type == VehicleCapacity.Others)
+            {
+                return string.IsNullOrWhiteSpace(otherDescription) ? type : $"{type}: {otherDescription.Trim()}";
+            }
+            return type;
+        }
+
         /// <summary>Customer-facing wording for how the trip is paid.</summary>
         public static string PaymentMethod(string? paymentMethod) =>
             paymentMethod == "Bank_Transfer" ? "Bank Transfer" : "Pay at Pickup";

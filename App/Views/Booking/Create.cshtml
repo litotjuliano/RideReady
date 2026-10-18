@@ -152,8 +152,18 @@
                                 <input asp-for="VehicleType" type="radio" value="Bus" id="VehicleType_Bus" data-capacity="@busMax" />
                                 <span><img src="~/images/vehicle-bus.svg" alt="" />Bus<small>Up to @busMax passengers</small></span>
                             </label>
+                            <label class="rr-veh" for="VehicleType_Others">
+                                <input asp-for="VehicleType" type="radio" value="Others" id="VehicleType_Others" />
+                                <span><img src="~/images/vehicle-other.svg" alt="" />Others<small>Tell us what you need</small></span>
+                            </label>
                         </div>
                         <span asp-validation-for="VehicleType" class="rr-error"></span>
+                        <div class="rr-other" id="OtherVehicleBox" hidden>
+                            <label asp-for="OtherVehicle" class="rr-label"></label>
+                            <input asp-for="OtherVehicle" maxlength="100" placeholder="e.g. lorry, motorbike, 14-seater" />
+                            <span asp-validation-for="OtherVehicle" class="rr-error"></span>
+                            <span class="rr-error" id="OtherVehicleError" role="alert" hidden>Please tell us what vehicle you need.</span>
+                        </div>
                     </div>
                 </div>
                 <div class="rr-row">
@@ -263,18 +273,21 @@
 
             // Vehicle types big enough for the number of passengers.
             function biggerThan(count) {
-                return radios.filter(function (r) { return capacityOf(r) >= count; }).map(function (r) { return r.value; });
+                return radios.filter(function (r) { return r.value !== "Others" && capacityOf(r) >= count; }).map(function (r) { return r.value; });
             }
 
             function check() {
                 var radio = selected();
                 var count = Number(passengers.value);
-                var tooMany = !!radio && count > capacityOf(radio);
+                var isOthers = !!radio && radio.value === "Others";   // no passenger limit for a vehicle the customer describes
+                var tooMany = !!radio && !isOthers && count > capacityOf(radio);
 
                 hint.hidden = tooMany;
-                hint.textContent = radio
-                    ? "A " + radio.value + " carries up to " + capacityOf(radio) + " passengers."
-                    : "Up to " + largest + " passengers.";
+                hint.textContent = isOthers
+                    ? "We will arrange a vehicle for your group."
+                    : radio
+                        ? "A " + radio.value + " carries up to " + capacityOf(radio) + " passengers."
+                        : "Up to " + largest + " passengers.";
 
                 if (tooMany) {
                     var options = biggerThan(count);
@@ -303,6 +316,42 @@
                 });
             }
             check();
+        })();
+    </script>
+
+    <script>
+        // "Others": show the box where the customer says what vehicle they need, and ask for it before submitting.
+        (function () {
+            var box = document.getElementById("OtherVehicleBox");
+            var input = document.getElementById("OtherVehicle");
+            var error = document.getElementById("OtherVehicleError");
+            var radios = Array.prototype.slice.call(document.querySelectorAll('input[name="VehicleType"]'));
+            if (!box || !input || radios.length === 0) { return; }
+
+            function isOthers() {
+                return radios.some(function (r) { return r.checked && r.value === "Others"; });
+            }
+
+            function show() {
+                box.hidden = !isOthers();
+                if (!isOthers() && error) { error.hidden = true; input.classList.remove("rr-invalid"); }
+            }
+
+            radios.forEach(function (r) { r.addEventListener("change", show); });
+            input.addEventListener("input", function () {
+                if (input.value.trim() && error) { error.hidden = true; input.classList.remove("rr-invalid"); }
+            });
+            if (input.form) {
+                input.form.addEventListener("submit", function (event) {
+                    if (isOthers() && !input.value.trim()) {
+                        event.preventDefault();
+                        if (error) { error.hidden = false; }
+                        input.classList.add("rr-invalid");
+                        input.focus();
+                    }
+                });
+            }
+            show();
         })();
     </script>
 }

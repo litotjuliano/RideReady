@@ -76,6 +76,9 @@ namespace RideReady.Services
                     Passengers = request.Passengers,
                     Bags = request.Bags,
                     RequestedVehicleType = request.VehicleType,
+                    OtherVehicleDescription = request.VehicleType == VehicleCapacity.Others && !string.IsNullOrWhiteSpace(request.OtherVehicle)
+                        ? request.OtherVehicle.Trim()
+                        : null,
                     Notes = request.Notes,
                     Status = "New"
                 };

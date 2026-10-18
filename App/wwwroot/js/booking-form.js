@@ -34,6 +34,10 @@
 
     function selectedVehicle() {
         var radio = form.querySelector('input[name="VehicleType"]:checked');
+        if (radio && radio.value === "Others") {
+            var other = value("OtherVehicle");
+            return other ? "Others: " + other : "Others";
+        }
         return radio ? radio.value : "";
     }
 

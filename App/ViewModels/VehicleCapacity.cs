@@ -20,6 +20,9 @@ namespace RideReady.ViewModels
         };
 
         /// <summary>The vehicle types in the order they are offered.</summary>
+        /// <summary>The "Others" choice: any vehicle the customer describes in their own words. It has no passenger limit.</summary>
+        public const string Others = "Others";
+
         public static IReadOnlyList<string> Types => Defaults.Select(d => d.Type).ToList();
 
         /// <summary>The default limit per vehicle type (used when drivers have no capacity recorded).</summary>

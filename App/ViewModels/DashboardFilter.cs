@@ -44,7 +44,8 @@ namespace RideReady.ViewModels
                 booking.ToName,
                 booking.PickupLocation,
                 booking.Destination,
-                booking.AssignedDriverName
+                booking.AssignedDriverName,
+                booking.OtherVehicle
             };
 
             return string.Join(" ", parts.Where(p => !string.IsNullOrWhiteSpace(p))).ToLowerInvariant();

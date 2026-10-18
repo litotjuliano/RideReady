@@ -74,7 +74,7 @@ namespace RideReady.Controllers
                 // Vehicles too small for this booking are marked so they are not picked by mistake.
                 foreach (var candidate in activeDrivers)
                 {
-                    if (candidate.PassengerCapacity is int seats && booking.Passengers > seats && !booking.DriverConflicts.ContainsKey(candidate.Id))
+                    if (booking.RequestedVehicleType != VehicleCapacity.Others && candidate.PassengerCapacity is int seats && booking.Passengers > seats && !booking.DriverConflicts.ContainsKey(candidate.Id))
                     {
                         booking.DriverConflicts[candidate.Id] = $"only {seats} seats";
                     }
