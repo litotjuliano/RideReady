@@ -1675,3 +1675,47 @@ body.rr-body {
         flex-wrap: wrap;
     }
 }
+
+/* Phones: the attention and status chips share one swipeable row each instead of stacking down the page. */
+@media (max-width: 560px) {
+    .rr-flag-bar,
+    .rr-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 6px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .rr-flag-bar::-webkit-scrollbar,
+    .rr-chips::-webkit-scrollbar {
+        display: none;
+    }
+
+    .rr-flag-bar {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .rr-flag-bar > *,
+    .rr-chips > * {
+        flex: none;
+        white-space: nowrap;
+    }
+
+    .rr-flag-bar .rr-chip,
+    .rr-chips .rr-chip {
+        font-size: 13px;
+        padding: 4px 11px;
+        min-height: 32px;
+    }
+
+    .rr-tools {
+        gap: var(--space-2);
+        margin-top: var(--space-3);
+    }
+
+    .rr-tools .rr-sort {
+        margin-left: 0;
+        width: 100%;
+    }
+}
