@@ -11,6 +11,7 @@
   --ink-muted: #4a5e53;
   --brand: #17402b;
   --on-brand: #ffffff;
+  --brand-hover: #0f2e20;
   --accent: #ffb627;
   --on-accent: #1c1400;
   --line: #cfdcd2;
@@ -30,6 +31,7 @@
   --ink-muted: #a7bcae;
   --brand: #7fe0ad;
   --on-brand: #06170e;
+  --brand-hover: #a9eeca;
   --accent: #ffc247;
   --on-accent: #1c1400;
   --line: #2f4a3b;
@@ -52,6 +54,7 @@
     --ink-muted: #a7bcae;
     --brand: #7fe0ad;
     --on-brand: #06170e;
+    --brand-hover: #a9eeca;
     --accent: #ffc247;
     --on-accent: #1c1400;
     --line: #2f4a3b;

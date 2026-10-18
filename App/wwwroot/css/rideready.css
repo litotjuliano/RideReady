@@ -922,8 +922,8 @@ body.rr-body {
 }
 
 .rr-btn:hover {
-    background: var(--deep);
-    border-color: var(--deep);
+    background: var(--brand-hover);
+    border-color: var(--brand-hover);
 }
 
 .rr-btn-sec {
@@ -1565,7 +1565,7 @@ body.rr-body {
 
 .rr-driver .rr-actions .rr-next:hover {
     background: var(--accent);
-    border-color: var(--deep);
+    border-color: var(--ink);
     color: var(--on-accent);
 }
 
