@@ -2431,3 +2431,15 @@ body.rr-body {
         display: none;
     }
 }
+
+/* If a phone's text size is large, the quick links wrap to a second row instead of being cut off. */
+@media (max-width: 560px) {
+    .rr-driver .rr-quick {
+        flex-wrap: wrap;
+    }
+
+    .rr-driver .rr-quick .rr-btn {
+        flex: 1 1 auto;
+        padding: 6px 10px;
+    }
+}
