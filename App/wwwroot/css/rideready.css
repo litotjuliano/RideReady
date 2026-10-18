@@ -1719,3 +1719,72 @@ body.rr-body {
         width: 100%;
     }
 }
+
+/* Phones: status + attention tags share one row, and the reference / phone / WhatsApp line stays on one row. */
+.rr-tags {
+    display: inline;
+}
+
+@media (max-width: 560px) {
+    .rr-who {
+        gap: var(--space-3);
+        min-width: 0;
+    }
+
+    .rr-who > div {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .rr-who img {
+        width: 44px;
+        flex: none;
+    }
+
+    .rr-who h2 {
+        display: block;
+        font-size: 24px;
+        line-height: 28px;
+    }
+
+    .rr-tags {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 4px;
+        margin-top: 6px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .rr-tags::-webkit-scrollbar {
+        display: none;
+    }
+
+    .rr-tags .rr-badge,
+    .rr-tags .rr-flag {
+        flex: none;
+        margin: 0;
+        white-space: nowrap;
+        font-size: 10px;
+        line-height: 14px;
+        letter-spacing: 0.04em;
+        padding: 4px 8px;
+    }
+
+    .rr-tags .rr-badge {
+        letter-spacing: 0;
+        text-transform: uppercase;
+    }
+
+    .rr-who .rr-ref {
+        white-space: nowrap;
+        font-size: 12.5px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .rr-who .rr-ref::-webkit-scrollbar {
+        display: none;
+    }
+}
