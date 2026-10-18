@@ -7,8 +7,62 @@
 <div class="rr-narrow">
     <div class="rr-card">
         <span class="rr-pill rr-pill-sun">Booking received</span>
-        <h1>Thank you. Your reference is @reference.</h1>
+        <h1>Thank you. Your reference is <span id="rr-reference">@reference</span>.</h1>
         <p>Our dispatch team will review your trip and assign a vehicle and driver. You'll be contacted using the phone number or email you provided.</p>
+
+        @if (!string.IsNullOrEmpty(reference))
+        {
+            <button type="button" class="rr-btn rr-btn-sec rr-btn-sm" id="rr-copy" data-copy-target="rr-reference">Copy reference</button>
+            <span class="rr-copy-note" id="rr-copy-note" role="status" aria-live="polite"></span>
+        }
+
+        <h2 class="rr-next-h">What happens next</h2>
+        <ol class="rr-next-steps">
+            <li><div class="rr-n">1</div><div><strong>We review your trip</strong><span>Our dispatch team checks the details you sent.</span></div></li>
+            <li><div class="rr-n">2</div><div><strong>We assign a driver</strong><span>We match a vehicle and driver to your trip.</span></div></li>
+            <li><div class="rr-n">3</div><div><strong>We contact you</strong><span>You hear from us by phone or email to confirm.</span></div></li>
+        </ol>
+
         <a asp-controller="Booking" asp-action="Create" class="rr-go">Book another ride <i aria-hidden="true"></i></a>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Copy the booking reference to the clipboard (falls back to a hidden text selection on older browsers).
+        (function () {
+            var button = document.getElementById("rr-copy");
+            var source = document.getElementById("rr-reference");
+            var note = document.getElementById("rr-copy-note");
+            if (!button || !source) { return; }
+
+            function done(ok) {
+                if (note) { note.textContent = ok ? "Copied" : "Press and hold the reference to copy it"; }
+            }
+
+            function fallback(text) {
+                var box = document.createElement("textarea");
+                box.value = text;
+                box.contentEditable = "true";
+                box.style.position = "fixed";
+                box.style.opacity = "0";
+                document.body.appendChild(box);
+                box.select();
+                box.setSelectionRange(0, text.length);
+                var ok = false;
+                try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+                document.body.removeChild(box);
+                done(ok);
+            }
+
+            button.addEventListener("click", function () {
+                var text = (source.textContent || "").trim();
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function () { done(true); }, function () { fallback(text); });
+                } else {
+                    fallback(text);
+                }
+            });
+        })();
+    </script>
+}

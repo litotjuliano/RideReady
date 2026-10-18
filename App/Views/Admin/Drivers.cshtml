@@ -10,78 +10,94 @@
 
 @if (TempData["SuccessMessage"] is string successMessage)
 {
-    <div class="alert alert-success">@successMessage</div>
+    <div class="rr-ok rr-msg" role="status"><div><b>Done.</b><span>@successMessage</span></div></div>
 }
 @if (TempData["ErrorMessage"] is string errorMessage)
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="rr-err rr-msg" role="alert"><div><b>Could not do that.</b><span>@errorMessage</span></div></div>
 }
 
-<div class="ride-card mb-4">
-    <h2 class="h5 fw-bold mb-3">Add a driver</h2>
-    <form asp-controller="Admin" asp-action="CreateDriver" method="post" class="row g-2 align-items-end">
+<section class="rr-acard rr-panel">
+    <h2>Add a driver</h2>
+    <form asp-controller="Admin" asp-action="CreateDriver" method="post" class="rr-dform">
         @Html.AntiForgeryToken()
-        <div class="col-md-2"><input name="Name" class="form-control ride-input" placeholder="Driver name" required /></div>
-        <div class="col-md-2"><input name="Phone" class="form-control ride-input" placeholder="Phone" required /></div>
-        <div class="col-md-2">
-            <select name="VehicleType" class="form-select ride-input" required>
+        <div class="rr-field">
+            <label for="NewDriverName" class="rr-label">Driver name</label>
+            <input id="NewDriverName" name="Name" placeholder="Driver name" required />
+        </div>
+        <div class="rr-field">
+            <label for="NewDriverPhone" class="rr-label">Phone</label>
+            <input id="NewDriverPhone" name="Phone" type="tel" placeholder="Phone" required />
+        </div>
+        <div class="rr-field">
+            <label for="NewDriverVehicle" class="rr-label">Vehicle</label>
+            <select id="NewDriverVehicle" name="VehicleType" required>
                 <option value="Car">Car</option>
                 <option value="Van">Van</option>
                 <option value="Bus">Bus</option>
             </select>
         </div>
-        <div class="col-md-2"><input name="VehicleNumber" class="form-control ride-input" placeholder="Plate no." required /></div>
-        <div class="col-md-2"><input name="PassengerCapacity" type="number" min="1" max="100" class="form-control ride-input" placeholder="Seats" aria-label="Passenger capacity (seats)" required /></div>
-        <div class="col-md-2"><input name="Pin" class="form-control ride-input" placeholder="4-6 digit PIN" required /></div>
-        <div class="col-md-2"><button type="submit" class="btn ride-btn-primary w-100">Add driver</button></div>
+        <div class="rr-field">
+            <label for="NewDriverPlate" class="rr-label">Plate no.</label>
+            <input id="NewDriverPlate" name="VehicleNumber" placeholder="Plate no." required />
+        </div>
+        <div class="rr-field">
+            <label for="NewDriverSeats" class="rr-label">Seats</label>
+            <input id="NewDriverSeats" name="PassengerCapacity" type="number" min="1" max="100" placeholder="Seats" aria-label="Passenger capacity (seats)" required />
+        </div>
+        <div class="rr-field">
+            <label for="NewDriverPin" class="rr-label">PIN</label>
+            <input id="NewDriverPin" name="Pin" inputmode="numeric" placeholder="4-6 digit PIN" required />
+        </div>
+        <div class="rr-dform-go">
+            <button type="submit" class="rr-btn">Add driver</button>
+        </div>
     </form>
-</div>
+</section>
 
-<div class="ride-card">
-    <h2 class="h5 fw-bold mb-3">All drivers</h2>
+<section class="rr-acard rr-panel">
+    <h2>All drivers</h2>
     @if (!Model.Any())
     {
-        <p class="text-muted mb-0">No drivers yet.</p>
+        <p class="rr-note mb-0">No drivers yet.</p>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
+        <table class="rr-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Vehicle type</th>
+                    <th>Plate no.</th>
+                    <th>Seats</th>
+                    <th>Status</th>
+                    <th><span class="rr-sr">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var driver in Model)
+                {
                     <tr>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Vehicle type</th>
-                        <th>Plate no.</th>
-                        <th>Seats</th>
-                        <th>Status</th>
-                        <th></th>
+                        <td data-label="Name"><strong>@driver.Name</strong></td>
+                        <td data-label="Phone">@driver.Phone</td>
+                        <td data-label="Vehicle type">@driver.VehicleType</td>
+                        <td data-label="Plate no.">@driver.VehicleNumber</td>
+                        <td data-label="Seats">@(driver.PassengerCapacity?.ToString() ?? "-")</td>
+                        <td data-label="Status">
+                            @if (driver.IsActive)
+                            {
+                                <span class="rr-badge rr-badge-plain">Active</span>
+                            }
+                            else
+                            {
+                                <span class="rr-muted">Inactive</span>
+                            }
+                        </td>
+                        <td class="rr-table-act"><a asp-controller="Admin" asp-action="EditDriver" asp-route-id="@driver.Id" class="rr-btn rr-btn-sec rr-btn-sm">Edit</a></td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var driver in Model)
-                    {
-                        <tr>
-                            <td>@driver.Name</td>
-                            <td>@driver.Phone</td>
-                            <td>@driver.VehicleType</td>
-                            <td>@driver.VehicleNumber</td>
-                            <td>@(driver.PassengerCapacity?.ToString() ?? "-")</td>
-                            <td>
-                                @if (driver.IsActive)
-                                {
-                                    <span class="ride-pill">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">Inactive</span>
-                                }
-                            </td>
-                            <td class="text-end"><a asp-controller="Admin" asp-action="EditDriver" asp-route-id="@driver.Id" class="btn btn-sm btn-outline-secondary">Edit</a></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                }
+            </tbody>
+        </table>
     }
-</div>
+</section>

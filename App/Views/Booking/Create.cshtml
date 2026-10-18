@@ -38,6 +38,14 @@
                 @Html.AntiForgeryToken()
                 <div asp-validation-summary="ModelOnly" class="rr-summary"></div>
 
+                <div class="rr-welcome" id="rr-welcome" hidden>
+                    <p>Welcome back, <b data-welcome-name></b>. Use your saved details?</p>
+                    <div class="rr-welcome-btns">
+                        <button type="button" class="rr-btn rr-btn-sm" data-welcome-use>Use</button>
+                        <button type="button" class="rr-btn rr-btn-sec rr-btn-sm" data-welcome-forget>Forget me</button>
+                    </div>
+                </div>
+
                 <div class="rr-sec">Your details</div>
                 <div class="rr-row">
                     <div class="rr-field">
@@ -170,9 +178,14 @@
 
                 <div class="rr-check">
                     <input asp-for="AcceptedTerms" />
-                    <label asp-for="AcceptedTerms">I accept the terms and conditions</label>
+                    <label asp-for="AcceptedTerms">I accept the <a asp-controller="Home" asp-action="Terms" target="_blank" rel="noopener">terms and conditions</a> and the <a asp-controller="Home" asp-action="Privacy" target="_blank" rel="noopener">privacy policy</a></label>
                 </div>
                 <span asp-validation-for="AcceptedTerms" class="rr-error rr-check-error"></span>
+
+                <section class="rr-trip-sum" id="rr-trip-summary" aria-live="polite" hidden>
+                    <h3>Your trip</h3>
+                    <dl></dl>
+                </section>
 
                 <button type="submit" class="rr-go">Submit booking <i aria-hidden="true"></i></button>
                 <p class="rr-fine">No online payment required. Our team will contact you to confirm.</p>
@@ -183,6 +196,7 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/booking-form.js" asp-append-version="true"></script>
     <script>
         // Client rule for [MustBeTrue]: the checkbox must be ticked.
         if (window.jQuery && jQuery.validator && jQuery.validator.unobtrusive) {
