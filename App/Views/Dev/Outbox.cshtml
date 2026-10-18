@@ -1,0 +1,29 @@
+@model List<RideReady.Models.Notification>
+@using System.Text.RegularExpressions
+@{
+    ViewData["Title"] = "Dev outbox";
+    ViewData["Bare"] = true;
+
+    // Text is encoded first, then web addresses are turned into links, so message text can never inject markup.
+    string Linkify(string text) =>
+        Regex.Replace(System.Net.WebUtility.HtmlEncode(text), @"https?://[^\s<]+", m => $"<a href=\"{m.Value}\">{m.Value}</a>");
+}
+
+<div class="rr-narrow rr-legal">
+    <div class="rr-card">
+        <span class="rr-pill rr-pill-sun">Local testing only</span>
+        <h1>Dev outbox</h1>
+        <p class="rr-muted">Messages for the admin (operator) and drivers, newest first. WhatsApp is off in this copy, so nothing was sent; tap a link to try it.</p>
+
+        @if (!Model.Any())
+        {
+            <p>No messages yet. Make a booking, then come back.</p>
+        }
+
+        @foreach (var n in Model)
+        {
+            <h2>@n.RecipientType &middot; @n.EventType <small class="rr-muted">(@n.Channel, @n.DeliveryStatus)</small></h2>
+            <p>@Html.Raw(Linkify(n.MessageContent!))</p>
+        }
+    </div>
+</div>

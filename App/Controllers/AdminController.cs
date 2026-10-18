@@ -25,10 +25,11 @@ namespace RideReady.Controllers
             _driverAvailabilityService = driverAvailabilityService;
         }
 
-        public async Task<IActionResult> Index(string? sort = null)
+        public async Task<IActionResult> Index(string? sort = null, int? focus = null)
         {
             sort = DashboardSort.Normalize(sort);
             ViewBag.Sort = sort;
+            ViewBag.FocusBookingId = focus;
             var bookings = await _driverAssignmentService.GetDashboardBookingsAsync(sort);
             var activeDrivers = await _driverAssignmentService.GetActiveDriversAsync();
             ViewBag.ActiveDrivers = activeDrivers;

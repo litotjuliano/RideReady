@@ -17,6 +17,7 @@ namespace RideReady.Services
         private readonly ICalendarSyncService _calendarSyncService;
         private readonly EmailSettings _emailSettings;
         private readonly WhatsAppSettings _whatsAppSettings;
+        private readonly IMagicLinkService? _magicLinks;
 
         public NotificationService(
             RideReadyDbContext context,
@@ -24,8 +25,10 @@ namespace RideReady.Services
             IWhatsAppSender whatsAppSender,
             ICalendarSyncService calendarSyncService,
             IOptions<EmailSettings> emailSettings,
-            IOptions<WhatsAppSettings> whatsAppSettings)
+            IOptions<WhatsAppSettings> whatsAppSettings,
+            IMagicLinkService? magicLinks = null)
         {
+            _magicLinks = magicLinks;
             _context = context;
             _emailSender = emailSender;
             _whatsAppSender = whatsAppSender;
@@ -49,7 +52,7 @@ namespace RideReady.Services
                 null, customerMessage,
                 () => _whatsAppSender.SendAsync(booking.Customer.Phone, customerMessage));
 
-            var operatorMessage = $"New booking {booking.BookingReference}: {TripDetails(booking)}";
+            var operatorMessage = WithLink($"New booking {booking.BookingReference}: {TripDetails(booking)}", "Open", _magicLinks?.LinkForAdmin(booking));
             await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", "BookingCreated",
                 "New booking received", operatorMessage,
                 () => _emailSender.SendAsync(_emailSettings.OperatorEmail, "New booking received", operatorMessage));
@@ -70,7 +73,10 @@ namespace RideReady.Services
             var driver = await _context.Drivers.FindAsync(driverId)
                 ?? throw new InvalidOperationException($"Driver {driverId} not found");
 
-            var driverMessage = $"New job {booking.BookingReference}: {TripDetails(booking)} Log in to the Driver Portal to accept or reject.";
+            var driverLink = _magicLinks?.LinkForDriver(driverId, booking);
+            var driverMessage = driverLink != null
+                ? $"New job {booking.BookingReference}: {TripDetails(booking)} Open your trips to accept or reject: {driverLink}"
+                : $"New job {booking.BookingReference}: {TripDetails(booking)} Log in to the Driver Portal to accept or reject.";
             await SendAndLogAsync(bookingId, "Driver", driverId, driver.Phone, "WhatsApp", "DriverAssigned",
                 null, driverMessage,
                 () => _whatsAppSender.SendAsync(driver.Phone, driverMessage));
@@ -120,6 +126,7 @@ namespace RideReady.Services
                 null, customerMessage,
                 () => _whatsAppSender.SendAsync(booking.Customer.Phone, customerMessage));
 
+            operatorMessage = WithLink(operatorMessage, "Open", _magicLinks?.LinkForAdmin(booking));
             await SendAndLogAsync(bookingId, "Operator", null, _whatsAppSettings.OperatorPhone, "WhatsApp", $"TripStatus_{newStatus}",
                 null, operatorMessage,
                 () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
@@ -133,7 +140,7 @@ namespace RideReady.Services
 
             // The customer is deliberately NOT messaged here: the admin reviews the acceptance and
             // sends the driver details to the customer manually (see SendDriverDetailsToCustomerAsync).
-            var operatorMessage = $"Driver accepted booking {booking.BookingReference}. Send the driver details to the customer from the dashboard.";
+            var operatorMessage = WithLink($"Driver accepted booking {booking.BookingReference}. Send the driver details to the customer from the dashboard.", "Open", _magicLinks?.LinkForAdmin(booking));
             await SendAndLogAsync(bookingId, "Operator", null, _whatsAppSettings.OperatorPhone, "WhatsApp", "DriverAccepted",
                 null, operatorMessage,
                 () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
@@ -154,6 +161,10 @@ namespace RideReady.Services
                 $"{pickup} on {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}. " +
                 $"Drop-off: {booking.Destination.Trim()}{dropOffTime}.";
         }
+
+        /// <summary>Adds "Open: <link>" to a message for the admin or a driver; without a link the message is unchanged.</summary>
+        private static string WithLink(string message, string label, string? link) =>
+            string.IsNullOrEmpty(link) ? message : $"{message} {label}: {link}";
 
         private static string PaymentMethodText(string? paymentMethod) => TripText.PaymentMethod(paymentMethod);
 
@@ -212,7 +223,7 @@ namespace RideReady.Services
                 null, message,
                 () => _whatsAppSender.SendAsync(booking.Customer.Phone, message));
 
-            var operatorMessage = $"Booking {booking.BookingReference} completed.";
+            var operatorMessage = WithLink($"Booking {booking.BookingReference} completed.", "Open", _magicLinks?.LinkForAdmin(booking));
             await SendAndLogAsync(bookingId, "Operator", null, _whatsAppSettings.OperatorPhone, "WhatsApp", "BookingCompleted",
                 null, operatorMessage,
                 () => _whatsAppSender.SendAsync(_whatsAppSettings.OperatorPhone, operatorMessage));
@@ -257,6 +268,7 @@ namespace RideReady.Services
             var message = urgent
                 ? $"URGENT: booking {booking.BookingReference} has no driver assigned and pickup is in 30 minutes."
                 : $"Reminder: booking {booking.BookingReference} has no driver assigned and pickup is in 1 hour.";
+            message = WithLink(message, "Open", _magicLinks?.LinkForAdmin(booking));
 
             await SendAndLogAsync(bookingId, "Operator", null, _emailSettings.OperatorEmail, "Email", eventType,
                 eventType, message,

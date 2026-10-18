@@ -91,6 +91,11 @@ builder.Services.AddQuartzHostedService(opts => opts.WaitForJobsToComplete = tru
 
 builder.Services.Configure<AdminCredentialsSettings>(builder.Configuration.GetSection("AdminCredentials"));
 
+// Signed sign-in links in the admin and driver messages (see MagicLinkService). App:PublicBaseUrl is the site address.
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("App"));
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IMagicLinkService, MagicLinkService>();
+
 builder.Services.AddAuthentication()
     .AddCookie("AdminAuth", options =>
     {

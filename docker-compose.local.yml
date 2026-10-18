@@ -12,6 +12,7 @@ services:
       - "5000:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      App__PublicBaseUrl: http://${LAN_IP:-localhost}:5000
       AdminCredentials__Username: admin
       AdminCredentials__Password: ChangeMe123!
       WhatsAppSettings__AccessToken: ""
