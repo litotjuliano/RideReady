@@ -11,6 +11,7 @@
         <div class="rr-brandrow">
             <span class="rr-plate"><img src="~/images/h4t-travel-services-logo.jpg" alt="h4t Travel Services Sdn Bhd" /></span>
             <span class="rr-pill rr-pill-sun">RideReady driver</span>
+            <partial name="_ThemeToggle" />
             <form asp-controller="DriverAuth" asp-action="Logout" method="post" class="rr-signout">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="rr-out">Sign out</button>

@@ -2557,3 +2557,66 @@ body.rr-body {
 :root[data-theme="dark"] .rr-who img {
     filter: brightness(1.45) saturate(1.1);
 }
+
+/* The switch on the dark banners (admin and driver pages). */
+.rr-banner .rr-theme {
+    background: var(--deep-raised);
+    border-color: var(--on-deep-muted);
+    color: var(--on-deep);
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    flex: none;
+}
+
+.rr-banner .rr-theme:hover {
+    background: var(--deep);
+    border-color: var(--on-deep);
+}
+
+/* On the driver banner the Sign out button follows the switch. */
+.rr-driver .rr-banner .rr-theme + .rr-signout {
+    margin-left: 0;
+}
+
+/* Driver banner on phones: logo, name, light/dark switch and Sign out share one row. */
+@media (max-width: 440px) {
+    .rr-driver .rr-banner .rr-theme {
+        width: 34px;
+        height: 34px;
+    }
+
+    .rr-driver .rr-banner .rr-theme svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .rr-driver .rr-brandrow {
+        gap: 6px;
+    }
+
+    .rr-driver .rr-plate {
+        padding: 3px 5px;
+    }
+
+    .rr-driver .rr-plate img {
+        height: 26px;
+    }
+
+    .rr-driver .rr-pill {
+        font-size: 10px;
+        padding: 4px 8px;
+        letter-spacing: 0.04em;
+    }
+
+    .rr-driver .rr-out {
+        font-size: 12px;
+        padding: 5px 9px;
+    }
+}
+
+@media (max-width: 340px) {
+    .rr-driver .rr-pill {
+        display: none;
+    }
+}
