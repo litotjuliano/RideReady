@@ -1555,3 +1555,39 @@ body.rr-body {
     text-align: left;
     min-height: 20px;
 }
+
+/* Driver banner top row: never wider than the banner, on any phone. */
+.rr-driver .rr-brandrow {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    min-width: 0;
+}
+
+.rr-driver .rr-signout {
+    flex: none;
+}
+
+@media (max-width: 440px) {
+    .rr-driver .rr-banner {
+        padding: var(--space-4);
+    }
+
+    .rr-driver .rr-brandrow {
+        gap: var(--space-2);
+    }
+
+    .rr-driver .rr-plate img {
+        height: 30px;
+    }
+
+    .rr-driver .rr-pill {
+        font-size: 11px;
+        padding: 5px 10px;
+        letter-spacing: .06em;
+    }
+
+    .rr-driver .rr-out {
+        font-size: 13px;
+        padding: 5px 12px;
+    }
+}
