@@ -1537,3 +1537,21 @@ body.rr-body {
 .rr-more .rr-actions {
     margin-top: var(--space-2);
 }
+
+/* iPhone/iPad Safari: date and time inputs ignore width and spill out of the card unless the native look is reset. */
+.rr-body .rr-field input[type="date"],
+.rr-body .rr-field input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    text-align: left;
+    line-height: 20px;
+}
+
+.rr-body .rr-field input[type="date"]::-webkit-date-and-time-value,
+.rr-body .rr-field input[type="time"]::-webkit-date-and-time-value {
+    text-align: left;
+    min-height: 20px;
+}
