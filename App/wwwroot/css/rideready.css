@@ -2396,3 +2396,38 @@ body.rr-body {
 .rr-tl-scale span:last-child {
     transform: translateX(-100%);
 }
+
+/* Driver quick links: Call, Pick-up and Drop-off stay on one row; the status tag lines up with the text. */
+.rr-driver .rr-badge {
+    margin-left: 0;
+}
+
+@media (max-width: 560px) {
+    .rr-driver .rr-quick {
+        flex-wrap: nowrap;
+        gap: 6px;
+    }
+
+    .rr-driver .rr-quick .rr-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
+        text-align: center;
+        font-size: 12.5px;
+        padding: 6px 4px;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 340px) {
+    .rr-driver .rr-quick {
+        flex-wrap: wrap;
+    }
+}
+
+/* On phones the quick links read just Call / Pick-up / Drop-off (the full names stay in the accessible label). */
+@media (max-width: 560px) {
+    .rr-driver .rr-quick .rr-long {
+        display: none;
+    }
+}
