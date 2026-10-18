@@ -11,6 +11,7 @@
         <div class="rr-brandrow">
             <span class="rr-plate"><img src="~/images/h4t-travel-services-logo.jpg" alt="h4t Travel Services Sdn Bhd" /></span>
             <span class="rr-pill rr-pill-sun">RideReady driver</span>
+            <partial name="_ThemeToggle" />
             <form asp-controller="DriverAuth" asp-action="Logout" method="post" class="rr-signout">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="rr-out">Sign out</button>
@@ -61,15 +62,15 @@
             <div class="rr-quick">
                 @if (RideReady.ViewModels.PhoneLinks.Tel(trip.CustomerPhone) is { Length: > 0 } tel)
                 {
-                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@tel">Call customer</a>
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@tel" aria-label="Call customer">Call<span class="rr-long"> customer</span></a>
                 }
                 @if (RideReady.ViewModels.MapsLink.For(trip.PickupLocation) is { Length: > 0 } pickupMap)
                 {
-                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@pickupMap" target="_blank" rel="noopener">Pick-up in Maps</a>
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@pickupMap" target="_blank" rel="noopener" aria-label="Pick-up in Maps">Pick-up<span class="rr-long"> in Maps</span></a>
                 }
                 @if (RideReady.ViewModels.MapsLink.For(trip.Destination) is { Length: > 0 } dropMap)
                 {
-                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@dropMap" target="_blank" rel="noopener">Drop-off in Maps</a>
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@dropMap" target="_blank" rel="noopener" aria-label="Drop-off in Maps">Drop-off<span class="rr-long"> in Maps</span></a>
                 }
             </div>
             @await Html.PartialAsync("_TripDetails", RideReady.ViewModels.TripDetailsViewModel.ForDriver(trip))
