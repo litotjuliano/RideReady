@@ -94,6 +94,7 @@ builder.Services.Configure<AdminCredentialsSettings>(builder.Configuration.GetSe
 // Signed sign-in links in the admin and driver messages (see MagicLinkService). App:PublicBaseUrl is the site address.
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("App"));
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton(LinkSigningKey.LoadOrCreate(builder.Configuration["DataProtection:KeysPath"]));
 builder.Services.AddSingleton<IMagicLinkService, MagicLinkService>();
 
 builder.Services.AddAuthentication()

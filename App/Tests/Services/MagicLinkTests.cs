@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -45,8 +44,8 @@ namespace RideReady.Tests.Services
 
     public class MagicLinkServiceTests
     {
-        private static MagicLinkService Create(TestClock clock, string baseUrl = "https://rideready.example", IDataProtectionProvider? provider = null) =>
-            new(provider ?? new EphemeralDataProvider(), Options.Create(new AppSettings { PublicBaseUrl = baseUrl }), clock);
+        private static MagicLinkService Create(TestClock clock, string baseUrl = "https://rideready.example", LinkSigningKey? key = null) =>
+            new(key ?? LinkSigningKey.NewRandom(), Options.Create(new AppSettings { PublicBaseUrl = baseUrl }), clock);
 
         private static Booking BookingOn(DateOnly pickup, int id = 7) => new()
         {
@@ -55,13 +54,6 @@ namespace RideReady.Tests.Services
         };
 
         private static string TokenOf(string link) => link[(link.LastIndexOf("/l/", StringComparison.Ordinal) + 3)..];
-
-        // One provider, so two services in a test can read each other's tokens.
-        private sealed class EphemeralDataProvider : IDataProtectionProvider
-        {
-            private readonly IDataProtectionProvider _inner = new Microsoft.AspNetCore.DataProtection.EphemeralDataProtectionProvider();
-            public IDataProtector CreateProtector(string purpose) => _inner.CreateProtector(purpose);
-        }
 
         [Fact]
         public void AdminLink_OpensTheBookingAndCarriesNoPassword()
@@ -146,7 +138,8 @@ namespace RideReady.Tests.Services
         {
             var service = Create(new TestClock());
             var token = TokenOf(service.LinkForAdmin(BookingOn(new DateOnly(2026, 10, 20)))!);
-            var tampered = token[..^3] + (token.EndsWith("AAA") ? "BBB" : "AAA");
+            var middle = token.Length / 2;
+            var tampered = token[..middle] + (token[middle] == (char)65 ? "B" : "A") + token[(middle + 1)..];
 
             Assert.Equal(MagicLinkStatus.Invalid, service.Read(tampered).Status);
         }
@@ -186,7 +179,7 @@ namespace RideReady.Tests.Services
 
         private static NotificationService Notifier(RideReadyDbContext context, FakeEmailSender email, FakeWhatsAppSender whatsApp, string baseUrl)
         {
-            var links = new MagicLinkService(new Microsoft.AspNetCore.DataProtection.EphemeralDataProtectionProvider(),
+            var links = new MagicLinkService(LinkSigningKey.NewRandom(),
                 Options.Create(new AppSettings { PublicBaseUrl = baseUrl }), new TestClock());
             return new NotificationService(context, email, whatsApp, new FakeCalendarSyncService(),
                 Options.Create(new EmailSettings { OperatorEmail = "operator@rideready.my", SenderEmail = "n@r.my", SenderName = "RideReady" }),
@@ -289,7 +282,7 @@ namespace RideReady.Tests.Services
         private static (MagicLinkController Controller, RecordingAuth Auth, MagicLinkService Links, TestClock Clock) Build(RideReadyDbContext context)
         {
             var clock = new TestClock();
-            var links = new MagicLinkService(new Microsoft.AspNetCore.DataProtection.EphemeralDataProtectionProvider(),
+            var links = new MagicLinkService(LinkSigningKey.NewRandom(),
                 Options.Create(new AppSettings { PublicBaseUrl = "https://rideready.example" }), clock);
             var auth = new RecordingAuth();
             var services = new ServiceCollection().AddSingleton<IAuthenticationService>(auth).BuildServiceProvider();
@@ -437,6 +430,83 @@ namespace RideReady.Tests.Services
             var controller = new DevController(NewContext(), new FakeEnvironment("Development"));
 
             Assert.IsType<ViewResult>(await controller.Outbox());
+        }
+    }
+}
+
+namespace RideReady.Tests.Services
+{
+    public class MagicLinkLengthAndKeyTests
+    {
+        private static Booking BookingOn(int id = 1234) => new()
+        {
+            Id = id, BookingReference = "RR-LINK0004", PickupDate = new DateOnly(2026, 10, 20), PickupTime = new TimeOnly(9, 0),
+            PickupLocation = "A", Destination = "B", RequestedVehicleType = "Car"
+        };
+
+        private static MagicLinkService Service(LinkSigningKey? key = null) =>
+            new(key ?? LinkSigningKey.NewRandom(), Options.Create(new AppSettings { PublicBaseUrl = "https://rideready.litxus.com" }), new TestClock());
+
+        [Fact]
+        public void TheLinksAreShort()
+        {
+            var admin = Service().LinkForAdmin(BookingOn())!;
+            var driver = Service().LinkForDriver(5, BookingOn())!;
+
+            Assert.True(admin.Length <= 70, $"admin link is {admin.Length} characters: {admin}");
+            Assert.True(driver.Length <= 70, $"driver link is {driver.Length} characters: {driver}");
+        }
+
+        [Fact]
+        public void TheCodeUsesOnlyLettersDigitsDashAndUnderscore()
+        {
+            var link = Service().LinkForDriver(5, BookingOn())!;
+            var code = link[(link.LastIndexOf("/l/", StringComparison.Ordinal) + 3)..];
+
+            Assert.Matches("^[A-Za-z0-9_-]+$", code);
+        }
+
+        [Fact]
+        public void ADriverLinkCannotBePassedOffAsAnAdminLink()
+        {
+            var service = Service();
+            var driverLink = service.LinkForDriver(5, BookingOn())!;
+            var code = driverLink[(driverLink.LastIndexOf("/l/", StringComparison.Ordinal) + 3)..];
+
+            Assert.Equal(MagicLinkRole.Driver, service.Read(code).Link!.Role);
+        }
+
+        [Fact]
+        public void TheKeyIsKeptInTheFolderAndReusedAfterARestart()
+        {
+            var folder = Path.Combine(Path.GetTempPath(), "rr-key-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var first = LinkSigningKey.LoadOrCreate(folder);
+                var second = LinkSigningKey.LoadOrCreate(folder);
+
+                Assert.Equal(first.Value, second.Value);
+
+                // Deleting the key file is how every link already sent is cancelled.
+                File.Delete(Path.Combine(folder, "link-signing.key"));
+                Assert.NotEqual(first.Value, LinkSigningKey.LoadOrCreate(folder).Value);
+            }
+            finally
+            {
+                if (Directory.Exists(folder)) { Directory.Delete(folder, true); }
+            }
+        }
+
+        [Fact]
+        public void WithoutAFolderTheKeyIsFreshEachTime()
+        {
+            Assert.NotEqual(LinkSigningKey.LoadOrCreate(null).Value, LinkSigningKey.LoadOrCreate("").Value);
+        }
+
+        [Fact]
+        public void ATooShortKeyIsRefused()
+        {
+            Assert.Throws<ArgumentException>(() => new LinkSigningKey(new byte[4]));
         }
     }
 }
