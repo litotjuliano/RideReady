@@ -1668,3 +1668,10 @@ body.rr-body {
         padding: 6px 7px;
     }
 }
+
+/* Very small screens (320px): there is no room for four buttons in a row, so they may wrap. */
+@media (max-width: 340px) {
+    .rr-nav {
+        flex-wrap: wrap;
+    }
+}
