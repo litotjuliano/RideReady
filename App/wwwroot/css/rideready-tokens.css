@@ -83,3 +83,7 @@
   --font-display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
   --font-sans: "DM Sans", system-ui, sans-serif;
 }
+
+/* Keep the browser's own controls (date pickers, scrollbars) in step with a theme chosen with the header button. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }

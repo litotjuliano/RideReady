@@ -2529,3 +2529,31 @@ body.rr-body {
 .rr-check label a {
     font-weight: 700;
 }
+
+/* Light / dark switch in the public header. */
+.rr-theme {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--field-border);
+    background: var(--surface-mint);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.rr-theme:hover {
+    background: var(--surface-200);
+    border-color: var(--brand);
+}
+
+.rr-theme svg[hidden] {
+    display: none;
+}
+
+:root[data-theme="dark"] .rr-veh img,
+:root[data-theme="dark"] .rr-who img {
+    filter: brightness(1.45) saturate(1.1);
+}
