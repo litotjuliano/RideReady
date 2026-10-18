@@ -39,6 +39,111 @@ body.rr-body {
     color: var(--brand);
 }
 
+/* ---------- Base reset (replaces the framework reset the old pages relied on) ---------- */
+[hidden] {
+    display: none !important;
+}
+
+:where(.rr-body) h1,
+:where(.rr-body) h2,
+:where(.rr-body) h3,
+:where(.rr-body) h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+:where(.rr-body) h1 { font-size: 40px; }
+:where(.rr-body) h2 { font-size: 28px; }
+:where(.rr-body) h3 { font-size: 20px; }
+
+:where(.rr-body) h3,
+:where(.rr-body) h4 {
+    font-weight: 700;
+}
+
+:where(.rr-body) p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+:where(.rr-body) ol,
+:where(.rr-body) ul {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+:where(.rr-body) dl {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+:where(.rr-body) dt {
+    font-weight: 700;
+}
+
+:where(.rr-body) dd {
+    margin-bottom: 0.5rem;
+    margin-left: 0;
+}
+
+:where(.rr-body) img,
+:where(.rr-body) svg {
+    vertical-align: middle;
+}
+
+:where(.rr-body) label {
+    display: inline-block;
+}
+
+:where(.rr-body) button,
+:where(.rr-body) input,
+:where(.rr-body) select,
+:where(.rr-body) textarea {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+:where(.rr-body) button,
+:where(.rr-body) [type="button"],
+:where(.rr-body) [type="submit"] {
+    -webkit-appearance: button;
+    appearance: button;
+}
+
+:where(.rr-body) textarea {
+    resize: vertical;
+}
+
+:where(.rr-body) table {
+    border-collapse: collapse;
+}
+
+:where(.rr-body) th {
+    text-align: inherit;
+}
+
+:where(.rr-body) small {
+    font-size: 0.875em;
+}
+
+:where(.rr-body) b,
+:where(.rr-body) strong {
+    font-weight: bolder;
+}
+
+:where(.rr-body) code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.875em;
+}
+
+.rr-flush {
+    margin-bottom: 0;
+}
+
 /* ---------- Public header ---------- */
 .rr-top {
     display: flex;
@@ -1062,65 +1167,6 @@ body.rr-body {
     color: var(--ink-muted);
     font-size: 14px;
     margin: 10px 0 var(--space-3);
-}
-
-/* ---------- The other admin pages: old classes mapped onto the design tokens ---------- */
-.rr-body .ride-card {
-    background: var(--surface-200);
-    border: 0;
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-card);
-}
-
-.rr-body .ride-btn-primary {
-    background: var(--brand);
-    border-color: var(--brand);
-    color: var(--on-brand);
-    font-weight: 700;
-    border-radius: var(--radius-md);
-}
-
-.rr-body .ride-btn-primary:hover {
-    background: var(--deep);
-    border-color: var(--deep);
-    color: var(--on-brand);
-}
-
-.rr-body .ride-input {
-    border-color: var(--field-border);
-    border-radius: var(--radius-sm);
-}
-
-.rr-body .ride-pill {
-    background: var(--surface-mint);
-    color: var(--ink);
-}
-
-.rr-body .ride-section-label {
-    color: var(--brand);
-}
-
-.rr-body .btn-outline-secondary {
-    color: var(--brand);
-    border-color: var(--brand);
-}
-
-.rr-body .btn-outline-secondary:hover {
-    background: var(--surface-mint);
-    color: var(--brand);
-    border-color: var(--brand);
-}
-
-.rr-body .alert-success {
-    background: var(--surface-mint);
-    border-color: var(--line);
-    color: var(--ink);
-}
-
-.rr-body .alert-danger {
-    background: var(--surface-200);
-    border: 2px solid var(--danger);
-    color: var(--danger);
 }
 
 @media (max-width: 900px) {

@@ -1,6 +1,13 @@
-﻿@{
+@{
     ViewData["Title"] = "Privacy Policy";
+    ViewData["Bare"] = true;
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="rr-narrow">
+    <div class="rr-card">
+        <span class="rr-pill">RideReady</span>
+        <h1>@ViewData["Title"]</h1>
+        <p>Use this page to detail your site's privacy policy.</p>
+        <a asp-controller="Booking" asp-action="Create" class="rr-go">Book a ride <i aria-hidden="true"></i></a>
+    </div>
+</div>
