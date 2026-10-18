@@ -1378,30 +1378,30 @@ body.rr-body {
     margin-bottom: var(--space-3);
 }
 
-.rr-trip-head h2 {
+.rr-driver .rr-trip-head h2 {
     font-size: 24px;
     line-height: 28px;
     margin: 0;
 }
 
-.rr-ref {
+.rr-driver .rr-ref {
     color: var(--ink-muted);
     font-size: 14px;
     margin: 2px 0 0;
 }
 
-.rr-when {
+.rr-driver .rr-when {
     text-align: right;
 }
 
-.rr-when strong {
+.rr-driver .rr-when strong {
     display: block;
     font-family: var(--font-display);
     font-size: 20px;
     line-height: 24px;
 }
 
-.rr-badge {
+.rr-driver .rr-badge {
     display: inline-block;
     margin-top: 6px;
     background: var(--surface-mint);
@@ -1412,27 +1412,27 @@ body.rr-body {
     border-radius: var(--radius-pill);
 }
 
-.rr-actions {
+.rr-driver .rr-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
     margin-top: 20px;
 }
 
-.rr-actions form {
+.rr-driver .rr-actions form {
     margin: 0;
 }
 
-.rr-actions-pair {
+.rr-driver .rr-actions-pair {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.rr-actions .rr-btn {
+.rr-driver .rr-actions .rr-btn {
     width: 100%;
     min-height: 48px;
 }
 
-.rr-actions select {
+.rr-driver .rr-actions select {
     font: inherit;
     font-size: 15px;
     color: var(--ink);
@@ -1445,11 +1445,11 @@ body.rr-body {
 }
 
 @media (min-width: 520px) {
-    .rr-actions:not(.rr-actions-pair) {
+    .rr-driver .rr-actions:not(.rr-actions-pair) {
         grid-template-columns: 1fr auto;
     }
 
-    .rr-actions:not(.rr-actions-pair) .rr-btn {
+    .rr-driver .rr-actions:not(.rr-actions-pair) .rr-btn {
         width: auto;
         min-width: 160px;
     }
@@ -1509,7 +1509,7 @@ body.rr-body {
     text-decoration: none;
 }
 
-.rr-actions .rr-next {
+.rr-driver .rr-actions .rr-next {
     min-height: 60px;
     font-size: 18px;
     background: var(--accent);
@@ -1517,7 +1517,7 @@ body.rr-body {
     color: var(--on-accent);
 }
 
-.rr-actions .rr-next:hover {
+.rr-driver .rr-actions .rr-next:hover {
     background: var(--accent);
     border-color: var(--deep);
     color: var(--on-accent);
@@ -1589,5 +1589,35 @@ body.rr-body {
     .rr-driver .rr-out {
         font-size: 13px;
         padding: 5px 12px;
+    }
+}
+
+/* Admin on phones: the seven steps fit the card instead of being cut off. */
+@media (max-width: 560px) {
+    .rr-ts {
+        min-width: 0;
+        font-size: 10.5px;
+        line-height: 13px;
+        gap: 6px;
+    }
+
+    .rr-ts-c {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
+
+    .rr-ts::before {
+        top: 14px;
+        left: calc(50% + 18px);
+        right: calc(-50% + 18px);
+    }
+
+    .rr-ts-now .rr-ts-c {
+        box-shadow: 0 0 0 3px var(--surface-mint);
+    }
+
+    .rr-trip-steps {
+        margin-bottom: var(--space-4);
     }
 }
