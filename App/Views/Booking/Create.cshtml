@@ -178,7 +178,7 @@
 
                 <div class="rr-check">
                     <input asp-for="AcceptedTerms" />
-                    <label asp-for="AcceptedTerms">I accept the terms and conditions</label>
+                    <label asp-for="AcceptedTerms">I accept the <a asp-controller="Home" asp-action="Terms" target="_blank" rel="noopener">terms and conditions</a> and the <a asp-controller="Home" asp-action="Privacy" target="_blank" rel="noopener">privacy policy</a></label>
                 </div>
                 <span asp-validation-for="AcceptedTerms" class="rr-error rr-check-error"></span>
 

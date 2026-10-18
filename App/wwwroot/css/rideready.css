@@ -2497,3 +2497,35 @@ body.rr-body {
         filter: brightness(1.45) saturate(1.1);
     }
 }
+
+/* Terms and privacy pages: a comfortable reading width and tidy section headings. */
+.rr-legal {
+    max-width: 760px;
+}
+
+.rr-legal h1 {
+    margin-bottom: var(--space-2);
+}
+
+.rr-legal h2 {
+    font-size: 20px;
+    line-height: 26px;
+    margin: var(--space-5) 0 var(--space-2);
+}
+
+.rr-legal ul {
+    margin-bottom: var(--space-3);
+}
+
+.rr-legal li {
+    margin-bottom: var(--space-1);
+}
+
+.rr-legal .rr-go {
+    margin-top: var(--space-5);
+}
+
+/* Links inside the "I accept" line. */
+.rr-check label a {
+    font-weight: 700;
+}
