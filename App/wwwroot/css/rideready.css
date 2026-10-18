@@ -1788,3 +1788,141 @@ body.rr-body {
         display: none;
     }
 }
+
+/* ---------- Booking form: live summary, welcome-back bar ---------- */
+.rr-trip-sum {
+    background: var(--surface-mint);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin: var(--space-5) 0 var(--space-4);
+}
+
+.rr-trip-sum[hidden],
+.rr-welcome[hidden] {
+    display: none;
+}
+
+.rr-trip-sum h3 {
+    font-size: 16px;
+    margin: 0 0 var(--space-2);
+}
+
+.rr-trip-sum dl {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    margin: 0;
+}
+
+.rr-trip-sum dt,
+.rr-trip-sum dd {
+    margin: 0;
+    padding: 6px 0;
+    border-top: 1px solid var(--line);
+    overflow-wrap: anywhere;
+}
+
+.rr-trip-sum dt:first-of-type,
+.rr-trip-sum dt:first-of-type + dd {
+    border-top: 0;
+}
+
+.rr-trip-sum dt {
+    color: var(--ink-muted);
+    font-size: 14px;
+}
+
+.rr-welcome {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    background: var(--surface-mint);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    margin-bottom: var(--space-4);
+}
+
+.rr-welcome p {
+    margin: 0;
+}
+
+.rr-welcome-btns {
+    display: flex;
+    gap: var(--space-2);
+}
+
+@media (max-width: 560px) {
+    .rr-trip-sum dl {
+        grid-template-columns: 1fr;
+    }
+
+    .rr-trip-sum dt {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .rr-trip-sum dt + dd {
+        border-top: 0;
+        padding-top: 0;
+    }
+
+    .rr-trip-sum dt:not(:first-of-type) {
+        border-top: 1px solid var(--line);
+    }
+}
+
+/* ---------- Confirmation page: copy reference, what happens next ---------- */
+.rr-copy-note {
+    margin-left: var(--space-3);
+    color: var(--ink-muted);
+    font-size: 14px;
+}
+
+.rr-next-h {
+    font-size: 20px;
+    margin: var(--space-6) 0 var(--space-3);
+}
+
+.rr-next-steps {
+    list-style: none;
+    margin: 0 0 var(--space-5);
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+}
+
+.rr-next-steps li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+}
+
+.rr-next-steps .rr-n {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+}
+
+.rr-next-steps strong {
+    display: block;
+}
+
+.rr-next-steps span {
+    display: block;
+    color: var(--ink-muted);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+#rr-reference {
+    white-space: nowrap;
+}
