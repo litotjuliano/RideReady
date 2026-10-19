@@ -315,7 +315,7 @@ namespace RideReady.Tests.Services
             Assert.Equal("0125183838", whatsApp.To);
             Assert.Contains("Richard", whatsApp.Message);
             Assert.Contains("0167237377", whatsApp.Message);
-            Assert.Contains("Car TEST 1234", whatsApp.Message);
+            Assert.Contains("Vehicle: Car TEST 1234.", whatsApp.Message);
             Assert.Contains(booking.BookingReference, whatsApp.Message);
             var email = Assert.Single(emailSender.Sent);
             Assert.Equal("sim@email.com", email.To);
@@ -378,7 +378,72 @@ namespace RideReady.Tests.Services
             var message = Assert.Single(whatsAppSender.Sent).Message;
             Assert.DoesNotContain("RM", message);
             Assert.DoesNotContain("Fare", message);
-            Assert.EndsWith("at 09:00.", message);
+            Assert.EndsWith("1 passenger · 0 bags · Car.", message);
+        }
+
+        [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_IncludesTheFullTripSummary()
+        {
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            booking.FromName = "KL Sentral";
+            booking.ToName = "KLIA T1";
+            booking.DropOffDate = new DateOnly(2026, 9, 10);
+            booking.DropOffTime = new TimeOnly(12, 33);
+            booking.PickupTime = new TimeOnly(5, 0);
+            booking.Passengers = 2;
+            booking.Bags = 1;
+            await context.SaveChangesAsync();
+            await SeedAcceptedDriverAsync(context, booking);
+            var emailSender = new FakeEmailSender();
+            var service = new NotificationService(context, emailSender, new FakeWhatsAppSender(), new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            var body = Assert.Single(emailSender.Sent).Body;
+            Assert.Contains("Driver: Richard.", body);
+            Assert.Contains("Phone: 0167237377.", body);
+            Assert.Contains("Route: KL Sentral -> KLIA T1.", body);
+            Assert.Contains("Pick up: 10 Sep 2026, 5:00 AM · KL Sentral.", body);
+            Assert.Contains("Drop-off (approx.): 10 Sep 2026, 12:33 PM · KLIA Terminal 1.", body);
+            Assert.Contains("2 passengers · 1 bag · Car.", body);
+        }
+
+        [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_ForAnOthersBooking_ShowsTheDescription()
+        {
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            booking.RequestedVehicleType = "Others";
+            booking.OtherVehicleDescription = "lorry";
+            await context.SaveChangesAsync();
+            await SeedAcceptedDriverAsync(context, booking);
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, new FakeEmailSender(), whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptions());
+
+            await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            Assert.Contains("1 passenger · 0 bags · Others: lorry.", Assert.Single(whatsAppSender.Sent).Message);
+        }
+
+        [Fact]
+        public void DriverDetailsMessage_LeavesNoGapsWhenThePlateOrDropOffTimeIsMissing_AndFitsOneWhatsAppLine()
+        {
+            var booking = new Booking
+            {
+                BookingReference = "RR-X", PickupLocation = "A", Destination = "B",
+                PickupDate = new DateOnly(2026, 10, 20), PickupTime = new TimeOnly(17, 0), Passengers = 1, RequestedVehicleType = "Van"
+            };
+            var driver = new Driver { Name = "Ah Seng", Phone = "0123456789", VehicleType = "Van", VehicleNumber = null };
+
+            var message = NotificationService.DriverDetailsMessage(booking, driver, string.Empty);
+
+            Assert.Contains("Vehicle: Van.", message);
+            Assert.Contains("Pick up: 20 Oct 2026, 5:00 PM · A.", message);
+            Assert.Contains("Drop-off (approx.): B.", message);
+            Assert.DoesNotContain("Fare", message);
+            Assert.DoesNotContain("  ", message);
+            Assert.InRange(WhatsAppCloudApiSender.ToTemplateParameter(message).Length, 1, 1024);
         }
 
         [Fact]
