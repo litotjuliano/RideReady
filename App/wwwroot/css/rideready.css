@@ -2443,52 +2443,23 @@ body.rr-body {
     transform: translateX(-100%);
 }
 
-/* Driver quick links: Call, Pick-up and Drop-off stay on one row; the status tag lines up with the text. */
+/* Driver quick links: two rows of two (Call and Message customer, then Pick-up and Drop-off in Maps); the status tag lines up with the text. */
 .rr-driver .rr-badge {
     margin-left: 0;
 }
 
-@media (max-width: 560px) {
-    .rr-driver .rr-quick {
-        flex-wrap: nowrap;
-        gap: 6px;
-    }
-
-    .rr-driver .rr-quick .rr-btn {
-        flex: 1 1 0;
-        min-width: 0;
-        justify-content: center;
-        text-align: center;
-        font-size: 12.5px;
-        padding: 6px 4px;
-        white-space: nowrap;
-    }
+.rr-driver .rr-quick {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
 }
 
-@media (max-width: 340px) {
-    .rr-driver .rr-quick {
-        flex-wrap: wrap;
-    }
+.rr-driver .rr-quick .rr-btn {
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
 }
 
-/* On phones the quick links read just Call / Pick-up / Drop-off (the full names stay in the accessible label). */
-@media (max-width: 560px) {
-    .rr-driver .rr-quick .rr-long {
-        display: none;
-    }
-}
-
-/* If a phone's text size is large, the quick links wrap to a second row instead of being cut off. */
-@media (max-width: 560px) {
-    .rr-driver .rr-quick {
-        flex-wrap: wrap;
-    }
-
-    .rr-driver .rr-quick .rr-btn {
-        flex: 1 1 auto;
-        padding: 6px 10px;
-    }
-}
 
 /* Dark theme: the vehicle pictures are a mid green drawn for light cards, so lift them a little on dark ones. */
 @media (prefers-color-scheme: dark) {
