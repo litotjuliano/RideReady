@@ -170,14 +170,33 @@ namespace RideReady.Tests.ViewModels
             past.PickupDate = new DateOnly(2020, 1, 1);
             var pastEx = await Assert.ThrowsAsync<InvalidOperationException>(() => service.CreateBookingAsync(past));
             Assert.Equal("Please choose a pickup time in the future.", pastEx.Message);
-
-            var night = Valid();
-            night.PickupDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5));
-            night.PickupTime = new TimeOnly(3, 0);
-            var nightEx = await Assert.ThrowsAsync<InvalidOperationException>(() => service.CreateBookingAsync(night));
-            Assert.Equal("Bookings are available from 6:00 AM to midnight.", nightEx.Message);
         }
 
+
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(3, 0)]
+        [InlineData(5, 59)]
+        [InlineData(13, 8)]
+        [InlineData(23, 59)]
+        public async Task AnyPickupTimeIsAccepted_TheOperatorDecides(int hour, int minute)
+        {
+            var context = new RideReadyDbContext(new DbContextOptionsBuilder<RideReadyDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
+                .Options);
+            var service = new BookingService(context);
+
+            var request = Valid();
+            request.PickupDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5));
+            request.PickupTime = new TimeOnly(hour, minute);
+            request.DropOffDate = request.PickupDate.AddDays(1);
+            request.DropOffTime = new TimeOnly(12, 0);
+
+            var booking = await service.CreateBookingAsync(request);
+
+            Assert.Equal(new TimeOnly(hour, minute), booking.PickupTime);
+        }
         // ---- sensible defaults ----
 
         [Fact]
