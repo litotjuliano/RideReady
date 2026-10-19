@@ -265,7 +265,7 @@ body.rr-body {
     padding: 0;
     display: grid;
     gap: var(--space-3);
-    max-width: 440px;
+    max-width: none;
 }
 
 .rr-steps li {
@@ -297,6 +297,24 @@ body.rr-body {
     color: var(--on-deep);
     font-size: 16px;
     line-height: 20px;
+}
+
+.rr-steps .rr-si {
+    flex: none;
+    margin-left: auto;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--line);
+    color: var(--accent);
+}
+
+.rr-steps .rr-si svg {
+    width: 28px;
+    height: 28px;
 }
 
 .rr-steps span {
