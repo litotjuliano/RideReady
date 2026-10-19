@@ -39,7 +39,6 @@ namespace RideReady.Tests.Services
                 Passengers = 2,
                 Bags = 2,
                 VehicleType = "Car",
-                PaymentMethod = "Pay_at_Pickup",
                 AcceptedTerms = true
             };
 
@@ -51,7 +50,7 @@ namespace RideReady.Tests.Services
             Assert.NotEmpty(booking.BookingReference);
             Assert.StartsWith("RR-", booking.BookingReference);
             Assert.Equal("New", booking.Status);
-            Assert.Equal("Pay_at_Pickup", booking.Quote?.PaymentMethod);
+            Assert.Equal(string.Empty, booking.Quote?.PaymentMethod); // no payment method is recorded
         }
 
         [Fact]
@@ -75,7 +74,6 @@ namespace RideReady.Tests.Services
                 Passengers = 2,
                 Bags = 2,
                 VehicleType = "Car",
-                PaymentMethod = "Pay_at_Pickup",
                 AcceptedTerms = true
             };
 
@@ -126,7 +124,6 @@ namespace RideReady.Tests.Services
             Passengers = 2,
             Bags = 2,
             VehicleType = "Car",
-            PaymentMethod = "Pay_at_Pickup",
             AcceptedTerms = true
         };
 
@@ -146,7 +143,7 @@ namespace RideReady.Tests.Services
             Assert.NotEmpty(booking.BookingReference);
             Assert.NotNull(booking.Quote);
             Assert.Equal(0, booking.Quote!.TotalEstimatedFare);
-            Assert.Equal("Pay_at_Pickup", booking.Quote.PaymentMethod);
+            Assert.Equal(string.Empty, booking.Quote.PaymentMethod); // no payment method is recorded
             Assert.Null(booking.Quote.ActualFare);
         }
 

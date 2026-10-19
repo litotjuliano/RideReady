@@ -324,7 +324,7 @@ namespace RideReady.Tests.Services
         }
 
         [Fact]
-        public async Task SendDriverDetailsToCustomerAsync_WhenFareIsSet_IncludesTheFareAndPaymentMethod()
+        public async Task SendDriverDetailsToCustomerAsync_WhenFareIsSet_IncludesTheFare()
         {
             // Arrange
             var context = GetInMemoryDbContext();
@@ -345,8 +345,8 @@ namespace RideReady.Tests.Services
             await service.SendDriverDetailsToCustomerAsync(booking.Id);
 
             // Assert
-            Assert.Contains("Fare: RM150.00 (Bank Transfer).", Assert.Single(whatsAppSender.Sent).Message);
-            Assert.Contains("Fare: RM150.00 (Bank Transfer).", Assert.Single(emailSender.Sent).Body);
+            Assert.Contains("Fare: RM150.00.", Assert.Single(whatsAppSender.Sent).Message);
+            Assert.Contains("Fare: RM150.00.", Assert.Single(emailSender.Sent).Body);
         }
 
         [Theory]
@@ -486,7 +486,7 @@ namespace RideReady.Tests.Services
 
 
         [Fact]
-        public async Task SendPriceSetNotificationAsync_SendsWhatsAppToCustomerWithFareAndPaymentMethod()
+        public async Task SendPriceSetNotificationAsync_SendsWhatsAppToCustomerWithTheFare()
         {
             // Arrange
             var context = GetInMemoryDbContext();
@@ -508,7 +508,8 @@ namespace RideReady.Tests.Services
             Assert.Single(whatsAppSender.Sent);
             Assert.Equal("0125183838", whatsAppSender.Sent[0].To);
             Assert.Contains("RM45.50", whatsAppSender.Sent[0].Message);
-            Assert.Contains("Bank Transfer", whatsAppSender.Sent[0].Message);
+            Assert.DoesNotContain("Transfer", whatsAppSender.Sent[0].Message);
+            Assert.DoesNotContain("Pay at", whatsAppSender.Sent[0].Message);
             var notification = await context.Notifications.SingleAsync(n => n.BookingId == booking.Id);
             Assert.Equal("Sent", notification.DeliveryStatus);
             Assert.Equal("WhatsApp", notification.Channel);

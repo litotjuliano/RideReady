@@ -29,10 +29,6 @@ namespace RideReady.ViewModels
             return type;
         }
 
-        /// <summary>Customer-facing wording for how the trip is paid.</summary>
-        public static string PaymentMethod(string? paymentMethod) =>
-            paymentMethod == "Bank_Transfer" ? "Bank Transfer" : "Pay at Pickup";
-
         /// <summary>Friendly date and time for customer messages, for example "20 Oct 2026, 5:00 AM".</summary>
         public static string When(DateOnly date, TimeOnly time) =>
             $"{date.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture)}, {time.ToString("h:mm tt", System.Globalization.CultureInfo.InvariantCulture)}";

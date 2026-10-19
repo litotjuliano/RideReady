@@ -65,7 +65,6 @@ namespace RideReady.Services
                     CustomerPhone = b.Customer?.Phone ?? string.Empty,
                     CustomerEmail = b.Customer?.Email,
                     Notes = b.Notes,
-                    PaymentMethod = b.Quote?.PaymentMethod,
                     PickupLocation = b.PickupLocation,
                     Destination = b.Destination,
                     FromName = b.FromName,

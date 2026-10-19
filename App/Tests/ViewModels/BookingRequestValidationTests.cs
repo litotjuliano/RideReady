@@ -22,7 +22,6 @@ namespace RideReady.Tests.ViewModels
             Passengers = 2,
             Bags = 1,
             VehicleType = "Car",
-            PaymentMethod = "Pay_at_Pickup",
             AcceptedTerms = true
         };
 

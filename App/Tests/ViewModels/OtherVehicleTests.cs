@@ -18,7 +18,7 @@ namespace RideReady.Tests.ViewModels
             PickupDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)), PickupTime = new TimeOnly(12, 0),
             DropOffDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)), DropOffTime = new TimeOnly(15, 0),
             Passengers = 2, Bags = 1, VehicleType = vehicle, OtherVehicle = other,
-            PaymentMethod = "Pay_at_Pickup", AcceptedTerms = true
+            AcceptedTerms = true
         };
 
         private static string? MessageFor(BookingRequestViewModel model, string member)

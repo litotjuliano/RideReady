@@ -24,8 +24,6 @@ namespace RideReady.ViewModels
         public string? OtherVehicle { get; init; }
         public string? Remarks { get; init; }
 
-        /// <summary>Admin only. Null means "don't show a payment row".</summary>
-        public string? PaymentMethod { get; init; }
 
         public static TripDetailsViewModel ForAdmin(AdminBookingListItemViewModel booking) => new()
         {
@@ -44,11 +42,10 @@ namespace RideReady.ViewModels
             Bags = booking.Bags,
             VehicleType = booking.RequestedVehicleType,
             OtherVehicle = booking.OtherVehicle,
-            Remarks = booking.Notes,
-            PaymentMethod = booking.PaymentMethod
+            Remarks = booking.Notes
         };
 
-        /// <summary>Everything except the price, how the customer pays, and the customer's email.</summary>
+        /// <summary>Everything except the price and the customer's email.</summary>
         public static TripDetailsViewModel ForDriver(DriverAssignmentListItemViewModel trip) => new()
         {
             CustomerName = trip.CustomerName,
@@ -96,8 +93,6 @@ namespace RideReady.ViewModels
 
             rows.Add(("Remarks", string.IsNullOrWhiteSpace(Remarks) ? "-" : Remarks.Trim()));
 
-            if (!string.IsNullOrWhiteSpace(PaymentMethod))
-                rows.Add(("Payment", TripText.PaymentMethod(PaymentMethod)));
 
             return rows;
         }

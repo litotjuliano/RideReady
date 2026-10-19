@@ -110,8 +110,7 @@ namespace RideReady.Services
                         Subtotal = 0,
                         ServiceTax = 0,
                         TotalEstimatedFare = 0,
-                        EstimatedDuration = "Pending",
-                        PaymentMethods = new List<string> { "Pay_at_Pickup", "Bank_Transfer" }
+                        EstimatedDuration = "Pending"
                     };
                 }
 
@@ -127,8 +126,7 @@ namespace RideReady.Services
                     LuggageFee = quote.LuggageFee,
                     Subtotal = quote.Subtotal,
                     ServiceTax = quote.ServiceTax,
-                    TotalEstimatedFare = quote.TotalEstimatedFare,
-                    PaymentMethod = request.PaymentMethod
+                    TotalEstimatedFare = quote.TotalEstimatedFare
                 };
                 _context.BookingQuotes.Add(quoteEntity);
                 await _context.SaveChangesAsync();
@@ -196,8 +194,7 @@ namespace RideReady.Services
                 Subtotal = subtotal,
                 ServiceTax = serviceTax,
                 TotalEstimatedFare = subtotal + serviceTax,
-                EstimatedDuration = FormatDuration(duration),
-                PaymentMethods = new List<string> { "Pay_at_Pickup", "Bank_Transfer" }
+                EstimatedDuration = FormatDuration(duration)
             };
         }
 

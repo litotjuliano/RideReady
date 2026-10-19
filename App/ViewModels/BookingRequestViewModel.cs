@@ -91,10 +91,6 @@ namespace RideReady.ViewModels
         [StringLength(500, ErrorMessage = "Please keep remarks under 500 characters.")]
         public string? Notes { get; set; }
 
-        [Display(Name = "Payment method")]
-        [Required(ErrorMessage = "Please choose a payment method.")]
-        [RegularExpression("^(Pay_at_Pickup|Bank_Transfer)$", ErrorMessage = "Please choose Pay at Pickup or Bank Transfer.")]
-        public string PaymentMethod { get; set; } = "Pay_at_Pickup";
 
         [MustBeTrue(ErrorMessage = "Please accept the terms and conditions to continue.")]
         public bool AcceptedTerms { get; set; }
