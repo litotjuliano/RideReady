@@ -23,6 +23,10 @@ namespace RideReady.Models
         public int Passengers { get; set; }
         public int Bags { get; set; }
         public string RequestedVehicleType { get; set; } = string.Empty;
+
+        /// <summary>What the customer asked for when the vehicle type is "Others" (for example "lorry"); otherwise null.</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string? OtherVehicleDescription { get; set; }
         public string? Notes { get; set; }
         public string Status { get; set; } = "New"; // New, Confirmed, Driver_Assigned, Picked_Up, In_Transit, Dropped_Off, Completed, Cancelled, No_Show
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

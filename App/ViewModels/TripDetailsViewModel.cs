@@ -21,10 +21,9 @@ namespace RideReady.ViewModels
         public int Passengers { get; init; }
         public int Bags { get; init; }
         public string? VehicleType { get; init; }
+        public string? OtherVehicle { get; init; }
         public string? Remarks { get; init; }
 
-        /// <summary>Admin only. Null means "don't show a payment row".</summary>
-        public string? PaymentMethod { get; init; }
 
         public static TripDetailsViewModel ForAdmin(AdminBookingListItemViewModel booking) => new()
         {
@@ -42,11 +41,11 @@ namespace RideReady.ViewModels
             Passengers = booking.Passengers,
             Bags = booking.Bags,
             VehicleType = booking.RequestedVehicleType,
-            Remarks = booking.Notes,
-            PaymentMethod = booking.PaymentMethod
+            OtherVehicle = booking.OtherVehicle,
+            Remarks = booking.Notes
         };
 
-        /// <summary>Everything except the price, how the customer pays, and the customer's email.</summary>
+        /// <summary>Everything except the price and the customer's email.</summary>
         public static TripDetailsViewModel ForDriver(DriverAssignmentListItemViewModel trip) => new()
         {
             CustomerName = trip.CustomerName,
@@ -62,6 +61,7 @@ namespace RideReady.ViewModels
             Passengers = trip.Passengers,
             Bags = trip.Bags,
             VehicleType = trip.RequestedVehicleType,
+            OtherVehicle = trip.OtherVehicle,
             Remarks = trip.Notes
         };
 
@@ -87,13 +87,12 @@ namespace RideReady.ViewModels
             if (dropOff.Length > 0) rows.Add(("Drop-off (approx.)", dropOff));
 
             var size = $"{Passengers} pax · {Bags} bags";
-            if (!string.IsNullOrWhiteSpace(VehicleType)) size += $" · {VehicleType}";
+            var vehicle = TripText.Vehicle(VehicleType, OtherVehicle);
+            if (vehicle.Length > 0) size += $" · {vehicle}";
             rows.Add(("Passengers & vehicle", size));
 
             rows.Add(("Remarks", string.IsNullOrWhiteSpace(Remarks) ? "-" : Remarks.Trim()));
 
-            if (!string.IsNullOrWhiteSpace(PaymentMethod))
-                rows.Add(("Payment", TripText.PaymentMethod(PaymentMethod)));
 
             return rows;
         }

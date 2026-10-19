@@ -78,7 +78,6 @@ namespace RideReady.Tests.Controllers
             Passengers = 2,
             Bags = 2,
             VehicleType = "Car",
-            PaymentMethod = "Pay_at_Pickup",
             AcceptedTerms = true
         };
 

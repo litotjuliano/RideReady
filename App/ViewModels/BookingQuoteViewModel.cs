@@ -13,6 +13,5 @@ namespace RideReady.ViewModels
         public decimal ServiceTax { get; set; }
         public decimal TotalEstimatedFare { get; set; }
         public string EstimatedDuration { get; set; } = string.Empty;
-        public List<string> PaymentMethods { get; set; } = new();
     }
 }

@@ -20,9 +20,9 @@
             <h1>Your next ride, arranged in minutes.</h1>
             <p>Complete one simple form. Our dispatch team will assign your vehicle and driver, then coordinate the trip schedule.</p>
             <ol class="rr-steps">
-                <li><div class="rr-n">1</div><div><strong>Enter trip details</strong><span>Tell us where, when and how many.</span></div></li>
-                <li><div class="rr-n">2</div><div><strong>Dispatch assigns driver</strong><span>We match your vehicle and driver.</span></div></li>
-                <li><div class="rr-n">3</div><div><strong>Trip is scheduled</strong><span>We contact you to confirm.</span></div></li>
+                <li><div class="rr-n">1</div><div><strong>Enter trip details</strong><span>Tell us where, when and how many.</span></div><span class="rr-si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span></li>
+                <li><div class="rr-n">2</div><div><strong>Dispatch assigns driver</strong><span>We match your vehicle and driver.</span></div><span class="rr-si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.2"/><path d="M12 14.2V21M9.9 11.2 3.4 9.6M14.1 11.2l6.5-1.6"/></svg></span></li>
+                <li><div class="rr-n">3</div><div><strong>Trip is scheduled</strong><span>We contact you to confirm.</span></div><span class="rr-si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M9 15l2.2 2.2L15.5 13"/></svg></span></li>
             </ol>
             <img class="rr-letsgo" src="~/images/lets-go-badge.png" alt="Let's go" />
         </section>
@@ -102,9 +102,8 @@
                     </div>
                     <div class="rr-field">
                         <label asp-for="PickupTime" class="rr-label"></label>
-                        <input asp-for="PickupTime" type="time" min="06:00" max="23:45" step="900" />
+                        <input asp-for="PickupTime" type="time" />
                         <span asp-validation-for="PickupTime" class="rr-error"></span>
-                        <span class="rr-hint">Bookings available 6:00 AM - midnight, 15-minute slots.</span>
                     </div>
                 </div>
                 <div class="rr-row rr-r2">
@@ -152,8 +151,18 @@
                                 <input asp-for="VehicleType" type="radio" value="Bus" id="VehicleType_Bus" data-capacity="@busMax" />
                                 <span><img src="~/images/vehicle-bus.svg" alt="" />Bus<small>Up to @busMax passengers</small></span>
                             </label>
+                            <label class="rr-veh" for="VehicleType_Others">
+                                <input asp-for="VehicleType" type="radio" value="Others" id="VehicleType_Others" />
+                                <span><img src="~/images/vehicle-other.svg" alt="" />Others<small>Tell us what you need</small></span>
+                            </label>
                         </div>
                         <span asp-validation-for="VehicleType" class="rr-error"></span>
+                        <div class="rr-other" id="OtherVehicleBox" hidden>
+                            <label asp-for="OtherVehicle" class="rr-label"></label>
+                            <input asp-for="OtherVehicle" maxlength="100" placeholder="e.g. lorry, motorbike, 14-seater" />
+                            <span asp-validation-for="OtherVehicle" class="rr-error"></span>
+                            <span class="rr-error" id="OtherVehicleError" role="alert" hidden>Please tell us what vehicle you need.</span>
+                        </div>
                     </div>
                 </div>
                 <div class="rr-row">
@@ -167,12 +176,7 @@
                 <div class="rr-sec">Payment &amp; confirmation</div>
                 <div class="rr-row">
                     <div class="rr-field">
-                        <label asp-for="PaymentMethod" class="rr-label"></label>
-                        <select asp-for="PaymentMethod">
-                            <option value="Pay_at_Pickup">Pay at Pickup</option>
-                            <option value="Bank_Transfer">Bank Transfer</option>
-                        </select>
-                        <span asp-validation-for="PaymentMethod" class="rr-error"></span>
+                        <p class="rr-hint">Payment: to be advised.</p>
                     </div>
                 </div>
 
@@ -263,18 +267,21 @@
 
             // Vehicle types big enough for the number of passengers.
             function biggerThan(count) {
-                return radios.filter(function (r) { return capacityOf(r) >= count; }).map(function (r) { return r.value; });
+                return radios.filter(function (r) { return r.value !== "Others" && capacityOf(r) >= count; }).map(function (r) { return r.value; });
             }
 
             function check() {
                 var radio = selected();
                 var count = Number(passengers.value);
-                var tooMany = !!radio && count > capacityOf(radio);
+                var isOthers = !!radio && radio.value === "Others";   // no passenger limit for a vehicle the customer describes
+                var tooMany = !!radio && !isOthers && count > capacityOf(radio);
 
                 hint.hidden = tooMany;
-                hint.textContent = radio
-                    ? "A " + radio.value + " carries up to " + capacityOf(radio) + " passengers."
-                    : "Up to " + largest + " passengers.";
+                hint.textContent = isOthers
+                    ? "We will arrange a vehicle for your group."
+                    : radio
+                        ? "A " + radio.value + " carries up to " + capacityOf(radio) + " passengers."
+                        : "Up to " + largest + " passengers.";
 
                 if (tooMany) {
                     var options = biggerThan(count);
@@ -303,6 +310,42 @@
                 });
             }
             check();
+        })();
+    </script>
+
+    <script>
+        // "Others": show the box where the customer says what vehicle they need, and ask for it before submitting.
+        (function () {
+            var box = document.getElementById("OtherVehicleBox");
+            var input = document.getElementById("OtherVehicle");
+            var error = document.getElementById("OtherVehicleError");
+            var radios = Array.prototype.slice.call(document.querySelectorAll('input[name="VehicleType"]'));
+            if (!box || !input || radios.length === 0) { return; }
+
+            function isOthers() {
+                return radios.some(function (r) { return r.checked && r.value === "Others"; });
+            }
+
+            function show() {
+                box.hidden = !isOthers();
+                if (!isOthers() && error) { error.hidden = true; input.classList.remove("rr-invalid"); }
+            }
+
+            radios.forEach(function (r) { r.addEventListener("change", show); });
+            input.addEventListener("input", function () {
+                if (input.value.trim() && error) { error.hidden = true; input.classList.remove("rr-invalid"); }
+            });
+            if (input.form) {
+                input.form.addEventListener("submit", function (event) {
+                    if (isOthers() && !input.value.trim()) {
+                        event.preventDefault();
+                        if (error) { error.hidden = false; }
+                        input.classList.add("rr-invalid");
+                        input.focus();
+                    }
+                });
+            }
+            show();
         })();
     </script>
 }

@@ -23,15 +23,12 @@ namespace RideReady.Services
 
         public async Task<Booking> CreateBookingAsync(BookingRequestViewModel request)
         {
-            // Validate future date and operating hours (6AM-12AM)
+            // The pickup must be in the future. Any time of day is accepted: the operator decides what to take.
             var now = DateTime.UtcNow;
             var requestedDateTime = request.PickupDate.ToDateTime(request.PickupTime);
 
             if (requestedDateTime < now)
                 throw new InvalidOperationException("Please choose a pickup time in the future.");
-
-            if (request.PickupTime.Hour < 6 || request.PickupTime.Hour >= 24)
-                throw new InvalidOperationException("Bookings are available from 6:00 AM to midnight.");
 
             if (request.DropOffDate is not DateOnly dropOffDate || request.DropOffTime is not TimeOnly dropOffTime)
                 throw new InvalidOperationException("Please choose the drop-off date and time.");
@@ -76,6 +73,9 @@ namespace RideReady.Services
                     Passengers = request.Passengers,
                     Bags = request.Bags,
                     RequestedVehicleType = request.VehicleType,
+                    OtherVehicleDescription = request.VehicleType == VehicleCapacity.Others && !string.IsNullOrWhiteSpace(request.OtherVehicle)
+                        ? request.OtherVehicle.Trim()
+                        : null,
                     Notes = request.Notes,
                     Status = "New"
                 };
@@ -110,8 +110,7 @@ namespace RideReady.Services
                         Subtotal = 0,
                         ServiceTax = 0,
                         TotalEstimatedFare = 0,
-                        EstimatedDuration = "Pending",
-                        PaymentMethods = new List<string> { "Pay_at_Pickup", "Bank_Transfer" }
+                        EstimatedDuration = "Pending"
                     };
                 }
 
@@ -127,8 +126,7 @@ namespace RideReady.Services
                     LuggageFee = quote.LuggageFee,
                     Subtotal = quote.Subtotal,
                     ServiceTax = quote.ServiceTax,
-                    TotalEstimatedFare = quote.TotalEstimatedFare,
-                    PaymentMethod = request.PaymentMethod
+                    TotalEstimatedFare = quote.TotalEstimatedFare
                 };
                 _context.BookingQuotes.Add(quoteEntity);
                 await _context.SaveChangesAsync();
@@ -196,8 +194,7 @@ namespace RideReady.Services
                 Subtotal = subtotal,
                 ServiceTax = serviceTax,
                 TotalEstimatedFare = subtotal + serviceTax,
-                EstimatedDuration = FormatDuration(duration),
-                PaymentMethods = new List<string> { "Pay_at_Pickup", "Bank_Transfer" }
+                EstimatedDuration = FormatDuration(duration)
             };
         }
 
