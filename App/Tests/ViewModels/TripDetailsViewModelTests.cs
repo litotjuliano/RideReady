@@ -24,7 +24,6 @@ namespace RideReady.Tests.ViewModels
             Bags = 2,
             RequestedVehicleType = "Car",
             Notes = "Flight MH123, child seat please",
-            PaymentMethod = "Bank_Transfer",
             EstimatedFare = 150m
         };
 
@@ -51,7 +50,7 @@ namespace RideReady.Tests.ViewModels
             details.Rows().Single(r => r.Label == label).Value;
 
         [Fact]
-        public void ForAdmin_ShowsEveryDetailIncludingEmailRemarksAndPayment()
+        public void ForAdmin_ShowsEveryDetailIncludingEmailAndRemarks()
         {
             var details = TripDetailsViewModel.ForAdmin(AdminBooking());
 
@@ -61,11 +60,11 @@ namespace RideReady.Tests.ViewModels
             Assert.Equal("2026-10-20 15:00 · Mid Valley Megamall, Kuala Lumpur", Value(details, "Drop-off (approx.)"));
             Assert.Equal("3 pax · 2 bags · Car", Value(details, "Passengers & vehicle"));
             Assert.Equal("Flight MH123, child seat please", Value(details, "Remarks"));
-            Assert.Equal("Bank Transfer", Value(details, "Payment"));
+            Assert.DoesNotContain(details.Rows(), r => r.Label == "Payment");
         }
 
         [Fact]
-        public void ForDriver_ShowsTheTripButNeverEmailPaymentOrPrice()
+        public void ForDriver_ShowsTheTripButNeverEmailOrPrice()
         {
             var details = TripDetailsViewModel.ForDriver(DriverTrip());
             var everything = string.Join(" | ", details.Rows().Select(r => $"{r.Label}: {r.Value}"));
@@ -80,8 +79,6 @@ namespace RideReady.Tests.ViewModels
             Assert.DoesNotContain(details.Rows(), r => r.Label == "Payment");
             Assert.DoesNotContain("@", everything);
             Assert.DoesNotContain("RM", everything);
-            Assert.DoesNotContain("Transfer", everything);
-            Assert.DoesNotContain("Pay at Pickup", everything);
         }
 
         [Fact]
@@ -109,7 +106,6 @@ namespace RideReady.Tests.ViewModels
         {
             var booking = AdminBooking();
             booking.Notes = null;
-            booking.PaymentMethod = null;
             booking.CustomerEmail = null;
             booking.DropOffDate = null;
             booking.DropOffTime = null;

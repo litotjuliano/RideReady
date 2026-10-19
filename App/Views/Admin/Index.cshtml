@@ -74,6 +74,7 @@
     {
         "Van" => "vehicle-van.svg",
         "Bus" => "vehicle-bus.svg",
+        "Others" => "vehicle-other.svg",
         _ => "vehicle-sedan.svg"
     };
 
@@ -86,7 +87,7 @@
 
         <div class="rr-head">
             <div class="rr-who">
-                <img src="~/images/@vehicleImage" alt="@booking.RequestedVehicleType" />
+                <img src="~/images/@vehicleImage" alt="@RideReady.ViewModels.TripText.Vehicle(booking.RequestedVehicleType, booking.OtherVehicle)" />
                 <div>
                     <h2>@booking.CustomerName</h2>
                     <div class="rr-tags">
@@ -156,7 +157,10 @@
             // Default to only drivers whose registered vehicle type matches the request,
             // so the common case can't be mis-clicked into a mismatch. If none exist, fall
             // back to showing everyone rather than leaving the admin unable to assign anyone.
-            var matchingDrivers = drivers.Where(d => d.VehicleType == booking.RequestedVehicleType).ToList();
+            // "Others" (a vehicle the customer described) matches every driver: the admin picks.
+            var matchingDrivers = booking.RequestedVehicleType == RideReady.ViewModels.VehicleCapacity.Others
+                ? drivers.ToList()
+                : drivers.Where(d => d.VehicleType == booking.RequestedVehicleType).ToList();
             var dropdownDrivers = matchingDrivers.Any() ? matchingDrivers : drivers;
         }
         <div class="rr-actions">

@@ -34,7 +34,6 @@ namespace RideReady.Tests.Services
             Bags = 1,
             VehicleType = "Car",
             Notes = "Flight MH123",
-            PaymentMethod = "Pay_at_Pickup",
             AcceptedTerms = true
         };
 
@@ -197,7 +196,7 @@ namespace RideReady.Tests.Services
         // ---- dashboard / driver portal data ----
 
         [Fact]
-        public async Task Dashboard_CarriesEmailRemarksAndPayment_ButDriverPortalDoesNotExposeThem()
+        public async Task Dashboard_CarriesEmailAndRemarks_ButDriverPortalDoesNotExposeThem()
         {
             var context = NewContext();
             var booking = await SeedBookingAsync(context, b => b.Notes = "Child seat please");
@@ -213,7 +212,6 @@ namespace RideReady.Tests.Services
             var adminItem = Assert.Single(await assignments.GetDashboardBookingsAsync());
             Assert.Equal("sim@email.com", adminItem.CustomerEmail);
             Assert.Equal("Child seat please", adminItem.Notes);
-            Assert.Equal("Bank_Transfer", adminItem.PaymentMethod);
             Assert.Equal(150m, adminItem.EstimatedFare);
 
             var driverTrip = Assert.Single(await new DriverPortalService(context).GetAssignmentsAsync(driver.Id));

@@ -93,9 +93,8 @@ namespace RideReady.Services
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
                 ?? throw new InvalidOperationException($"Booking {bookingId} not found");
 
-            var paymentMethodText = PaymentMethodText(booking.Quote?.PaymentMethod);
             var fare = booking.Quote?.TotalEstimatedFare ?? 0;
-            var message = $"Hi {booking.Customer!.Name}, the fare for your RideReady booking {booking.BookingReference} is RM{fare:F2} ({paymentMethodText}). Thank you!";
+            var message = $"Hi {booking.Customer!.Name}, the fare for your RideReady booking {booking.BookingReference} is RM{fare:F2}. Thank you!";
 
             await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Phone, "WhatsApp", "PriceSet",
                 null, message,
@@ -166,7 +165,32 @@ namespace RideReady.Services
         private static string WithLink(string message, string label, string? link) =>
             string.IsNullOrEmpty(link) ? message : $"{message} {label}: {link}";
 
-        private static string PaymentMethodText(string? paymentMethod) => TripText.PaymentMethod(paymentMethod);
+        /// <summary>
+        /// The confirmation the customer gets once the driver has accepted: the driver, then the trip summary.
+        /// Each item is its own short sentence on its own line, so it also reads well when WhatsApp flattens it to one line.
+        /// </summary>
+        internal static string DriverDetailsMessage(Booking booking, Driver driver, string fareText)
+        {
+            var vehicle = string.Join(" ", new[] { driver.VehicleType, driver.VehicleNumber }.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s!.Trim()));
+            var pickupPlace = string.IsNullOrWhiteSpace(booking.PickupLocation) ? string.Empty : $" · {booking.PickupLocation.Trim()}";
+            var dropOffWhen = booking.DropOffDate is DateOnly d && booking.DropOffTime is TimeOnly t ? $"{TripText.When(d, t)} · " : string.Empty;
+
+            var lines = new List<string>
+            {
+                $"Your RideReady booking {booking.BookingReference} is confirmed.",
+                string.Empty,
+                $"Driver: {driver.Name}.",
+                $"Phone: {driver.Phone}.",
+            };
+            if (vehicle.Length > 0) lines.Add($"Vehicle: {vehicle}.");
+            lines.Add(string.Empty);
+            lines.Add($"Route: {TripText.Route(booking.FromName, booking.PickupLocation, booking.ToName, booking.Destination)}.");
+            lines.Add($"Pick up: {TripText.When(booking.PickupDate, booking.PickupTime)}{pickupPlace}.");
+            lines.Add($"Drop-off (approx.): {dropOffWhen}{booking.Destination.Trim()}.");
+            lines.Add($"{TripText.PassengersAndVehicle(booking.Passengers, booking.Bags, booking.RequestedVehicleType, booking.OtherVehicleDescription)}.");
+            if (fareText.Length > 0) lines.Add(fareText.Trim());
+            return string.Join("\n", lines);
+        }
 
         public async Task<bool> SendDriverDetailsToCustomerAsync(int bookingId)
         {
@@ -190,14 +214,9 @@ namespace RideReady.Services
             // Mention the fare only when the admin has set one; with no price, the message says nothing about it.
             var quote = await _context.BookingQuotes.FirstOrDefaultAsync(q => q.BookingId == bookingId);
             var fareText = quote != null && quote.TotalEstimatedFare > 0
-                ? $" Fare: RM{quote.TotalEstimatedFare:F2} ({PaymentMethodText(quote.PaymentMethod)})."
+                ? $" Fare: RM{quote.TotalEstimatedFare:F2}."
                 : string.Empty;
-            var message = $"Your RideReady booking {booking.BookingReference} is confirmed. " +
-                $"Your driver is {driver.Name} ({driver.Phone}), {driver.VehicleType} {driver.VehicleNumber}. " +
-                (string.IsNullOrWhiteSpace(booking.PickupLocation) && string.IsNullOrWhiteSpace(booking.FromName)
-                    ? $"Pickup: {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}."
-                    : $"Pickup: {TripText.Place(booking.FromName, booking.PickupLocation)} on {booking.PickupDate:yyyy-MM-dd} at {booking.PickupTime:HH:mm}.") +
-                fareText;
+            var message = DriverDetailsMessage(booking, driver, fareText);
 
             await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer!.Email, "Email", DriverDetailsEvent,
                 "Your RideReady driver", message,

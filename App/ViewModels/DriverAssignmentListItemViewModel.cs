@@ -19,6 +19,7 @@ namespace RideReady.ViewModels
         public int Bags { get; set; }
         public string? Notes { get; set; }
         public string? RequestedVehicleType { get; set; }
+        public string? OtherVehicle { get; set; }
         public string AssignmentStatus { get; set; } = string.Empty;
         public string BookingStatus { get; set; } = string.Empty;
     }

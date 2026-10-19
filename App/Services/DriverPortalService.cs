@@ -59,6 +59,7 @@ namespace RideReady.Services
                     Bags = a.Booking.Bags,
                     Notes = a.Booking.Notes,
                     RequestedVehicleType = a.Booking.RequestedVehicleType,
+                    OtherVehicle = a.Booking.OtherVehicleDescription,
                     AssignmentStatus = a.AssignmentStatus,
                     BookingStatus = a.Booking.Status
                 })

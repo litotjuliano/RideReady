@@ -62,15 +62,19 @@
             <div class="rr-quick">
                 @if (RideReady.ViewModels.PhoneLinks.Tel(trip.CustomerPhone) is { Length: > 0 } tel)
                 {
-                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@tel" aria-label="Call customer">Call<span class="rr-long"> customer</span></a>
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@tel" aria-label="Call customer">Call customer</a>
+                }
+                @if (RideReady.ViewModels.PhoneLinks.WhatsApp(trip.CustomerPhone) is { Length: > 0 } message)
+                {
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@message" target="_blank" rel="noopener" aria-label="Message customer on WhatsApp">Message customer</a>
                 }
                 @if (RideReady.ViewModels.MapsLink.For(trip.PickupLocation) is { Length: > 0 } pickupMap)
                 {
-                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@pickupMap" target="_blank" rel="noopener" aria-label="Pick-up in Maps">Pick-up<span class="rr-long"> in Maps</span></a>
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@pickupMap" target="_blank" rel="noopener" aria-label="Pick-up in Maps">Pick-up in Maps</a>
                 }
                 @if (RideReady.ViewModels.MapsLink.For(trip.Destination) is { Length: > 0 } dropMap)
                 {
-                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@dropMap" target="_blank" rel="noopener" aria-label="Drop-off in Maps">Drop-off<span class="rr-long"> in Maps</span></a>
+                    <a class="rr-btn rr-btn-sec rr-btn-sm" href="@dropMap" target="_blank" rel="noopener" aria-label="Drop-off in Maps">Drop-off in Maps</a>
                 }
             </div>
             @await Html.PartialAsync("_TripDetails", RideReady.ViewModels.TripDetailsViewModel.ForDriver(trip))
