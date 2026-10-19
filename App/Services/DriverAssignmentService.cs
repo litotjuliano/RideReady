@@ -65,7 +65,6 @@ namespace RideReady.Services
                     CustomerPhone = b.Customer?.Phone ?? string.Empty,
                     CustomerEmail = b.Customer?.Email,
                     Notes = b.Notes,
-                    PaymentMethod = b.Quote?.PaymentMethod,
                     PickupLocation = b.PickupLocation,
                     Destination = b.Destination,
                     FromName = b.FromName,
@@ -79,6 +78,7 @@ namespace RideReady.Services
                     Passengers = b.Passengers,
                     Bags = b.Bags,
                     RequestedVehicleType = b.RequestedVehicleType,
+                    OtherVehicle = b.OtherVehicleDescription,
                     Status = b.Status,
                     EstimatedFare = b.Quote?.TotalEstimatedFare,
                     AssignedDriverId = assignment?.DriverId,
@@ -181,7 +181,7 @@ namespace RideReady.Services
                 ?? throw new InvalidOperationException($"Driver {driverId} not found");
 
             // The vehicle must be big enough (drivers added before capacity was recorded have no limit set).
-            if (driver.PassengerCapacity is int capacity && booking.Passengers > capacity)
+            if (booking.RequestedVehicleType != VehicleCapacity.Others && driver.PassengerCapacity is int capacity && booking.Passengers > capacity)
             {
                 throw new InvalidOperationException(
                     $"{driver.Name}'s {driver.VehicleType} carries up to {capacity} passengers, but this booking has {booking.Passengers}. Choose a bigger vehicle.");

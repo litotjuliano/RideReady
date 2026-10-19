@@ -59,6 +59,10 @@ namespace RideReady.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<string>("OtherVehicleDescription")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<int>("Passengers")
                         .HasColumnType("integer");
 

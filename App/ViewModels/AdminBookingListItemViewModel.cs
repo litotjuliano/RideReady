@@ -8,7 +8,6 @@ namespace RideReady.ViewModels
         public string CustomerPhone { get; set; } = string.Empty;
         public string? CustomerEmail { get; set; }
         public string? Notes { get; set; }
-        public string? PaymentMethod { get; set; }
 
         /// <summary>"Pickup soon" / "Pickup overdue" when the dispatcher needs to act on the pickup time; otherwise null.</summary>
         public string? PickupAlert { get; set; }
@@ -32,6 +31,7 @@ namespace RideReady.ViewModels
         public int Passengers { get; set; }
         public int Bags { get; set; }
         public string RequestedVehicleType { get; set; } = string.Empty;
+        public string? OtherVehicle { get; set; }
         public string Status { get; set; } = string.Empty;
         public decimal? EstimatedFare { get; set; }
         public int? AssignedDriverId { get; set; }
