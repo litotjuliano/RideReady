@@ -58,6 +58,24 @@ namespace RideReady.Tests.Services
             Assert.Equal("Your booking RR-123 is confirmed.", parameter.GetProperty("text").GetString());
         }
 
+        [Fact]
+        public async Task SendTemplateAsync_SendsOneBodyParameterPerDetail_WithNoLineBreaksAndNoEmptyValues()
+        {
+            var handler = new CapturingHandler();
+            var settings = new WhatsAppSettings { ApiUrl = "https://graph.facebook.com/v18.0", AccessToken = "test-token", PhoneNumberId = "1234567890", TemplateLanguage = "en" };
+            var sender = new WhatsAppCloudApiSender(new HttpClient(handler), Options.Create(settings));
+
+            await sender.SendTemplateAsync("0125183838", "rideready_driver_details", new[] { "RR-1", "Ah Seng\nLim", "", "  ", "Ipoh -> Jb" });
+
+            var json = JsonDocument.Parse(handler.Body!).RootElement;
+            Assert.Equal("60125183838", json.GetProperty("to").GetString());
+            Assert.Equal("template", json.GetProperty("type").GetString());
+            var template = json.GetProperty("template");
+            Assert.Equal("rideready_driver_details", template.GetProperty("name").GetString());
+            var parameters = template.GetProperty("components")[0].GetProperty("parameters").EnumerateArray().Select(p => p.GetProperty("text").GetString()).ToArray();
+            Assert.Equal(new[] { "RR-1", "Ah Seng Lim", "-", "-", "Ipoh -> Jb" }, parameters);
+        }
+
         [Theory]
         [InlineData("line one\nline two", "line one line two")]
         [InlineData("a\t\tb     c", "a b c")]
