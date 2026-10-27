@@ -18,7 +18,6 @@ namespace RideReady.Services
 
         public async Task SendAsync(string toPhone, string message)
         {
-            var url = $"{_settings.ApiUrl}/{_settings.PhoneNumberId}/messages";
             object payload = string.IsNullOrWhiteSpace(_settings.TemplateName)
                 ? new
                 {
@@ -47,6 +46,34 @@ namespace RideReady.Services
                     }
                 };
 
+            await PostAsync(payload);
+        }
+
+        public async Task SendTemplateAsync(string toPhone, string templateName, IReadOnlyList<string> parameters)
+        {
+            // Meta rejects an empty variable, so a blank detail is sent as a dash.
+            var variables = parameters
+                .Select(p => ToTemplateParameter(p) is { Length: > 0 } text ? text : "-")
+                .Select(text => new { type = "text", text })
+                .ToArray();
+
+            await PostAsync(new
+            {
+                messaging_product = "whatsapp",
+                to = NormalizePhone(toPhone),
+                type = "template",
+                template = new
+                {
+                    name = templateName,
+                    language = new { code = string.IsNullOrWhiteSpace(_settings.TemplateLanguage) ? "en" : _settings.TemplateLanguage },
+                    components = new[] { new { type = "body", parameters = variables } }
+                }
+            });
+        }
+
+        private async Task PostAsync(object payload)
+        {
+            var url = $"{_settings.ApiUrl}/{_settings.PhoneNumberId}/messages";
             var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = JsonContent.Create(payload)

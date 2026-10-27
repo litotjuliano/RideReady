@@ -17,5 +17,12 @@ namespace RideReady.Services
 
         /// <summary>Language code the template was approved in (e.g. "en", "en_US").</summary>
         public string TemplateLanguage { get; set; } = "en";
+
+        /// <summary>
+        /// Optional approved template for the driver-details message to the customer. It has one variable per detail
+        /// (booking, driver, phone, vehicle, route, pick up, drop-off, passengers, fare) so the message arrives on separate lines.
+        /// When empty, that message is sent through <see cref="TemplateName"/> as one line instead.
+        /// </summary>
+        public string DriverDetailsTemplateName { get; set; } = string.Empty;
     }
 }

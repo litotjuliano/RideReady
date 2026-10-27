@@ -26,6 +26,13 @@ namespace RideReady.Tests.Services
     public class FakeWhatsAppSender : IWhatsAppSender
     {
         public List<(string To, string Message)> Sent { get; } = new();
+        public List<(string To, string Template, IReadOnlyList<string> Parameters)> Templates { get; } = new();
+
+        public Task SendTemplateAsync(string toPhone, string templateName, IReadOnlyList<string> parameters)
+        {
+            Templates.Add((toPhone, templateName, parameters));
+            return Task.CompletedTask;
+        }
 
         public Task SendAsync(string toPhone, string message)
         {
@@ -446,6 +453,85 @@ namespace RideReady.Tests.Services
             Assert.InRange(WhatsAppCloudApiSender.ToTemplateParameter(message).Length, 1, 1024);
         }
 
+        private static IOptions<WhatsAppSettings> WhatsAppOptionsWithTemplates() => Options.Create(new WhatsAppSettings
+        {
+            ApiUrl = "https://graph.facebook.com/v18.0",
+            AccessToken = "test-token",
+            PhoneNumberId = "1234567890",
+            OperatorPhone = "0192462592",
+            TemplateName = "rideready_update_",
+            DriverDetailsTemplateName = "rideready_driver_details"
+        });
+
+        [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_WithTheDriverDetailsTemplate_SendsOneVariablePerDetail()
+        {
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            booking.FromName = "KL Sentral";
+            booking.ToName = "KLIA T1";
+            booking.DropOffDate = new DateOnly(2026, 9, 10);
+            booking.DropOffTime = new TimeOnly(12, 33);
+            booking.Passengers = 3;
+            booking.Bags = 2;
+            await context.SaveChangesAsync();
+            await SeedAcceptedDriverAsync(context, booking);
+            context.BookingQuotes.Add(new BookingQuote { BookingId = booking.Id, TotalEstimatedFare = 600m });
+            await context.SaveChangesAsync();
+            var whatsAppSender = new FakeWhatsAppSender();
+            var emailSender = new FakeEmailSender();
+            var service = new NotificationService(context, emailSender, whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptionsWithTemplates());
+
+            var sent = await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            Assert.True(sent);
+            Assert.Empty(whatsAppSender.Sent);
+            var template = Assert.Single(whatsAppSender.Templates);
+            Assert.Equal("0125183838", template.To);
+            Assert.Equal("rideready_driver_details", template.Template);
+            Assert.Equal(new[]
+            {
+                booking.BookingReference, "Richard", "0167237377", "Car TEST 1234", "KL Sentral -> KLIA T1",
+                "10 Sep 2026, 9:00 AM", "KL Sentral", "10 Sep 2026, 12:33 PM", "KLIA Terminal 1",
+                "3 passengers · 2 bags · Car", "RM600.00"
+            }, template.Parameters);
+            Assert.Contains("Driver: Richard.", Assert.Single(emailSender.Sent).Body);
+        }
+
+        [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_WithTheDriverDetailsTemplate_SaysFareToBeAdvisedWhenNoneIsSet()
+        {
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            await SeedAcceptedDriverAsync(context, booking);
+            var whatsAppSender = new FakeWhatsAppSender();
+            var service = new NotificationService(context, new FakeEmailSender(), whatsAppSender, new FakeCalendarSyncService(), Settings(), WhatsAppOptionsWithTemplates());
+
+            await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            var parameters = Assert.Single(whatsAppSender.Templates).Parameters;
+            Assert.Equal("To be advised", parameters[^1]);
+            Assert.Equal(string.Empty, parameters[7]); // no drop-off time given
+        }
+
+        [Fact]
+        public async Task SendDriverDetailsToCustomerAsync_WithoutTheDriverDetailsTemplate_SendsOneLineWithoutRepeatingTheIntro()
+        {
+            var context = GetInMemoryDbContext();
+            var booking = await SeedBookingAsync(context);
+            await SeedAcceptedDriverAsync(context, booking);
+            var whatsAppSender = new FakeWhatsAppSender();
+            var settings = Options.Create(new WhatsAppSettings { TemplateName = "rideready_update_" });
+            var service = new NotificationService(context, new FakeEmailSender(), whatsAppSender, new FakeCalendarSyncService(), Settings(), settings);
+
+            await service.SendDriverDetailsToCustomerAsync(booking.Id);
+
+            Assert.Empty(whatsAppSender.Templates);
+            var message = Assert.Single(whatsAppSender.Sent).Message;
+            Assert.StartsWith($"{booking.BookingReference} is confirmed.", message);
+            Assert.DoesNotContain("Your RideReady booking", message);
+        }
+
         [Fact]
         public async Task SendDriverDetailsToCustomerAsync_WhenDriverHasNotAccepted_Throws()
         {
@@ -482,6 +568,7 @@ namespace RideReady.Tests.Services
         private sealed class ThrowingWhatsAppSender : IWhatsAppSender
         {
             public Task SendAsync(string toPhone, string message) => throw new HttpRequestException("401 Unauthorized");
+            public Task SendTemplateAsync(string toPhone, string templateName, IReadOnlyList<string> parameters) => throw new HttpRequestException("401 Unauthorized");
         }
 
 
