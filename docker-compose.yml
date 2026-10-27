@@ -19,6 +19,7 @@ services:
       WhatsAppSettings__AccessToken: ${WHATSAPP_ACCESS_TOKEN:-}
       WhatsAppSettings__TemplateName: ${WHATSAPP_TEMPLATE_NAME:-}
       WhatsAppSettings__TemplateLanguage: ${WHATSAPP_TEMPLATE_LANGUAGE:-en}
+      WhatsAppSettings__DriverDetailsTemplateName: ${WHATSAPP_DRIVER_DETAILS_TEMPLATE_NAME:-}
       AdminCredentials__Username: ${ADMIN_USERNAME}
       AdminCredentials__Password: ${ADMIN_PASSWORD}
       ConnectionStrings__DefaultConnection: "Host=db;Database=rideready;Username=${DB_USER};Password=${DB_PASSWORD}"

@@ -192,6 +192,27 @@ namespace RideReady.Services
             return string.Join("\n", lines);
         }
 
+        /// <summary>
+        /// The same details as <see cref="DriverDetailsMessage"/>, one value per variable of the WhatsApp driver-details template
+        /// (a variable cannot hold a line break, so the template body puts each on its own line):
+        /// 1 booking, 2 driver, 3 phone, 4 vehicle, 5 route, 6 pick up time, 7 pick up place, 8 drop-off time,
+        /// 9 drop-off place, 10 passengers line, 11 fare. A missing value is left empty and sent as a dash.
+        /// </summary>
+        internal static IReadOnlyList<string> DriverDetailsFields(Booking booking, Driver driver, decimal? fare) => new[]
+        {
+            booking.BookingReference,
+            driver.Name,
+            driver.Phone,
+            string.Join(" ", new[] { driver.VehicleType, driver.VehicleNumber }.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s!.Trim())),
+            TripText.Route(booking.FromName, booking.PickupLocation, booking.ToName, booking.Destination),
+            TripText.When(booking.PickupDate, booking.PickupTime),
+            booking.PickupLocation?.Trim() ?? string.Empty,
+            booking.DropOffDate is DateOnly d && booking.DropOffTime is TimeOnly t ? TripText.When(d, t) : string.Empty,
+            booking.Destination.Trim(),
+            TripText.PassengersAndVehicle(booking.Passengers, booking.Bags, booking.RequestedVehicleType, booking.OtherVehicleDescription),
+            fare is > 0 ? $"RM{fare:F2}" : "To be advised"
+        };
+
         public async Task<bool> SendDriverDetailsToCustomerAsync(int bookingId)
         {
             var booking = await _context.Bookings.Include(b => b.Customer)
@@ -222,9 +243,22 @@ namespace RideReady.Services
                 "Your RideReady driver", message,
                 () => _emailSender.SendAsync(booking.Customer.Email, "Your RideReady driver", message));
 
+            // With the driver-details template configured each detail is its own variable, so WhatsApp shows them on separate lines.
+            if (!string.IsNullOrWhiteSpace(_whatsAppSettings.DriverDetailsTemplateName))
+            {
+                var fields = DriverDetailsFields(booking, driver, quote?.TotalEstimatedFare);
+                return await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Phone, "WhatsApp", DriverDetailsEvent,
+                    null, message,
+                    () => _whatsAppSender.SendTemplateAsync(booking.Customer.Phone, _whatsAppSettings.DriverDetailsTemplateName, fields));
+            }
+
+            // Otherwise it goes as one line inside the general template, which already begins "Update on your RideReady booking:".
+            var oneLine = string.IsNullOrWhiteSpace(_whatsAppSettings.TemplateName)
+                ? message
+                : message.Replace($"Your RideReady booking {booking.BookingReference} is confirmed.", $"{booking.BookingReference} is confirmed.");
             return await SendAndLogAsync(bookingId, "Customer", booking.CustomerId, booking.Customer.Phone, "WhatsApp", DriverDetailsEvent,
-                null, message,
-                () => _whatsAppSender.SendAsync(booking.Customer.Phone, message));
+                null, oneLine,
+                () => _whatsAppSender.SendAsync(booking.Customer.Phone, oneLine));
         }
 
         public async Task SendBookingCompletedNotificationAsync(int bookingId)
